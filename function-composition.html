@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 4.4 </h1>
+<h2>Ripple-Carry Adder</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="easy-to-test.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="pure-functions.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p class="info"><em>“Whenever trying to make complicated systems and understand them, it’s crucial to divide the things up into as many pieces as I can, each of which I understand separately. I would like to understand the way of adding things up independently of what it is I’m adding up.” - <a href="https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-001-structure-and-interpretation-of-computer-programs-spring-2005/video-lectures/2a-higher-order-procedures/" target="_blank">Gerald Sussman</a></em></p>
+
+<h3 id="implementing-a-4-bit-ripple-carry-adder">Zavedení čtyř bitové sčítačky</h3>
+
+<p>Projděme si jedním příkladem, abychom pochopili jak mohou být funkce, řešící jednoduché problémy, spojeny k řešení složitějšího problému. Problém, který chceme řešit, je simulace chování 4-b (ripple-carry) sčítačky programem v Elmu. Rozeberme si nejprve jednotlivé termíny z názvu.</p>
+
+<ul>
+  <li><p><strong>4-b:</strong> bit je zkratka pro binary digit. Takže 4-bit znamená čtyř bitové binární číslo, jako např. <code class="highlighter-rouge">1001</code>.</p>
+  </li>
+  <li><p><strong>ripple-carry:</strong> pamatujete se, jak jste se v dětství učili sčítat <code class="highlighter-rouge">5</code> + <code class="highlighter-rouge">5</code> přenosem <code class="highlighter-rouge">1</code> o jeden sloupec vlevo, dostávajíce tak výsledek <code class="highlighter-rouge">10</code>? Později, když jste byli zběhlejší při používání tohoto způsobu, pokročili jste k matematickým problémům se dvěma převody - jako při sčítání <code class="highlighter-rouge">95</code> + <code class="highlighter-rouge">5</code>. Nejprve jste převedli jedničku ze součtu <code class="highlighter-rouge">5</code> + <code class="highlighter-rouge">5</code> vlevo, potom jste převedli jedničku ze součtu <code class="highlighter-rouge">1</code> a <code class="highlighter-rouge">9</code> opět o jeden sloupec vlevo, dostávajíc tak výsledek <code class="highlighter-rouge">100</code>. To je vpodstatě vysvětlení termínu "ripple-carry" (zřetězený přenos) — každé číslo, přenesené z jednoho sloupce, se zahrne do součtu ve sloupci vedlejším.</p>
+  </li>
+  <li>
+    <p><strong>sčítačka:</strong> digitální obvod, který sčítá dvě binární čísla.</p>
+  </li>
+</ul>
+
+<p>Než se ponoříme hlouběji do 'ripple-carry adder', připomeneme si jak pracuje binární systém.</p>
+
+<h3 id="binary-system">Binární systém</h3>
+
+<p>Desítková číselná soustava je poziční číselná soustava se základem <code class="highlighter-rouge">10</code>. Pro zápis čísel se používají číslice <code class="highlighter-rouge">0</code> až <code class="highlighter-rouge">9</code>. <code class="highlighter-rouge">Základ 10</code> znamená, že každá číslice v čísle je desetkrát větší, než její soused napravo. Obrázek níže rozkládá desítkové číslo <code class="highlighter-rouge">4608</code>, takže sami vidíte – číslice začínají řádem 10<sup>0</sup> vpravo, vedlejší číslice vlevo je desetkrát větší v řádu  10<sup>1</sup> a další vedlejší číslice vlevo je desetkrát větší v řádu  10<sup>2</sup>, atd.</p>
+
+<p><img src="images/decimal-base-10.png" alt="" /></p>
+
+<p>Binární systém má jenom dvě číslice — <code class="highlighter-rouge">0</code> a <code class="highlighter-rouge">1</code>. Používá základ 2, což znamená, že každá číslice v binárním čísle je dvakrát větší než číslice vpravo. Zde je příklad binárního čísla <code class="highlighter-rouge">1101</code>:</p>
+
+<p><img src="images/binary-base-10.png" alt="" /></p>
+
+<p>Chcete-li vědět jaké decimální hodnotě toto binární číslo  <code class="highlighter-rouge">1101</code> odpovídá, je snadné to zjistit. Stačí spočítat dolní řádek jako jeden matematický výraz a uvidíte, že finální výsledek je <code class="highlighter-rouge">13.</code>  <code class="highlighter-rouge">13</code> je desítkový ekvivalent binárního čísla <code class="highlighter-rouge">1101</code>.</p>
+
+<h3 id="binary-addition">Binární součet</h3>
+<p class="info"> Na počátku tohoto odstavce je nutno uvést, že pro sčítání binárních hodnot platí tyto předpoklady:<br>
+<code class="highlighter-rouge">0 + 0 = 0</code>, <code class="highlighter-rouge">0 + 1 = 1</code>, <code class="highlighter-rouge">1 + 0 = 1</code> a <code class="highlighter-rouge">1 + 1 = 0</code> s přenosem jedničky do vyššího řádu.</p>
+<p>Sčítání binárních čísel je podobné sčítání desítkových čísel, s tím rozdílem, že se přenáší hodnota <code class="highlighter-rouge">2</code> místo <code class="highlighter-rouge">10</code>. Když například v desítkové soustavě sčítáme <code class="highlighter-rouge">6</code> + <code class="highlighter-rouge">3</code>, dostáváme <code class="highlighter-rouge">9</code>. Když ale sečteme <code class="highlighter-rouge">6</code> + <code class="highlighter-rouge">4</code>, nelze výsledek vyjádřit jednomístnou číslicí. V tom případě se číslice úplně vpravo přemění na nulu a jedničku přenášíme o jedno místo vlevo.</p>
+
+<p><img src="images/decimal-addition-carry.png" alt="" /></p>
+
+<p>V binární soustavě, sečteme-li <code class="highlighter-rouge">1</code> + <code class="highlighter-rouge">1</code> jsme ve stejných úzkých jako v desítkové soustavě s <code class="highlighter-rouge">6</code> + <code class="highlighter-rouge">4</code>: vyčerpali jsme číslice, které máme k disposici. Když nám dojdou číslice, je čas nastavit číslici vpravo na nulu a přenést jedničku o jedno místo vlevo.</p>
+
+<p><img src="images/binary-addition-carry.png" alt="" /></p>
+
+<p>Podle této logiky je snadné ve sčítání binárních čísel pokračovat. Zjistěme, jaké binární číslo je ekvivalentní desítkovému číslu  <code class="highlighter-rouge">4</code>. Pamatujte, že pokaždé, když nám dojdou číslice, znamená to, že musíme resetovat na nulu a převést jedničku:</p>
+
+<p><img src="images/adding-four-in-binary.png" alt="" /></p>
+
+<p>Nyní vidíme, že decimální  <code class="highlighter-rouge">4</code> je binární <code class="highlighter-rouge">100</code>.</p>
+
+<h3 id="adding-numbers-with-a-4-bit-ripple-carry-adder">Sčítání čísel se 4-b sčítačkou</h3>
+
+<p>Čtyř-bitová (ripple-carry) sčítačka může sčítat čísla se čtyřmi číslicemi. Obrázek dole prezentuje sčítání binárních čísel <code class="highlighter-rouge">1110</code> + <code class="highlighter-rouge">1011</code>, přenášené číslice jsou zvýrazněny purpurovou barvou.</p>
+
+<p><img src="images/4-digit-binary-addition.png" alt="" /></p>
+
+<p>Ripple-carry adder (RCA) sčítá dvě číslice počínaje zprava. Vyskytne-li se přenos (carry), je přemístěn do následného součtu. Po přičtení všech čtyř číslic, je nám prezentován tento výstup:</p>
+
+<p><img src="images/4-bit-ripple-carry-adder-output.png" alt="" /></p>
+
+<p>A<sub>0</sub>, A<sub>1</sub>, A<sub>2</sub>, and A<sub>3</sub> reprezentují jednotlivé číslice prvního čísla. B<sub>0</sub>, B<sub>1</sub>, B<sub>2</sub>, and B<sub>3</sub> reprezentují jednotlivé číslice druhého čísla.  S<sub>0</sub>, S<sub>1</sub>, S<sub>2</sub>, and S<sub>3</sub> reprezentují jednotlivé číslice součtu. C<sub>out</sub> reprezentuje nejvýznamnější číslici součtu. Nejvýznamnější číslice je číslice s nejvyšší hodnotou v posledním řádku. Zde je obvod pro 4-bitovou sčítačku.</p>
+
+<p><img src="images/4-bit-ripple-carry-adder.png" alt="" /></p>
+
+<p>C<sub>in</sub> je přenos (carry-in) z předchozího sčítání. C<sub>out</sub> je přenos (carry-out), který bude předán dalšímu sčítání.</p>
+
+<p>Zobrazený obvod je to, co chceme simulovat v Elm. Kde začít? Nejprve se musíme pokusit rozdělit řešený problém do menších částí. Při bližším pohledu vidíme, že RCA používá opakovaně stejnou sčítačku s různými vstupy a výstupy. Tato sčítačka slouží jako stavební kámen pro RPA a nazývá se <em> jedno bitová úplná sčítačka</em> (full adder). Prozkoumejme tuto 1-b úplnou sčítačku a jak ji můžeme implementovat v RCA.</p>
+
+<h3 id="1-bit-full-adder">1-bit full adder</h3>
+
+<p>Jednobitová úplná sčítačka sčítá pouze dvě číslice ale je schopná přijmout i přinášenou (carry-in) hodnotu. Přijímá tři vstupy a produkuje dva výstupy, jak je ukázáno v obrázku dole:</p>
+
+<p><img src="images/full-adder.png" alt="" /></p>
+
+<p>A<sub>n</sub> and B<sub>n</sub> představují sčítané binární číslice. C<sub>n</sub> představuje přinášenou číslici a C<sub>n+1</sub> představuje přenášenou číslici. S<sub>n</sub> představuje nejméně významnou číslici součtu. Nejméně významná číslice je číslice s nejnižší hodnotou. U binárního čísla to je číslice úplě vpravo. Zde je pravdivostní tabulka, která ukazuje všechny možné vstupy a výstupy, produkované sčotem:</p>
+
+<p><img src="images/full-adder-truth-table.png" alt="" /></p>
+
+<p>Můžeme rozložit jednobitový "full adder" na ještě menší části? Jak se ukazuje, můžeme - jak ilustrováno v obrázku dole.</p>
+
+<p><img src="images/full-adder-half-adder.png" alt="" /></p>
+
+<p>"Full adder" může být implementován s použitím dvou polovičních sčítaček (half adder) a hradla OR. Co je hradlo OR (OR gate) se dozvíme brzo ale nejprve si povězme, jak pracuje poloviční sčítačka.</p>
+
+<h3 id="half-adder">Half Adder</h3>
+
+<p>Half adder rovněž sčítá dvě binární číslice ale na rozdíl od full adder nepříjímá přinášenou hodnotu.</p>
+
+<p><img src="images/half-adder.png" alt="" /></p>
+
+<p>Zde je pravdivostní tabulka pro half adder, která ukazuje všechny jeho možné vstupy a výstupy:</p>
+
+<p><img src="images/half-adder-truth-table.png" alt="" /></p>
+
+<p>Jeho implementaci můžeme rozložit na ještě menší komponenty: hradlo AND, hradla OR a invertoru.</p>
+
+<p><img src="images/half-adder-circuit.png" alt="" /></p>
+
+<h3 id="and-gate">Hradlo AND</h3>
+
+<p>Hradlo AND přijímá dva signály a vrací jeden výstup, jenž je logickým <em>AND</em> vstupů. Je to ekvivalent operátoru <a href="boolean.html" target="_blank"><code class="highlighter-rouge">&amp;&amp;</code></a>.</p>
+
+<p><img src="images/and-gate.png" alt="" /></p>
+
+<p><img src="images/and-gate-truth-table.png" alt="" /></p>
+
+<h3 id="or-gate">Hradlo OR</h3>
+
+<p>Hradlo OR přijímá dva vstupní signály a vrací výstup, jenž je logickým<em>OR</em> vstupů. Je to ekvivalent operátoru <a href="/boolean.html" target="_blank"><code class="highlighter-rouge">||</code></a>.</p>
+
+<p><img src="images/or-gate.png" alt="" /></p>
+
+<p><img src="images/or-gate-truth-table.png" alt="" /></p>
+
+<h3 id="inverter">Invertor</h3>
+
+<p>Invertor přijímá jeden vstupní signál a převrací jej. Je-li vstupem <code class="highlighter-rouge">0</code> vrací <code class="highlighter-rouge">1</code>. Je-li vstupem <code class="highlighter-rouge">1</code>, vrací <code class="highlighter-rouge">0</code>. Je to ekvivalent funkce <a href="/boolean.html" target="_blank"><code class="highlighter-rouge">not</code></a>.</p>
+
+<p><img src="images/inverter.png" alt="" /></p>
+
+<p><img src="images/inverter-truth-table.png" alt="" /></p>
+
+<p>Nyní, když jsme náš problém (4-bit RCA) rozložili na jeho základní stavební bloky (hradlo AND, hradlo OR a invertor), můžeme začít sestavovat řešení jejich použitím.</p>
+
+<h3 id="implementing-an-and-gate">Zavedení hradla AND</h3>
+
+<p>Vytvořme samostatný soubor, který bude obsahovat všechen kód, který napíšeme při implementaci odlišných částí 4b-RCA. V adresáři <code class="highlighter-rouge">elm-examples</code> vytvořte nový soubor s názvem <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<p><img src="images/ripple-carry-adder-directory.png" alt="" /></p>
+
+<p>Vložte následující kód do souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RippleCarryAdder</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Bitwise</span>
+
+
+<span class="n">andGate</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">and</span> <span class="n">a</span> <span class="n">b</span></code></pre></figure>
+
+<p>Deklarovali jsme nový modul, nazvaný <code class="highlighter-rouge">RippleCarryAdder</code> a importovali další modul, nazvaný  <a href="http://package.elm-lang.org/packages/elm-lang/core/5.0.0/Bitwise" target="_blank">Bitwise</a>, jenž obsahuje funkce, které manipulují s jednotlivými bity. Shodou okolností provádí funkce <code class="highlighter-rouge">Bitwise.and</code> přesně totéž, co se očekává od našeho hradla AND, což je určení logického  <em>AND</em> dvou vstupních signálů.</p>
+
+<p>Můžete se ptát, proč jsme prostě pro implementaci funkce <code class="highlighter-rouge">andGate</code> nepoužili operátor <code class="highlighter-rouge">&amp;&amp;</code>. Je to proto, že tento operátor pracuje pouze s booleovskými hodnotami. Protože se pokoušíme simulovat digitální obvod, chceme pracovat s hodnotami <code class="highlighter-rouge">0</code> a <code class="highlighter-rouge">1</code> místo s <code class="highlighter-rouge">True</code> a <code class="highlighter-rouge">False</code>, i když jsou koncepčně ekvivalentní.</p>
+
+<p>Obecně nemá smysl vytvářet funkci, která pouze obaluje stávající funkci ale název <code class="highlighter-rouge">andGate</code> je v kontextu digitálního obvodu víc osvětlující, než pouhé <code class="highlighter-rouge">and</code>. Načtěte modul <code class="highlighter-rouge">RippleCarryAdder</code> do replu, otevřeného v adresáři <code class="highlighter-rouge">elm-examples</code> a aplikujte funkci <code class="highlighter-rouge">andGate</code> následujícím způsobem:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">RippleCarryAdder</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="n">andGate</span> <span class="mi">0</span> <span class="mi">0</span>
+<span class="mi">0</span>
+
+<span class="o">&gt;</span> <span class="n">andGate</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="mi">0</span>
+
+<span class="o">&gt;</span> <span class="n">andGate</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="mi">0</span>
+
+<span class="o">&gt;</span> <span class="n">andGate</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="mi">1</span></code></pre></figure>
+
+<p class="info">Na rozdíl od modulu <code class="highlighter-rouge">Playground</code> jsme nepsali funkci <code class="highlighter-rouge">main</code> v modulu <code class="highlighter-rouge">RippleCarryAdder</code>. To proto, že budeme všechen kód spouštět v replu. Funkci <code class="highlighter-rouge">main</code> potřebujeme tehdy, když chceme náš kód spouštět v prohlížeči.</p>
+
+<p>I když máme v modulu <code class="highlighter-rouge">RippleCarryAdder</code> pouze jednu funkci, použili jsme <code class="highlighter-rouge">(..)</code> abychom zpřístupnili (expose) vše, co obsahuje. Usnadní nám to práci s modulem, až do něho přídáme více funcí. Protože jména našich funkcí budou stále velmi deskriptivní, je málá možnost, že je zaměníme s jinými, již importovanými jmény.</p>
+
+<h3 id="implementing-an-or-gate">Zavedení hradla OR</h3>
+
+<p>Modul <code class="highlighter-rouge">Bitwise</code> také obsahuje funkci pro určení logického  <em>OR</em> dvou signálů. Použijeme ji pro implementaci hradla OR. Přidejte následující definici funkce do spodní části souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">orGate</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">or</span> <span class="n">a</span> <span class="n">b</span></code></pre></figure>
+
+<p>Zavolejte ji z replu a ověřte, že pracuje dle očekávání.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">orGate</span> <span class="mi">0</span> <span class="mi">0</span>
+<span class="mi">0</span>
+
+<span class="o">&gt;</span> <span class="n">orGate</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="mi">1</span>
+
+<span class="o">&gt;</span> <span class="n">orGate</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="mi">1</span>
+
+<span class="o">&gt;</span> <span class="n">orGate</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="mi">1</span></code></pre></figure>
+
+<p>Modul <code class="highlighter-rouge">RippleCarryAdder</code> nemusíme reimportovat pokaždé, když v něm provedeme nějaké změny. Repl to automaticky udělá za nás, kdykoli detekuje nějakou změnu. Není to pěkné?</p>
+
+<h3 id="implementing-an-inverter">Zavedení invertoru</h3>
+
+<p>V modulu <code class="highlighter-rouge">Bitwise</code> není vhodná funkce, která provádí to, co se očekává od invertoru. Vytasme se tedy se svou vlastní. Přidáme následující definici funkce do souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">inverter</span> <span class="n">a</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">a</span> <span class="kr">of</span>
+        <span class="mi">0</span> <span class="o">-&gt;</span>
+            <span class="mi">1</span>
+
+        <span class="mi">1</span> <span class="o">-&gt;</span>
+            <span class="mi">0</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="o">-</span><span class="mi">1</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">inverter</code> převrací vstupní signál pomocí výrazu <code class="highlighter-rouge">case</code>. Je-li vstupní signál <code class="highlighter-rouge">0</code>, vrací <code class="highlighter-rouge">1</code> a vice versa. Je-li vstupní signál cokoliv jiného než <code class="highlighter-rouge">0</code> nebo <code class="highlighter-rouge">1</code>, vrací <code class="highlighter-rouge">-1</code>. Použili jsme negativní <code class="highlighter-rouge">1</code> abychom indikovali, že vstupní signál nereprezentuje platné binární číslo.</p>
+
+<p>Kdybychom nepřidali <code class="highlighter-rouge">_ -&gt; -1</code> catch-all pattern, Elm by protestoval, protože tento vzor je v idiomu <code class="highlighter-rouge">case</code> povinný. Až se seznámíme s <a href="type-system.html" target="_blank">typy</a>, budeme moci funkci <code class="highlighter-rouge">inverter</code> zavést lépe.</p>
+
+<p>Ověřme si v replu, že <code class="highlighter-rouge">inverter</code> pracuje jak očekáváno.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">inverter</span> <span class="mi">0</span>
+<span class="mi">1</span>
+
+<span class="o">&gt;</span> <span class="n">inverter</span> <span class="mi">1</span>
+<span class="mi">0</span></code></pre></figure>
+
+<p>Nyní, když jsme zavedli základní stavební bloky, můžeme začít sestavovat složitější části.</p>
+
+<h3 id="implementing-a-half-adder">Zavedení poloviční sčítačky</h3>
+
+<p>Přidejte následující definici funkce na spodek souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">halfAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">d</span> <span class="o">=</span>
+            <span class="n">orGate</span> <span class="n">a</span> <span class="n">b</span>
+
+        <span class="n">e</span> <span class="o">=</span>
+            <span class="n">andGate</span> <span class="n">a</span> <span class="n">b</span>
+                <span class="o">|&gt;</span> <span class="n">inverter</span>
+
+        <span class="n">sumDigit</span> <span class="o">=</span>
+            <span class="n">andGate</span> <span class="n">d</span> <span class="n">e</span>
+
+        <span class="n">carryOut</span> <span class="o">=</span>
+            <span class="n">andGate</span> <span class="n">a</span> <span class="n">b</span>
+    <span class="kr">in</span>
+        <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">carryOut</span>
+        <span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">sumDigit</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">halfAdder</code> napodobuje obvod poloviční sčítačky. Používá všechna tři logická hradla, která jsme zavedli již dříve, k výpočtu součtu a přenosu, jež jsou posléze vrácena v záznamu (record). Konstanty <code class="highlighter-rouge">d</code> a <code class="highlighter-rouge">e</code> obsahují mezilehlé výsledky, které jsou posléze předány hradlu AND pro výpočet výsledného součtu.</p>
+
+<p>V sekci <a href="tuple.html#using-tuples" target="_blank">Používání  entic</a> jsme si říkali, že chceme-li vracet více hodnot z jedné funkce, máme zvážit použití entice (tuple). Záznamy (recors) jsou rovněž vhodné pro návrat vícerých hodnot. Použijeme-li v tomto případě záznam, snadněji na výstupu funkce <code class="highlighter-rouge">halfAdder</code> rozeznáme, které číslo je součet a které je přenos (carry).</p>
+
+<p>V záznamu nahoře jsme přidali čárku před <code class="highlighter-rouge">sum = sumDigit</code>, místo abychom ji přídali na konec předchozího řádku. Ve většině jazyků se při tvorbě kolekce přidává čárka na konec ale Elm style guide doporučuje ji přidávat na začátek řádku. Údajně se snadněji zjistí její nepřítomnost. Zde je příklad většího záznamu s čárkami na koncích:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">{</span> <span class="n">carry1</span> <span class="o">=</span> <span class="n">carryOut1</span><span class="p">,</span>
+  <span class="n">sum1</span> <span class="o">=</span> <span class="n">sumDigit1</span><span class="p">,</span>
+  <span class="n">carry2</span> <span class="o">=</span> <span class="n">carryOut2</span>
+  <span class="n">sum2</span> <span class="o">=</span> <span class="n">sumDigit2</span><span class="p">,</span>
+  <span class="n">carry3</span> <span class="o">=</span> <span class="n">carryOut3</span><span class="p">,</span>
+  <span class="n">sum3</span> <span class="o">=</span> <span class="n">sumDigit3</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Je snadné přehlédnout, že ve třetím řádku chybí čárka. Dáme-li je ale na začátek, je chybějící čárka skoro nepřehlédnutelná</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">{</span> <span class="n">carry1</span> <span class="o">=</span> <span class="n">carryOut1</span>
+<span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="n">sumDigit1</span>
+<span class="p">,</span> <span class="n">carry2</span> <span class="o">=</span> <span class="n">carryOut2</span>
+  <span class="n">sum2</span> <span class="o">=</span> <span class="n">sumDigit2</span>
+<span class="p">,</span> <span class="n">carry3</span> <span class="o">=</span> <span class="n">carryOut3</span>
+<span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="n">sumDigit3</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Kompilátor takovéto chyby snadno odchytí ale dáme-li čárky na začátek, ušetříme si jednu cestu ke kompilátoru. Ověřme si, že funkce <code class="highlighter-rouge">halfAdder</code> pracuje dle očekávání.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">halfAdder</span> <span class="mi">0</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">halfAdder</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">halfAdder</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">halfAdder</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span></code></pre></figure>
+
+<h3 id="implementing-a-1-bit-full-adder">Zavedení 1-b úplné sčítačky</h3>
+
+<p>Implementujme úplnou sčítačku (full adder) použitím dvou polovičních sčítaček (half adders) a hradla OR. Přidejte následující funkci do souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fullAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">halfAdder</span> <span class="n">b</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">halfAdder</span> <span class="n">a</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">sum</span>
+
+        <span class="n">finalCarry</span> <span class="o">=</span>
+            <span class="n">orGate</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">finalCarry</span>
+        <span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">fullAdder</code> rovněž napodobuje obvod full adder, který jsme viděli dříve. Full adder je schopen přijmout přenos carry-in jako jeden ze vstupů. Takže ji zadáme třetí parametr, který reprezentuje hodnotu carry-in a dva vstupní signály: <code class="highlighter-rouge">a</code> a <code class="highlighter-rouge">b</code>. Ověřme si, že logika funkce <code class="highlighter-rouge">fullAdder</code> pracuje, jak očekáváno.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span></code></pre></figure>
+
+<h3 id="implementing-a-4-bit-ripple-carry-adder-1">Zavedení 4-b Ripple-Carry Adder</h3>
+
+<p>Konečně jsme připraveni implementovat 4-b RCA. Přidejte naásledující definici funkce do souboru  <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="p">(</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="p">)</span> <span class="p">(</span> <span class="n">b3</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b0</span> <span class="p">)</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a0</span> <span class="n">b0</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a1</span> <span class="n">b1</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">thirdResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a2</span> <span class="n">b2</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">finalResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a3</span> <span class="n">b3</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">carry</span>
+        <span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Funkce<code class="highlighter-rouge">rippleCarryAdder</code>opakovaně používá funkci <code class="highlighter-rouge">fullAdder</code> k výpočtu výsledné sumy a přenosu. Ověřme si, zda pracuje, jak očekáváme.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="p">)</span> <span class="mi">1</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span></code></pre></figure>
+
+<p>Abychom to shrnuli, vzali jsme si složitý problém vytvoření čtyř bitové sčítačky (ripple-carry adder) a rozložili jsme jej na jeho základní stavební bloky (hradlo AND, hradlo OR a invertor). Tyto stavební bloky jsme použili k vytvoření poloviční sčítačky (half adder). Poloviční sčítačku a bránu OR jsme poté použili k sestavení plné sčítačky (full adder). Nakonec jsme čtyřikrát použili plnou sčítačku k vytvoření čtyř bitové sčítačky (4-bit ripple-carry adder).</p>
+
+<p>Použili jsme malé, spolehlivé funkce k vytvoření větších a stejně spolehlivých funkcí. Tento způsob řešení složitého problému spojením malých funkcí je zcela obvyklý ve funkcionálně programovacím jazyku, jako je Elm. Tento způsob je spolehlivý hlavně proto, že všechny funkce v Elmu jsou <a href="/pure-functions.html" target="_blank">pure</a>.</p>
+
+<h3 id="improving-inputs-and-outputs">Zlepšení vstupů a výstupů</h3>
+
+<p>Výše sestavená funkce <code class="highlighter-rouge">rippleCarryAdder</code> přijímá vstupní signály jako entice a vrací výstup jako záznam. To čtení vstupů a výstupů poněkud ztěžuje. Byly by mnohem čitelnější, maje takovýto formát:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="mi">1110</span> <span class="mi">1011</span> <span class="mi">0</span>
+<span class="mi">11001</span>
+
+<span class="n">rippleCarryAdder</span> <span class="mi">1110</span> <span class="mi">1011</span> <span class="mi">1</span>
+<span class="mi">11010</span></code></pre></figure>
+
+<h3 id="improving-inputs">Zlepšení vstupů</h3>
+
+<p>Na rozdíl od většíny ostatních jazyků, Elm dosud neposkytuje způsob reprezentace binárních čísel. Na příklad v JavaScriptu je můžeme prezentovat přidáním prefixu <code class="highlighter-rouge">0b</code>:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="mi">0</span><span class="nx">b1110</span>    <span class="c1">// Equivalent to 14 in decimal</span>
+<span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="mi">0</span><span class="nx">b1011</span>    <span class="c1">// Equivalent to 11 in decimal</span></code></pre></figure>
+
+<p>Musíme tedy ještě trochu zapracovat, abychom byli schopni zadávat binární čísla jako vstupy funkci <code class="highlighter-rouge">rippleCarryAdder</code>. První věc, kterou musíme udělat, je extrahovat číslice z binárního čísla, abychom je mohli zadávat jednotlivě různým sčítačkám. Upravte funkci <code class="highlighter-rouge">rippleCarryAdder</code> podle vzoru dole, aby přijímala čísla místo entic:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="c1">-- Extract digits</span>
+        <span class="p">(</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">a</span>
+
+        <span class="p">(</span> <span class="n">b3</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">b</span>
+
+        <span class="c1">-- Compute sum and carry-out</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a0</span> <span class="n">b0</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a1</span> <span class="n">b1</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">thirdResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a2</span> <span class="n">b2</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">finalResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a3</span> <span class="n">b3</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">carry</span>
+        <span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Použili jsme neexistující funkci <code class="highlighter-rouge">extractDigits</code> pro vynětí číslic ze vstupních čísel. Uveďme tuto funkci nyní. Přidejte následující definici funkce do spodní části souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">extractDigits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="n">toString</span> <span class="n">number</span>
+        <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">""</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="n">stringToInt</span>
+        <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span>
+        <span class="o">|&gt;</span> <span class="n">arrayToTuple</span></code></pre></figure>
+
+<p>Funce <code class="highlighter-rouge">extractDigits</code> přijímá číslo, reprezentující binární číslice a provádí jej několika transformacemi, než jsou všechny číslice extrahovány.<br>
+Pojďme si tyto transformace blíže popsat.</p>
+
+<p class="info">Nemusíte si každý dále popisovaný krok zkoušet. Jsou uvedeny jenom pro osvětlení, jak funkce <code class="highlighter-rouge">extractDigits</code> pracuje. Některé z nich ani nebudou kompilovat, protože nejsou uvedeny všechny nezbytné funkce, použité uvnitř <code class="highlighter-rouge">extractDigits</code>.</p>
+
+<p><strong>Krok 1:</strong> Přeměňte vstupní číslo na řetězec.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">toString</span> <span class="mi">1110</span>
+<span class="s">"1110"</span></code></pre></figure>
+
+<p><strong>Krok 2:</strong> Rozdělte tento řetězec do seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">""</span> <span class="s">"1110"</span>
+<span class="p">[</span><span class="s">"1"</span><span class="p">,</span><span class="s">"1"</span><span class="p">,</span><span class="s">"1"</span><span class="p">,</span><span class="s">"0"</span><span class="p">]</span></code></pre></figure>
+
+<p><strong>Krok 3:</strong> Konvertujte každý element seznamu zpět na číslo.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="n">stringToInt</span> <span class="p">[</span> <span class="s">"1"</span><span class="p">,</span> <span class="s">"1"</span><span class="p">,</span> <span class="s">"1"</span><span class="p">,</span> <span class="s">"0"</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span></code></pre></figure>
+
+<p>Konverze čísla na seznam číslic se provádí oklikou, protože Elm pro to nemá funkci.</p>
+
+<p><strong>Krok 4:</strong> Přeměňte seznam na array, abychom měli přístup ke každé číslici prostřednictvím indexu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span></code></pre></figure>
+
+<p><strong>Krok 5:</strong> Konvertujte array na entici (tuple).</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">arrayToTuple</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="p">])</span>
+<span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span></code></pre></figure>
+
+<p>Použití entice k definování více konstant najednou je docela výhodné:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">(</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="p">)</span> <span class="o">=</span>
+    <span class="n">extractDigits</span> <span class="n">a</span></code></pre></figure>
+
+<p>Poté, co jsme pochopili práci funkce <code class="highlighter-rouge">extractDigits</code>, zaveďme ony dvě neexistující funkce (<code class="highlighter-rouge">stringToInt</code> a <code class="highlighter-rouge">arrayToTuple</code>), které jsme použili uvnitř funkce <code class="highlighter-rouge">extractDigits</code>. Přidejte následující definice funkcí na konec souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">stringToInt</span> <span class="n">string</span> <span class="o">=</span>
+    <span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="n">string</span>
+        <span class="o">|&gt;</span> <span class="kt">Result</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+
+
+<span class="n">arrayToTuple</span> <span class="n">array</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">firstElement</span> <span class="o">=</span>
+            <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">0</span> <span class="n">array</span>
+                <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">secondElement</span> <span class="o">=</span>
+            <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">1</span> <span class="n">array</span>
+                <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">thirdElement</span> <span class="o">=</span>
+            <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">2</span> <span class="n">array</span>
+                <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">fourthElement</span> <span class="o">=</span>
+            <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">3</span> <span class="n">array</span>
+                <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="kr">in</span>
+        <span class="p">(</span> <span class="n">firstElement</span><span class="p">,</span> <span class="n">secondElement</span><span class="p">,</span> <span class="n">thirdElement</span><span class="p">,</span> <span class="n">fourthElement</span> <span class="p">)</span></code></pre></figure>
+
+<p>Modul <code class="highlighter-rouge">Array</code> musíme ručně importovat. Vložte tento import hned pod import modulu <code class="highlighter-rouge">Bitwise</code> v souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">Bitwise</span>
+<span class="kr">import</span> <span class="nn">Array</span></code></pre></figure>
+
+<p>Jak její jméno naznačuje, přijímá funkce <code class="highlighter-rouge">stringToInt</code> řetězec a konvertuje jej na celé číslo. Protože funkce <code class="highlighter-rouge">String.toInt</code> vrací hodnotu typu <code class="highlighter-rouge">Result</code> místo celého čísla, potřebujeme ještě trochu zapracovat, abychom konvertovali řetězec na celé číslo.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"1"</span>
+<span class="kt">Ok</span> <span class="mi">1</span> <span class="o">:</span> <span class="kt">Result</span><span class="o">.</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">Int</span></code></pre></figure>
+
+<p>Typ <code class="highlighter-rouge">Result</code> si vysvětlíme později v této kapitole. Pro tuto chvíli si jej představte jako kontejner, který obsahuje buď úspěšný výstup z operace nebo sdělení "error". V Elmu je definován takto:</p>
+
+<p class="info">Tuto definici nevkládejte do replu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="kt">Result</span> <span class="ne">error</span> <span class="n">value</span>
+    <span class="o">=</span> <span class="kt">Ok</span> <span class="n">value</span>
+    <span class="o">|</span> <span class="kt">Err</span> <span class="ne">error</span></code></pre></figure>
+
+<p>Takže pokud byla operace úspěšná, jako v <code class="highlighter-rouge">String.toInt "1"</code>, obsahuje <code class="highlighter-rouge">Ok</code> a výstupní hodotu: <code class="highlighter-rouge">Ok 1</code>. Jinak obsahuje <code class="highlighter-rouge">Err</code> a sdělení o chybě, jako v tomto příkladě:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"a"</span>
+<span class="kt">Err</span> <span class="s">"could not convert string 'a' to an Int"</span> <span class="o">:</span> <span class="kt">Result</span><span class="o">.</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">Int</span></code></pre></figure>
+
+<p>Jak vidno, funkce <code class="highlighter-rouge">String.toInt</code> nemůže garantovat, že bude vždy schopna konvertovat řetězec na číslo. Proto vrací <code class="highlighter-rouge">Result</code> místo celého čísla. Což ale tento kód ve funkci <code class="highlighter-rouge">stringToInt</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">|&gt;</span> <span class="kt">Result</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span></code></pre></figure>
+
+<p><code class="highlighter-rouge">Result.withDefault</code> je výhodná funkce, která vrací hodnotu, je-li výsledek <code class="highlighter-rouge">OK</code>, je-li ale výsledek <code class="highlighter-rouge">Err</code>, vrací implicitní hodnotu <code class="highlighter-rouge">-1</code>, v našem případě indikujíc neplatné binární číslo.</p>
+
+<p>Dále si projdeme kódem ve funkci <code class="highlighter-rouge">arrayToTuple</code>. Jak její jméno napovídá, tato funkce přijímá array, načítá hodnoty pro každý index a vkládá je do entice. Jak jsme si říkali v sekci <a href="/array.html#getting-and-setting-a-value" target="_blank">Array</a>, můžeme použít funkci <code class="highlighter-rouge">Array.get</code> k načtení hodnoty z arraye pro určitý index.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">Array</span>
+
+<span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">3</span> <span class="n">myArray</span>
+<span class="kt">Just</span> <span class="mi">3</span> <span class="o">:</span> <span class="kt">Maybe</span><span class="o">.</span><span class="kt">Maybe</span> <span class="n">number</span></code></pre></figure>
+
+<p>Stejně jako <code class="highlighter-rouge">String.toInt</code>, funkce <code class="highlighter-rouge">Array.get</code> 
+rovněž nevrací hledanou hodnotu přímo. Místo toho vrací <code class="highlighter-rouge">Maybe</code>. Typ <code class="highlighter-rouge">Maybe</code> pracuje velmi podobně jako typ <code class="highlighter-rouge">Result</code>. V Elmu je definován takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="kt">Maybe</span> <span class="n">a</span>
+    <span class="o">=</span> <span class="kt">Just</span> <span class="n">a</span>
+    <span class="o">|</span> <span class="kt">Nothing</span></code></pre></figure>
+
+<p>Takže, když hledaná hodnota existuje, obsahuje <code class="highlighter-rouge">Just</code>, následované hodnotou. V opačném případě obsahuje <code class="highlighter-rouge">Nothing</code>. Stejně jako <code class="highlighter-rouge">String.toInt</code>, nemůže funkce <code class="highlighter-rouge">Array.get</code> garantovat, že u daného indexu bude k disposici hodnota.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">10</span> <span class="n">myArray</span>
+<span class="kt">Nothing</span> <span class="o">:</span> <span class="kt">Maybe</span><span class="o">.</span><span class="kt">Maybe</span> <span class="n">number</span></code></pre></figure>
+
+<p><code class="highlighter-rouge">Maybe.withDefault</code> je rovněž výhodná funkce, která vrací hodnotu, pokud existuje. Pokud neexistuje, vrací impicitní hodnotu.</p>
+
+<p>Když nyní obnovíme funkci <code class="highlighter-rouge">rippleCarryAdder</code>, měli bychom býti schopni zadávat vstupní signály jako čísla místo entic.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="mi">1110</span> <span class="mi">1011</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span></code></pre></figure>
+
+<p>Mnohem lepší! Nevím, zda jste to zaznamenali, ale funkce <code class="highlighter-rouge">rippleCarryAdder</code> má bug: má-li vstupní binární číslo na začátku nuly, je výstup nesprávný.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="mi">1001</span> <span class="mi">0011</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span></code></pre></figure>
+
+<p>Když sečteme <code class="highlighter-rouge">1001</code> a <code class="highlighter-rouge">0011</code>, měl by být výstup  <code class="highlighter-rouge">1100</code> ale my dostáváme <code class="highlighter-rouge">11000</code>. Problém je s největší pravděpodobností ve funkci <code class="highlighter-rouge">extractDigits</code>. Pokusme se zjistit, co tento problém způsobuje.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">toString</span> <span class="mi">0011</span>
+<span class="s">"11"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">""</span> <span class="s">"11"</span>
+<span class="p">[</span><span class="s">"1"</span><span class="p">,</span><span class="s">"1"</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="n">stringToInt</span> <span class="p">[</span> <span class="s">"1"</span><span class="p">,</span> <span class="s">"1"</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">arrayToTuple</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="p">])</span>
+<span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></code></pre></figure>
+
+<p>Příčinou problému je funkce <code class="highlighter-rouge">toString</code>. Při konverzi na řetězec jsou odstraněny počáteční nuly. Jeden způsob nápravy této svízele spočívá ve vypodložení (padding) výstupu dostatečným počtem nul předtím, než je předán funkci <code class="highlighter-rouge">String.split</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">extractDigits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="n">toString</span> <span class="n">number</span>
+        <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">padLeft</span> <span class="mi">4</span> <span class="sc">'0'</span>
+        <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">""</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="n">stringToInt</span>
+        <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span>
+        <span class="o">|&gt;</span> <span class="n">arrayToTuple</span></code></pre></figure>
+
+<p>Nicméně, celý tento přístup konvertování čísla na nulami vypodložený řetězec, jenž je posléze konvertován zpět na čísla, je poněkud nemotorný. Proč nenapíšeme funkci, která přímo konvertuje číslo na seznam číslic bez koketování s řetězci? Přidejte následující definici funkce na spodek kódu v souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">digits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="kr">if</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span>
+        <span class="kt">[]</span>
+    <span class="kr">else</span>
+        <span class="n">digits</span> <span class="p">(</span><span class="n">number</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">++</span> <span class="p">[</span> <span class="n">number</span> <span class="o">%</span> <span class="mi">10</span> <span class="p">]</span></code></pre></figure>
+
+<p>Funkce  <code class="highlighter-rouge">digits</code> přijímá číslo a vrací senznam číslic.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">digits</span> <span class="mi">1100</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span></code></pre></figure>
+
+<p>Když jsme se rozhodli implementovat čtyřbitový R-C sčítač, rozložili jsme problém do menších subproblémů, individálně jsme je řešili a výsledky zkombinovali. Funkce <code class="highlighter-rouge">digits</code> sleduje podobný přístup, avšak místo aby se její subproblémy řešili dalšími funkcemi, řeší se funkcí samotnou. Abychom pochopili, jak se to dělá, rozložme problém vynětí číslic z čísla <code class="highlighter-rouge">1100</code> na subproblémy:</p>
+
+<p><img src="images/extract-digits-recursion.png" alt="" /></p>
+
+<p>Začneme s číslem <code class="highlighter-rouge">1100</code>, což je náš původní problém. Odebereme z něj poslední číslici a problém redukujeme na <code class="highlighter-rouge">110</code>. Potom odebereme poslední číslici z <code class="highlighter-rouge">110</code> a dále redukujeme problém na <code class="highlighter-rouge">11</code>. Tak pokračujeme do vyčerpání všech číslic a zredukovali jsme náš problém na prázdný seznam. Potom zkombinujeme řešení každého subproblému postupujíc zleva doprava.</p>
+
+<h3 id="recursion">Rekurze</h3>
+
+<p>Tento proces řešení problému řešením nejprve menší verze problému se nazývá <em>rekurze</em>. Problém je nakonec redukován na tak malou část, že ji můžeme řešit přímo. Této koncové části se říká <em>základní případ </em> (base case). V ukázce nahoře byla tímto základním případem situace, kdy došly číslice. Tato situace byla řešena vrácením prázdného seznamu.</p>
+
+<p class="info">Rekurze je programovací technika, při níž je určitá procedura nebo funkce znovu volána dříve, než je dokončeno její předchozí volání.</p>
+
+<p>Jako většina programovacích jazyků, Elm podporuje rekurzi tím, že dovoluje aby funkce volala sama sebe tak, jak jsme učinili v definici funkce <code class="highlighter-rouge">digits</code>. Při používání rekurze musíme mít na mysli tyto tři věci:</p>
+
+<p><strong>Jak zredukovat problém</strong> - Nelze-li problém redukovat na menší verze, potom patrně není rekurze tím nejlepším řešením. Proto musíme vědět, jak přesně chceme problém redukovat. Funkce <code class="highlighter-rouge">digits</code> to dělala dělením <code class="highlighter-rouge">čísla</code> (number) <code class="highlighter-rouge">deseti</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">digits</span> <span class="p">(</span><span class="n">number</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span></code></pre></figure>
+
+<p>Operátor <code class="highlighter-rouge">//</code> provádí celočíselné dělení, které odhazuje vše, co je za desetinnou čárkou. Rekurzi jsme pro řešen 4-bit R-C sčítadla nepoužili proto, že jsme nemohli redukovat problém na menší verze téhož.</p>
+
+<p><strong>Co je základní případ</strong> - Řádně navržená rekurzivní funkce musí problém zjednodušovat postupným voláním (invokací) sebe sama až posléze dospěje k základnímu případu. Jakmile k němu dospěje, použije jeho výsledek k postupnému řešení předchozích případů. Bez základního případu vytvoří rekurzivní funkce nekonečnou smyčku. Zde je základní případ funkce <code class="highlighter-rouge">digits</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">if</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span>
+    <span class="kt">[]</span></code></pre></figure>
+
+<p>Po třetí invokaci funkce <code class="highlighter-rouge">digits</code>je číslo <code class="highlighter-rouge">1100</code> redukováno na <code class="highlighter-rouge">1</code>. Je-li pro toto číslo provedeno celočíselné dělení hodnotou <code class="highlighter-rouge">10</code>, stává se <code class="highlighter-rouge">0</code>. V tom případě je podmínka základního případu splněna a vrací se prázdný seznam. Kdybychom tuto podmínku neměli, běžela by funkce <code class="highlighter-rouge">digits</code> do nekonečna.</p>
+
+<p><strong>Jak zkombinovat výsledky subproblémů</strong> - Jakmile jsme dospěli k základnímu případu, protřebujeme mechanizmus pro uplatnění výsledků z každé invokace. Funkce <code class="highlighter-rouge">digits</code> to dělá použitím operátoru <code class="highlighter-rouge">++</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">digits</span> <span class="p">(</span><span class="n">number</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">++</span> <span class="p">[</span> <span class="n">number</span> <span class="o">%</span> <span class="mi">10</span> <span class="p">]</span></code></pre></figure>
+
+<p>Abychom lépe poznali, jak rekurze pracuje za kulisami, projděme krok za krokem provedením funkce <code class="highlighter-rouge">digits</code>.</p>
+
+<p><img src="images/digits-function-recursion-invocation.png" alt="" /></p>
+
+<p>Rozložení invokace rekurzivní funkce na jednotlivé kroky je dobré, když se pokoušíme v počátcích porozumět, jak rekurze pracuje, ale jakmile si pro rekurzi utvoříme intuitivní předvídavost, měli bychom se explicitnímu přemýšlení o průběhu invokací vyhnout. Místo toho bychom se měli soustředit na ony tři výše uvedené kroky.</p>
+
+<p>Mějme zato, že rekurzi již rozumíte. Pokud ne, tak se tím netrapte, není to jednoduché ani pro mistry. Potřebujete jenom více praxe se psaním rekurzivních funkcí a s jejich  používáním. Pro hlubší ponoření do tématu existují mnohé zdroje. Doporučuji vyzkoušet  <a href="https://www.khanacademy.org/computing/computer-science/algorithms/recursive-algorithms/a/recursion" target="_blank">mini kurz</a> Khanovy akademie, který nejenom vysvětluje rekurzi jednoduchými pojmy ale také uvádí mnohé příklady.</p>
+
+<h3 id="improving-the-digits-functions-performance">Vylepšení výkonu funkce <code class="highlighter-rouge">digits</code></h3>
+
+<p>V Elmu je z hlediska výkonu účinnější vytvářet seznam přidáváním elementů na začátek použitím operátoru cons (<code class="highlighter-rouge">::</code>), než připojování hodot na konec operátorem  <code class="highlighter-rouge">++</code>. Mějme takovýto seznam: <code class="highlighter-rouge">[ 2, 3, 4, 5 ]</code>. Na jeho začátek chceme přidat číslo <code class="highlighter-rouge">1</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">1</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span></code></pre></figure>
+
+<p>Operátor cons netraverzuje celým seznamem před přidáním daného čísla do čela, zatímco <code class="highlighter-rouge">++</code> ano. Proto se tento kód:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">]</span> <span class="o">++</span> <span class="p">[</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<p>změní za scénou vpodstatě v toto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">5</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="mi">4</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="mi">3</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="mi">2</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<p>Operátor <code class="highlighter-rouge">++</code> jsme použili ke spojení seznamů s jedním elementem ve funkci <code class="highlighter-rouge">digits</code>. Nyní, když víme, že je operátor cons výkonnější, zaveďme jeho použití ve funkci <code class="highlighter-rouge">digits</code>. Ve výše uvedených příkladech jsou prováděné výpočty tak malé, že mezi oběma operátory nezaznamenáme velký rozdíl v rychlosti. Teprve když funkci <code class="highlighter-rouge">digits</code> zadáme velké číslo, začne se rozdíl zvětšovat. Změňte funkci <code class="highlighter-rouge">digits</code> v souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">digits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">digits</span> <span class="n">n</span> <span class="o">=</span>
+            <span class="kr">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span>
+                <span class="kt">[]</span>
+            <span class="kr">else</span>
+                <span class="p">(</span><span class="n">n</span> <span class="o">%</span> <span class="mi">10</span><span class="p">)</span> <span class="o">::</span> <span class="n">digits</span> <span class="p">(</span><span class="n">n</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="kr">in</span>
+        <span class="n">digits</span> <span class="n">number</span>
+            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">reverse</span></code></pre></figure>
+
+<p>S nově získaným chápáním rekurze byste si měli umět představit, jak nová implementace pracuje. Změňte funkci <code class="highlighter-rouge">extractDigits</code> v souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code> aby použila novou verzi funkce <code class="highlighter-rouge">digits</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">extractDigits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="n">digits</span> <span class="n">number</span>
+        <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span>
+        <span class="o">|&gt;</span> <span class="n">arrayToTuple</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">extractDigits</code> je nyní zhuštěnější s funkcí <code class="highlighter-rouge">digits</code>. Takto vypadala předtím:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">extractDigits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="n">toString</span> <span class="n">number</span>
+        <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">""</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="n">stringToInt</span>
+        <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span>
+        <span class="o">|&gt;</span> <span class="n">arrayToTuple</span></code></pre></figure>
+
+<p>Nová verze stále neřeší problém přičtení čísla s nulami na začátku ale vyplnění seznamu nulami na začátku je docela snadné. Přidejte následující definici funkce na konec kódu v souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">padZeros</span> <span class="n">total</span> <span class="n">list</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">numberOfZeros</span> <span class="o">=</span>
+            <span class="n">total</span> <span class="o">-</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="n">list</span><span class="p">)</span>
+    <span class="kr">in</span>
+        <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">repeat</span> <span class="n">numberOfZeros</span> <span class="mi">0</span><span class="p">)</span> <span class="o">++</span> <span class="n">list</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">padZeros</code> vyplňuje seznam nulami až do zadané délky parametrem <code class="highlighter-rouge">total</code>. Použijme <code class="highlighter-rouge">padZeros</code> ve funkci <code class="highlighter-rouge">extractDigits</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">extractDigits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="n">digits</span> <span class="n">number</span>
+        <span class="o">|&gt;</span> <span class="n">padZeros</span> <span class="mi">4</span>
+        <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span>
+        <span class="o">|&gt;</span> <span class="n">arrayToTuple</span></code></pre></figure>
+
+<p>Když nyní přičteme binární číslo s nulami na začátku, dostaneme správný výsledek.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="mi">1001</span> <span class="mi">0011</span> <span class="mi">0</span>
+<span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span></code></pre></figure>
+
+<h3 id="improving-output">Zlepšení vystupu</h3>
+
+<p>Obraťme naší pozornost k výstupu funkce <code class="highlighter-rouge">rippleCarryAdder</code>. Aktuálně vypadá takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum3</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum2</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum0</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span></code></pre></figure>
+
+<p>My bychom však chtěli aby vypadal takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="mi">1100</span></code></pre></figure>
+
+<p>Ideální by byl výstup ve tvaru: <code class="highlighter-rouge">01100</code> ale Elme odseká počáteční nuly jak v replu, tak ve zdrojovém souboru.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">01100</span>
+<span class="mi">1100</span></code></pre></figure>
+
+<p>Zobrazit výstup jako číslo není až tak obtížné. Vše co musíme udělat je shromáždit součet a číslici výstupního přenosu do seznamu a konvertovat  tento seznam na číslo. Upravte funkci <code class="highlighter-rouge">rippleCarryAdder</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="c1">-- Extract digits</span>
+        <span class="p">(</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">a</span>
+
+        <span class="p">(</span> <span class="n">b3</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">b</span>
+
+        <span class="c1">-- Compute sum</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a0</span> <span class="n">b0</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a1</span> <span class="n">b1</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">thirdResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a2</span> <span class="n">b2</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">finalResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a3</span> <span class="n">b3</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">[</span> <span class="n">finalResult</span><span class="p">,</span> <span class="n">thirdResult</span><span class="p">,</span> <span class="n">secondResult</span><span class="p">,</span> <span class="n">firstResult</span> <span class="p">]</span>
+            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="o">.</span><span class="n">sum</span>
+            <span class="o">|&gt;</span> <span class="p">(</span><span class="o">::</span><span class="p">)</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">carry</span>
+            <span class="o">|&gt;</span> <span class="n">numberFromDigits</span></code></pre></figure>
+
+<p>Jediná věc, která se změnila, je část uvnitř oblasti <code class="highlighter-rouge">in</code>. Projděme si novým kódem krok za krokem.</p>
+
+<p class="info">Vypisovaný kód si nemusíte v každém kroku zkoušet. Je uváděn pro demonstraci toho, jak funkce <code class="highlighter-rouge">rippleCarryAdder</code> produkuje binární číslo jako výstup. Některé ukázky ani nebudou kompilovat, protože jsme neuvedli všechny nezbytné funkce, použité uvnitř <code class="highlighter-rouge">rippleCarryAdder</code>.</p>
+
+<p><strong>Krok 1:</strong> Vložit záznamy, produkované každou úplnou sčítačkou, do seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="n">finalResult</span><span class="p">,</span> <span class="n">thirdResult</span><span class="p">,</span> <span class="n">secondResult</span><span class="p">,</span> <span class="n">firstResult</span> <span class="p">]</span>
+<span class="p">[{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">},{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">},{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">},{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}]</span></code></pre></figure>
+
+<p><strong>Krok 2:</strong> Mapovat seznam záznamů na seznam sumárních číslic.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="o">.</span><span class="n">sum</span> <span class="p">[</span> <span class="n">finalResult</span><span class="p">,</span> <span class="n">thirdResult</span><span class="p">,</span> <span class="n">secondResult</span><span class="p">,</span> <span class="n">firstResult</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span></code></pre></figure>
+
+<p>Jak zmíněno v sekci <a href="record.html#mapping-records" target="_blank">Record</a>, může být funkce <code class="highlighter-rouge">map</code> použita k transformaci seznamu záznamů na nový seznam, který obsahuje hodnoty z určité vlastnosti. My jsme použili specielní funkci <code class="highlighter-rouge">.sum</code> pro vynětí součtových číslic z každého záznamu.</p>
+
+<p><strong>Step 3:</strong> Přidat na čelo seznamu číslici výstupního přenosu (carry-out).</p>
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span><span class="o">::</span><span class="p">)</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">carry</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span></code></pre></figure>
+
+<p><strong>Krok 4:</strong> Konvertovat seznam číslic na číslo.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">numberFromDigits</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="mi">1100</span></code></pre></figure>
+
+<p>Funkci <code class="highlighter-rouge">numberFromDigits</code>jsme dosud nezavedli. Učiňme tak nyní. Přidejte následující definici funkce na konec kódu v souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">numberFromDigits</span> <span class="n">digitsList</span> <span class="o">=</span>
+    <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">digit</span> <span class="n">number</span> <span class="o">-&gt;</span> <span class="n">digit</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">number</span><span class="p">)</span> <span class="mi">0</span> <span class="n">digitsList</span></code></pre></figure>
+
+<p>Tato funkce používá funkci <code class="highlighter-rouge">foldl</code> k redukci seznamu číslic na jediné číslo. Pokud jste již zapomněli, jak tato funkce pracuje, můžete si paměť osvěžit nahlédnutím do <a href="list.html#folding-a-list" target="_blank">Redukce seznamu</a>. Obrázek dole ukazuje, jak funkce <code class="highlighter-rouge">numberFromDigits</code> kombinuje číslice při vytváření čísla opakovaným použitím anonymní funkce, poskytnuté funkci <code class="highlighter-rouge">foldl</code>.</p>
+
+<p><img src="images/numberFromDigits-foldl-iterations.png" alt="" /></p>
+
+<p>Nyní jak vstupy, tak výstupy funkce <code class="highlighter-rouge">rippleCarryAdder</code> vypadají mnohem úhledněji.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="mi">1001</span> <span class="mi">0011</span> <span class="mi">0</span>
+<span class="mi">1100</span></code></pre></figure>
+
+<p>V příští sekci si ukážeme, jak ověřit, že se funkce <code class="highlighter-rouge">rippleCarryAdder</code> chová dle očekávání a to s použitím testů.</p>
+</article>
+
+<nav class="pagination">
+<a class="pagination-next" href="pure-functions.html">
+<em>&larr; Previous</em>
+<strong>Čisté funkce</strong>
+</a>
+<a class="pagination-next" href="easy-to-test.html">
+<em>Next &rarr;</em><strong>Snadné testování</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

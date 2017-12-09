@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 4.8 </h1>
+<h2>Fuzz Testing</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="pattern-matching.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="easier-code-organization.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>V sekci <a href="easy-to-test.html" target="_blank">Snadné testování</a> jsme se naučili psát jednotkové testy. Jednotkový test spouští testovaný kód opatřený vstupem a výstupem a ověřuje, zda je výstup správný. Je důležité poznamenat, že jednotkový test spouští kód  <em>pouze jednou</em>. To znamená, že jeden test pokrývá pouze jeden vstupní scénář. Například funkce <a href="function-composition.html#implementing-an-or-gate" target="_blank"><code class="highlighter-rouge">orGate</code></a>, kterou jsme použili dříve, má čtyři možné vstupní sestavy, takže potřebujeme provést čtyři jednotkové testy abychom plně ověřili, že se chová podle očekávání.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">orGate</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">or</span> <span class="n">a</span> <span class="n">b</span></code></pre></figure>
+
+<p><img src="images/or-gate-function-mapping.png" alt="" /></p>
+
+<p>
+Provést takové čtyři testy je docela snadné ale je-li množina vstupních sestav mnohem větší, stává se ověření všech vstupních scénářů únavné. Funkce <a href="function-composition.html#implementing-a-4-bit-ripple-carry-adder-1" target="_blank"><code class="highlighter-rouge">rippleCarryAdder</code></a> například, přijímá devět vstupních signálů, což vede k <code class="highlighter-rouge">2 ^ 9 = 512</code> různým scénářům.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="c1">-- Extract digits</span>
+        <span class="p">(</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">a</span>
+
+        <span class="p">(</span> <span class="n">b3</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">b</span>
+
+        <span class="c1">-- Compute sum</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a0</span> <span class="n">b0</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a1</span> <span class="n">b1</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">thirdResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a2</span> <span class="n">b2</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">finalResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a3</span> <span class="n">b3</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">[</span> <span class="n">finalResult</span><span class="p">,</span> <span class="n">thirdResult</span><span class="p">,</span> <span class="n">secondResult</span><span class="p">,</span> <span class="n">firstResult</span> <span class="p">]</span>
+            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="o">.</span><span class="n">sum</span>
+            <span class="o">|&gt;</span> <span class="p">(</span><span class="o">::</span><span class="p">)</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">carry</span>
+            <span class="o">|&gt;</span> <span class="n">numberFromDigits</span></code></pre></figure>
+
+<p><img src="images/ripple-carry-adder-truth-table.png" alt="" /></p>
+
+<p>Abychom ověřili, že se funkce <code class="highlighter-rouge">rippleCarryAdder</code> chová dle očekávání, potřebujeme napsat 512 jednotkových testů. To je hafo testů. Zajisté, obvykle nepotřebujeme stoprocentní pokrytí testy. Potřebujeme jen tolik testů abychom dosáhli jisté úrovně důvěry. Kdybychom dospěli k závěru, že nám stačí padesátiprocentní pokrytí, je to stále mnoho testů.</p>
+
+<p>Lepší alternativou je psaní neostrých (fuzzy) testů.  <em>Fuzz test</em> opakovaně spouští testovaný kód s náhodně generovanými vstupy. Předtím, než si ukážeme jak fuzz testy usnadňují testování funkcí jako je <code class="highlighter-rouge">rippleCarryAdder</code>, napišme si několik jednoduchých fuzz testů abychom pochopili, jak pracují.</p>
+
+<p class="info"><em>“The term ‘fuzzing’ originates from a 1988 class project, taught by Barton Miller at the University of Wisconsin. To fuzz test a Unix utility meant to automatically generate random files and command-line parameters for the utility. The project was designed to test the reliability of Unix programs by executing a large number of random inputs in quick succession until they crashed.” - <a href="https://en.wikipedia.org/wiki/Fuzzing" target="_blank">Wikipedia</a></em></p>
+
+<h3 id="a-simple-fuzz-test">Jednoduchý fuzz test</h3>
+
+<p>Vytvořte nový soubor, nazvaný <code class="highlighter-rouge">FuzzTests.elm</code> v adresáři <code class="highlighter-rouge">beginning-elm/tests</code>.</p>
+
+<p><img src="images/create-fuzz-tests-file.png" alt="" /></p>
+
+<p>Do souboru <code class="highlighter-rouge">FuzzTests.elm</code> vložte následující kód.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">FuzzTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Test</span><span class="p">,</span> <span class="n">describe</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">fuzz</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Expect</span>
+<span class="kr">import</span> <span class="nn">Fuzz</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="p">[</span> <span class="n">addOneTests</span> <span class="p">]</span>
+
+
+<span class="n">addOneTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addOneTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"addOne"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="n">int</span> <span class="s">"adds 1 to any integer"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="n">num</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="n">addOne</span> <span class="o">:</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">addOne</span> <span class="n">x</span> <span class="o">=</span>
+    <span class="mi">1</span> <span class="o">+</span> <span class="n">x</span></code></pre></figure>
+
+<p>Vytvořili jsme nový modul, nazvaný <code class="highlighter-rouge">FuzzTests</code>, importovali do něho několik dalších modulů, které nám umožní psát fuzz testy; vytvořili jsme funkci, která přičítá <code class="highlighter-rouge">1</code> k danému číslu a napsali jsme fuzz test, který ověřuje, zda funkce <code class="highlighter-rouge">addOne</code> správně přičítá <code class="highlighter-rouge">1</code> k danému celému číslu.</p>
+
+<p class="info">Elm nedělá žádné rozdíly mezi testovacím a normálním modulem. V reálných projektech se doporučuje vkládat produkční kód a testovací kód do samostatných modulů. Abychom si věci usnadnili, budeme v této sekci doporučení ignorovat a vložíme kódy do jednoho modulu.</p>
+
+<p>Následující schéma vysvětluje různé komponenty fuzz testu.</p>
+
+<p><img src="images/fuzz-test-syntax.png" alt="" /></p>
+
+<p>Struktura fuzz testu je velmi podobná <a href="easy-to-test.html#elm-test-syntax" target="_blank">jednotkovému testu</a> - až na tyto tři rozdíly:</p>
+
+<p><strong>#1:</strong> Fuzz test se tvoří s použitím funkce zavané <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test#fuzz" target="_blank"><code class="highlighter-rouge">fuzz</code></a> místo <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test#test" target="_blank"><code class="highlighter-rouge">test</code></a>. Obě tyto funkce jsou definované v modulu <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test" target="_blank"><code class="highlighter-rouge">Test</code></a>.</p>
+
+<p><strong>#2:</strong> Funkce <code class="highlighter-rouge">fuzz</code> přijímá tři argumenty, zatímco funkce <code class="highlighter-rouge">test</code>, která vytváří jednotkový test, přijímá dva.</p>
+
+<p><img src="images/fuzz-vs-test-function-type-1.png" alt="" /></p>
+
+<p>První argument funkce <code class="highlighter-rouge">fuzz</code> je fuzzer, který ví, jak generovat hodnotu daného typu. Ve výše uvedeném příkladě jsme použili fuzzer <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Fuzz#int" target="_blank"><code class="highlighter-rouge">int</code></a>, který generuje 32-bitovou celočíselnou hodnotu. Implicitně generuje 100 hodnot mezi <code class="highlighter-rouge">-50</code> a <code class="highlighter-rouge">50</code>. Protože hodnota <code class="highlighter-rouge">0</code> je ve většině kódů známá tím, že přivolává mezní případy, fuzzer <code class="highlighter-rouge">int</code> vždy tuto hodnotu mezi generovanými hodnotami uvádí. Modul <code class="highlighter-rouge">Fuzz</code> poskytuje fuzzer pro každý obecně používaný vestavěný typ, jako je <code class="highlighter-rouge">float</code>, <code class="highlighter-rouge">string</code>, <code class="highlighter-rouge">list</code>, <code class="highlighter-rouge">maybe</code>, etc. Můžeme také vytvořit fuzzer pro vlastní uživatelské typy.</p>
+
+<p>Všechny fuzzery jsou definovány v modulu <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Fuzz" target="_blank"><code class="highlighter-rouge">Fuzz</code></a> ale samotná funkce <code class="highlighter-rouge">fuzz</code> je definovaná v modulu <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test" target="_blank"><code class="highlighter-rouge">Test</code></a>. Proto při psaní fuzz testů potřebujeme importovat oba moduly.</p>
+
+<p><strong> #3:</strong> Anonymní funkce, která obsahuje vlastní test, používá reálný parametr místo jednotkového typu <code class="highlighter-rouge">()</code>. To proto, že parametr <code class="highlighter-rouge">num</code> je vlastně použit uvnitř testovacího případu. V případě jednotkového testu jsme nemuseli zadávat hodnotu anonymní funkci, která jednoduše použila jednotkový typ.</p>
+
+<p><img src="images/fuzz-vs-test-function-type-2.png" alt="" /></p>
+
+<h3 id="running-a-fuzz-test-in-terminal">Spouštění fuzz testu v terminálu</h3>
+
+<p>Abychom mohli výše uvedený test spustit v terminálu, potřebujeme upravit soubor <code class="highlighter-rouge">RunTestsInTerminal.elm</code>, umístěný v adresáři <code class="highlighter-rouge">beginning-elm/tests</code>. Nahraďte jeho obsah tímto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">port</span> <span class="kr">module</span> <span class="nn">RunTestsInTerminal</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test.Runner.Node</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">TestProgram</span><span class="p">,</span> <span class="n">run</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Json.Encode</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Value</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">RippleCarryAdderTests</span>
+<span class="kr">import</span> <span class="nn">FuzzTests</span>
+<span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">describe</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">TestProgram</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="n">emit</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Test suite"</span>
+            <span class="p">[</span> <span class="kt">RippleCarryAdderTests</span><span class="o">.</span><span class="n">allTests</span>
+            <span class="p">,</span> <span class="kt">FuzzTests</span><span class="o">.</span><span class="n">allTests</span>
+            <span class="p">]</span>
+
+
+<span class="n">port</span> <span class="n">emit</span> <span class="o">:</span> <span class="p">(</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">Value</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Cmd</span> <span class="n">msg</span></code></pre></figure>
+
+<p>Takto vypadal předtím:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">port</span> <span class="kr">module</span> <span class="nn">RunTestsInTerminal</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test.Runner.Node</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">run</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Json.Encode</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Value</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">RippleCarryAdderTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="n">emit</span> <span class="n">allTests</span>
+
+
+<span class="n">port</span> <span class="n">emit</span> <span class="o">:</span> <span class="p">(</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">Value</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Cmd</span> <span class="n">msg</span></code></pre></figure>
+
+<p>Toto se změnilo:</p>
+
+<p><strong>Změna #1:</strong> Exponovali jsme alias typu <code class="highlighter-rouge">TestProgram</code> z modulu <code class="highlighter-rouge">Test.Runner.Node</code>. Funkce <code class="highlighter-rouge">main</code> (jež je technicky konstantou, protože nepřijímá žádný parametr) produkuje hodnotu typu <code class="highlighter-rouge">TestProgram</code>, jenž je definován takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="n">alias</span> <span class="kt">TestProgram</span> <span class="o">=</span>
+    <span class="kt">Program</span> <span class="kt">Value</span> <span class="p">(</span><span class="kt">Model</span> <span class="kt">Msg</span> <span class="kt">Model</span><span class="p">)</span> <span class="p">(</span><span class="kt">Msg</span> <span class="kt">Msg</span><span class="p">)</span></code></pre></figure>
+
+<p>Není důležité znát, co ve skutečnosti typ <code class="highlighter-rouge">TestProgram</code> znamená. Vše, co potřebujeme znát je to, že funkce <code class="highlighter-rouge">main</code> vrací program, který obsahuje pěknou řádku testů. Výstupy z provádění těchto testů jsou přes port emitovány do terminálu.</p>
+
+<p><strong>Změna #2:</strong> Importovali jsme modul <code class="highlighter-rouge">FuzzTests</code>, který obsahuje fuzz testy, které jsme napsali výše.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">FuzzTests</span></code></pre></figure>
+
+<p><strong>Změna #3:</strong> Importovali jsme modul <code class="highlighter-rouge">Test</code> a exponovali funkci <code class="highlighter-rouge">describe</code>, jež nám umožňuje shromáždit víceré testy.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">describe</span><span class="p">)</span></code></pre></figure>
+
+<p><strong>Změna #4:</strong> Nakonec jsme zabalili dvě testovací mini sady do bloku <code class="highlighter-rouge">describe</code>. Také jsme přestali exponovat funkci <code class="highlighter-rouge">allTests</code> z modulu <code class="highlighter-rouge">RippleCarryAdderTests</code>. To nás přimělo prefixovat oba výskyty <code class="highlighter-rouge">allTests</code> názvem modulu, což usnadňuje určit, odkud pochází.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">describe</span> <span class="s">"Test suite"</span>
+    <span class="p">[</span> <span class="kt">RippleCarryAdderTests</span><span class="o">.</span><span class="n">allTests</span>
+    <span class="p">,</span> <span class="kt">FuzzTests</span><span class="o">.</span><span class="n">allTests</span>
+    <span class="p">]</span></code></pre></figure>
+
+<p>Spusťte následující příkaz z adresáře <code class="highlighter-rouge">beginning-elm</code> v terminálu.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-test tests/RunTestsInTerminal.elm</code></pre></figure>
+
+<p>Měl byste vidět následující výstup, který oznamuje, že námi napsaný fuzz test prošel.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Success! Compiled 2 modules.
+Successfully generated /var/folders/w9/lhzr92wx6hnd44s39dqf5hsh0000gn/T/elm_test_117123-76497-1ewimkv.5vje0fi529.js
+
+elm-test
+--------
+
+Running 29 tests. To reproduce these results, run: elm-test --seed 862984177
+
+
+TEST RUN PASSED
+
+Duration: 32 ms
+Passed:   29
+Failed:   0</code></pre></figure>
+
+<p>Výstup říká, že prošlo 29 testů; 28 z nich pochází ze souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>, který jsme vytvořili v sekci <a href="easy-to-test.html" target="_blank">Snadné testování</a>. I když <code class="highlighter-rouge">elm-test</code> počítá každý fuzz test jako jediný test, je za scénou spouštěn vícekrát.</p>
+
+<h3 id="running-a-fuzz-test-in-browser">Spuštění fuzz testu v prohlížeči</h3>
+
+<p>Abychom mohli výše uvedený test spustit v prohlížeči, potřebujeme upravit soubor <code class="highlighter-rouge">RunTestsInBrowser.elm</code>, umístěný v adresáři <code class="highlighter-rouge">beginning-elm/tests</code>. Nahraďte jeho text tímto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RunTestsInBrowser</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test.Runner.Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">TestProgram</span><span class="p">,</span> <span class="n">run</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">RippleCarryAdderTests</span>
+<span class="kr">import</span> <span class="nn">FuzzTests</span>
+<span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">describe</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">TestProgram</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Test suite"</span>
+            <span class="p">[</span> <span class="kt">RippleCarryAdderTests</span><span class="o">.</span><span class="n">allTests</span>
+            <span class="p">,</span> <span class="kt">FuzzTests</span><span class="o">.</span><span class="n">allTests</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Jediný rozdíl mezi tímto souborem a souborem <code class="highlighter-rouge">RunTestsInTerminal.elm</code> je ten, že ten druhý definuje port zvaný <code class="highlighter-rouge">emit</code> a importuje modul <code class="highlighter-rouge">Json.Encode</code>, který obsahuje typ <code class="highlighter-rouge">Value</code>, použitý v definici portu.</p>
+
+<p>Pro spuštění testů přejděte do adresáře <code class="highlighter-rouge">beginning-elm/tests</code> a tam aktivujte <code class="highlighter-rouge">elm-reactor</code>, pokud již není spuštěný. Nyní navštivte stánku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>. Měl byste vidět 29 prověřených testů.</p>
+
+<p><img src="images/fuzz-tests-passed.png" alt="" /></p>
+
+<h3 id="failing-fuzz-test">Neúspěšný fuzz test</h3>
+
+<p>Podívejme se, jak vypadá neúspěšný fuzz test. Upravte funkci <code class="highlighter-rouge">addOne</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addOne</span> <span class="o">:</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">addOne</span> <span class="n">x</span> <span class="o">=</span>
+    <span class="mi">1</span> <span class="o">-</span> <span class="n">x</span></code></pre></figure>
+
+<p>Místo přičtení <code class="highlighter-rouge">x</code> k <code class="highlighter-rouge">1</code>, nyní tuto hodnotu odečítáme. Obnovíte-li stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, měl byste vidě informaci o selhání.</p>
+
+<p><img src="images/fuzz-test-failed.png" alt="" /></p>
+
+<p>Výstup vypadá téměř stejně jako <a href="easy-to-test.html#failed-tests" target="_blank">neúspěšný jednotkový test</a>. S jedním malý rozdílem. Fuzz testy selhávají inteligentněji ve srovnání s jednotkovými testy. Prozkoumejme tyto rozdíly přidáním jednotkového testu do funkce <code class="highlighter-rouge">addOneTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addOneTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addOneTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"addOne"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="n">int</span> <span class="s">"adds 1 to any integer"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="n">num</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"when 1 is added to 2, the result is 3"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="mi">2</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">4</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Je perfektně možné spojit jednotkové a fuzz testy, jak jsme provedli zde. Obnovítel-li stránku na
+It’s perfectly fine to combine unit and fuzz tests as we’ve done here. If you refresh the page at <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, uvidíte dva neúspěšné testy.</p>
+
+<p><img src="images/fuzz-test-failed-2.png" alt="" /></p>
+
+<p>Všimněte si, že výstup fuzz testu uvádí "Given 1". U jednotkového testu víme přesně při jaké hodnotě selhal z pouhého pohledu na test. Zadali jsme <code class="highlighter-rouge">2</code> funkci <code class="highlighter-rouge">addOne</code>. Takže určitě víme, že funkce nepracuje, je-li vstup <code class="highlighter-rouge">2</code>. Ovšem, u fuzz testu nemůžeme říci, při jaké hodnotě test selhal z pouhého pohledu na jeho výstup. Test se provádí pro různé hodnoty. V našem případě, protože používáme fuzzer <code class="highlighter-rouge">int</code>, je generována hodnota mezi<code class="highlighter-rouge">-50</code> a <code class="highlighter-rouge">50</code>.</p>
+
+<p>Stávající (nesprávná) logika ve funkci <code class="highlighter-rouge">addOne</code> je pozitivní pro hodnotu <code class="highlighter-rouge">0</code> avšak negativní pro všechny nenulové hodnoty. Proč tedy výstup z testu oznamuje, že logika funkce selhala pro <code class="highlighter-rouge">1</code>, místo pro všechny ostatní náhodně vybraná čísla? Když fuzz test nevyhoví, místo aby se ukázala první nevyhovující hodnota, pro kterou test selhal, pokouší se program omezit nevyhovující vstup na nejmenší a nejjednodušší hodnotu aby bylo snadnější pochopit, proč test selhal.</p>
+
+<h3 id="property-based-testing">Testování vlastností</h3>
+
+<p>Fuzz test, který jsme výše napsali, je ekvivalentní se stovkou jednotkových testů, protože provádí tentýž test pro sto různých vstupních hodnot. Mohli bychom jej provádět i pro více vstupů, kdybychom chtěli. Zatímco jednotkový test je zaměřen na ověření, že jeden specifický vstupní scénář pracuje správně, zaměřuje se fuzz test na ujištění, že nějaká důležitá <em>vlastnost</em> platí pro všechny vstupy a výstupy. Například u funce <code class="highlighter-rouge">addOne</code> jde o potvrzení, že rozdíl mezi vystupem a vstupem je vždy přesně <code class="highlighter-rouge">1</code>.</p>
+<!--
+<p>Compared to unit tests, fuzz tests make it possible to test the behavior of our code on a much higher level. Instead of coming up with individual input scenarios, we can think of properties that must hold true for our code and then write fuzz tests to make sure that those properties do hold true. Because of this, writing fuzz tests could turn out to be much more challenging than writing individual unit tests especially if our code is complex. We have to think very carefully about the exact properties our code exhibits.</p>-->
+
+<p>Protože nám fuzz testy poskytují nejvíce "muziky", měli bychom jim dávat přednost před jednotkovými testy. Narazíme-li na mezní případy, je vhodné doplnit naší testovací sestavu jednotkovými testy. Neposkytuje-li jednotkový test podrobnější informaci, můžeme jej klidně smazat. Když o tom hovoříme, smažme nepotřebný jednotkový test z funkce <code class="highlighter-rouge">addOneTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addOneTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addOneTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"addOne"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="n">int</span> <span class="s">"adds 1 to any integer"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="n">num</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Upravme také logiku u funkce <code class="highlighter-rouge">addOne</code> nahrazením <code class="highlighter-rouge">-</code>operátorem <code class="highlighter-rouge">+</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addOne</span> <span class="o">:</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">addOne</span> <span class="n">x</span> <span class="o">=</span>
+    <span class="mi">1</span> <span class="o">+</span> <span class="n">x</span></code></pre></figure>
+
+<h3 id="multiple-fuzzers">Více fuzzerů</h3>
+
+<p>Funkce s více argumenty jsou v Elmu docela běžné. Takže nám nestačí vědět jak generovat pouze jeden náhodný vstup. Naštěstí nám <code class="highlighter-rouge">elm-test</code> umožňuje snadno generovat vícero hodnot. Přidejme novou funkci s názvem <code class="highlighter-rouge">add</code> na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">add</span> <span class="o">:</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">add</span> <span class="n">x</span> <span class="n">y</span> <span class="o">=</span>
+    <span class="n">x</span> <span class="o">+</span> <span class="n">y</span></code></pre></figure>
+
+<p>K otestování této funkce potřebujeme generovat dvě náhodné hodnoty. Můžeme to udělat s použitím funkce <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test#fuzz2" target="_blank"><code class="highlighter-rouge">fuzz2</code></a>. Přidejte testovací funkci <code class="highlighter-rouge">addTests</code> na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"add"</span>
+        <span class="p">[</span> <span class="n">fuzz2</span> <span class="n">int</span> <span class="n">int</span> <span class="s">"adds two given integers"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num1</span> <span class="n">num2</span> <span class="o">-&gt;</span>
+                <span class="n">add</span> <span class="n">num1</span> <span class="n">num2</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num1</span> <span class="o">+</span> <span class="n">num2</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Exponujme funkci <code class="highlighter-rouge">fuzz2</code> a přidejme <code class="highlighter-rouge">addTests</code> do naší testovací soupravy v souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">FuzzTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Test</span><span class="p">,</span> <span class="n">describe</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">fuzz</span><span class="p">,</span> <span class="n">fuzz2</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+
+<span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="p">[</span> <span class="n">addOneTests</span>
+        <span class="p">,</span> <span class="n">addTests</span>
+        <span class="p">]</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Po obnovení stránky na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, máte vidět, že všechny testy prošly, včetně toho, který jste právě napsal (Passed 29).</p>
+
+<p>Funkce <code class="highlighter-rouge">fuzz2</code> pracuje stejně jako funkce <code class="highlighter-rouge">fuzz</code>, pouze s tím rozdílem, že přijímá dva fuzzery. Takto vypadá typická signatura:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fuzz2</span>
+    <span class="o">:</span>  <span class="kt">Fuzzer</span> <span class="n">a</span>
+    <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="n">b</span>
+    <span class="o">-&gt;</span> <span class="kt">String</span>
+    <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Expectation</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt">Test</span></code></pre></figure>
+
+<p><img src="images/fuzz2-syntax.png" alt="" /></p>
+
+<p>Potřebujeme-li tři náhodné vstupy, můžeme použít funkci <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test#fuzz3" target="_blank"><code class="highlighter-rouge">fuzz3</code></a>. Takto vypadá signatura jejího typu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fuzz3</span>
+    <span class="o">:</span>  <span class="kt">Fuzzer</span> <span class="n">a</span>
+    <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="n">b</span>
+    <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="n">c</span>
+    <span class="o">-&gt;</span> <span class="kt">String</span>
+    <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">c</span> <span class="o">-&gt;</span> <span class="kt">Expectation</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt">Test</span></code></pre></figure>
+
+<p>Program<code class="highlighter-rouge">elm-test</code> poskytuje ještě dvě funkce zvané <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test#fuzz4" target="_blank"><code class="highlighter-rouge">fuzz4</code></a> a
+<a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test#fuzz5" target="_blank"><code class="highlighter-rouge">fuzz5</code></a>
+pro generování čtyř, případně pěti náhodných vstupů.</p>
+
+<h3 id="controlling-fuzz-test-runs">Počet cyklů ve Fuzz Testu</h3>
+
+<p>Již jsme si řekli, že každý fuzz test se implicitně provádí stokrát s různými vstupy. Kolikrát test proběhne nám řekne funkce <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Test#fuzzWith" target="_blank"><code class="highlighter-rouge">fuzzWith</code></a>. Takto vypadá její signatura:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fuzzWith</span>
+    <span class="o">:</span>  <span class="kt">FuzzOptions</span>
+    <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="n">a</span>
+    <span class="o">-&gt;</span> <span class="kt">String</span>
+    <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Expectation</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt">Test</span>
+
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">FuzzOptions</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">runs</span> <span class="o">:</span> <span class="kt">Int</span>
+    <span class="p">}</span></code></pre></figure>
+
+<p>Přepišme funkci <code class="highlighter-rouge">addOneTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code> použitím funkce <code class="highlighter-rouge">fuzzWith</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addOneTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addOneTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"addOne"</span>
+        <span class="p">[</span> <span class="n">fuzzWith</span> <span class="p">{</span> <span class="n">runs</span> <span class="o">=</span> <span class="mi">200</span> <span class="p">}</span> <span class="n">int</span> <span class="s">"adds 1 to the given integer"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="n">num</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p><img src="images/fuzzwith-syntax.png" alt="" /></p>
+
+<p>Exponujte funkci <code class="highlighter-rouge">fuzzWith</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code> a obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>. Měl byste vidět, že všechny testy prošly.<!-- Bylo by pěkné, kdyby výstup testu v Elmu také uváděl, kolikrát byl fuzz test spuštěn--></p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">FuzzTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Test</span><span class="p">,</span> <span class="n">describe</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">fuzz</span><span class="p">,</span> <span class="n">fuzz2</span><span class="p">,</span> <span class="n">fuzzWith</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<h3 id="controlling-the-range-of-values">Rozsah hodnot fuzz testu</h3>
+
+<p>Fuzzer <code class="highlighter-rouge">int</code> generuje hodnoty implicitně mezi -50 a 50. Tento rozsah můžeme měnit fuzzerem <code class="highlighter-rouge">intRange</code>. Upravme funkci <code class="highlighter-rouge">addOneTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code> ještě jednou s explicitně vyjádřeným rozsahem použitých hodnot při provádění testu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addOneTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addOneTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"addOne"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="p">(</span><span class="n">intRange</span> <span class="o">-</span><span class="mi">100</span> <span class="mi">100</span><span class="p">)</span> <span class="s">"adds 1 to the given integer"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="n">num</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Všimněte si, že je funkce <code class="highlighter-rouge">intRange</code> a její argumenty uzavřena v závorkách. Za scénou jsou všechny fuzzery normální funkce. Není tedy žádný rozdíl mezi <code class="highlighter-rouge">(intRange -100 100)</code> a normální aplikací funkce.</p>
+
+<p>Obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>. Měl byste vidět, že všechny testy prošly.</p>
+
+<p>Můžeme také přikázat funkci <code class="highlighter-rouge">intRange</code> aby vybírala hodnoty z celého spektra celočíselných hodnot. Upravte funkci <code class="highlighter-rouge">addOneTests</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addOneTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addOneTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"addOne"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="p">(</span><span class="n">intRange</span> <span class="n">minInt</span> <span class="n">maxInt</span><span class="p">)</span> <span class="s">"adds 1 to the given integer"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="n">num</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Položka <code class="highlighter-rouge">maxInt</code> je konstanta, definovaná v modulu <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Random#maxInt" target="_blank"><code class="highlighter-rouge">Random</code></a>. Reprezentuje maximální hodnotu náhodně generovaných 32-bitový čísel: 2147483647. Položka <code class="highlighter-rouge">minInt</code> je rovněž definovaná v modulu <code class="highlighter-rouge">Random</code> a reprezentuje minimální hodnotu náhodně generovaných 32-bitových čísel: -2147483648.</p>
+
+<p>Před spuštěním výše uvedeného testu potřebujeme importovat modul <code class="highlighter-rouge">Random</code> do souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">FuzzTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Random</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">minInt</span><span class="p">,</span> <span class="n">maxInt</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Když nyní obnovíte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, měl byste vidět, že všechny testy prošly.</p>
+
+<h3 id="controlling-the-frequency-of-values">Frekvence hodnot</h3>
+
+<p>Zde je experiment, který můžete předvést svým přátelům. Požádejte každého z nich aby vybral číslo mezi <code class="highlighter-rouge">1</code> a <code class="highlighter-rouge">10</code>. Zjistíte, že většina vybrala číslo <code class="highlighter-rouge">7</code>, málo z nich vybralo čísla <code class="highlighter-rouge">1</code>, <code class="highlighter-rouge">5</code> a <code class="highlighter-rouge">10</code>. Mají tendenci vybírat čísla mezi <code class="highlighter-rouge">5</code> a <code class="highlighter-rouge">10</code> mnohem častěji, než čísla mezi <code class="highlighter-rouge">1</code> and <code class="highlighter-rouge">5</code>.</p>
+
+<p>Vytvořme fuzzer, který simuluje toto poněkud předvídatelné chování vašich přátel. Použijeme následující pravděpodobnosti pro čísla mezi <code class="highlighter-rouge">1</code> a <code class="highlighter-rouge">10</code>:</p>
+
+<p><img src="images/numbers-probabilities.png" alt="" /></p>
+
+<p>Přidejte následující funkce na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">frequencyFuzzer</span> <span class="o">:</span> <span class="kt">Fuzzer</span> <span class="kt">Int</span>
+<span class="n">frequencyFuzzer</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">probabilities</span> <span class="o">=</span>
+            <span class="n">frequency</span>
+                <span class="p">[</span> <span class="p">(</span> <span class="mi">70</span><span class="p">,</span> <span class="n">constant</span> <span class="mi">7</span> <span class="p">)</span>
+                <span class="p">,</span> <span class="p">(</span> <span class="mi">12</span><span class="p">,</span> <span class="n">intRange</span> <span class="mi">8</span> <span class="mi">9</span> <span class="p">)</span>
+                <span class="p">,</span> <span class="p">(</span> <span class="mi">6</span><span class="p">,</span> <span class="n">constant</span> <span class="mi">6</span> <span class="p">)</span>
+                <span class="p">,</span> <span class="p">(</span> <span class="mi">9</span><span class="p">,</span> <span class="n">intRange</span> <span class="mi">2</span> <span class="mi">4</span> <span class="p">)</span>
+                <span class="p">,</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="n">constant</span> <span class="mi">5</span> <span class="p">)</span>
+                <span class="p">,</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="n">constant</span> <span class="mi">1</span> <span class="p">)</span>
+                <span class="p">,</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="n">constant</span> <span class="mi">10</span> <span class="p">)</span>
+                <span class="p">]</span>
+    <span class="kr">in</span>
+        <span class="n">probabilities</span>
+            <span class="o">|&gt;</span> <span class="kt">Result</span><span class="o">.</span><span class="n">withDefault</span> <span class="p">(</span><span class="n">intRange</span> <span class="mi">1</span> <span class="mi">10</span><span class="p">)</span>
+
+
+<span class="n">addOneFrequencyTest</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addOneFrequencyTest</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"addOne"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="n">frequencyFuzzer</span> <span class="s">"adds 1 to the given integer"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">addOne</span> <span class="n">num</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>V konstantě <code class="highlighter-rouge">frequencyFuzzer</code> je použit fuzzer <code class="highlighter-rouge">frequency</code> pro přiřazení pravděpodobností k hodnotám mezi <code class="highlighter-rouge">1</code> a <code class="highlighter-rouge">10</code> podle výše uvedené tabulky. Takto vypadá signatura fuzzeru:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">frequency</span> <span class="o">:</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Float</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">a</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="kt">String</span> <span class="p">(</span><span class="kt">Fuzzer</span> <span class="n">a</span><span class="p">)</span></code></pre></figure>
+
+<p>Jako svůj jediný argument přijímá seznam entic. První element entice (tuple) představuje pravděpodobnostní váhu a druhý element reprezentuje konkretní fuzzer, zodpovědný za generování náhodné hodnoty. Význam položky <code class="highlighter-rouge">intRange</code> již známe. Fuzzer <code class="highlighter-rouge">constant</code> generuje pouze zadanou hodnotu. Typ vratné hodnoty indikuje, že fuzzer <code class="highlighter-rouge">frequency</code> vrací <code class="highlighter-rouge">Result</code>. Je to proto, že proces může selhat při výskytu kterékoli z následující okolnosti:</p>
+
+<ul>
+  <li>Seznam frekvencí je prázdný</li>
+  <li>Některá z vah je menší než <code class="highlighter-rouge">0</code></li>
+  <li>Součet všech vah je <code class="highlighter-rouge">0</code></li>
+</ul>
+
+<p>Pokud se funkci <code class="highlighter-rouge">frequency</code> nepodaří vytvořit fuzzer, vrací se vysvětlující řetězec. Tato chybová zpráva je označena jako <code class="highlighter-rouge">Err</code>. Pro vynětí fuzzeru z typu <code class="highlighter-rouge">Result</code> jsme použili účelovou funkci zvanou <code class="highlighter-rouge">Result.withDefault</code>, která vrací hodnotu, je-li výsledek <code class="highlighter-rouge">OK</code>, je-li však výsledkem <code class="highlighter-rouge">Err</code>, vrací implicitní hodnotu. V našem případě to je <code class="highlighter-rouge">intRange 1 10</code>. Takto je funkce  <code class="highlighter-rouge">withDefault</code> implementována za scénou:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">withDefault</span> <span class="o">:</span> <span class="n">value</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="ne">error</span> <span class="n">value</span> <span class="o">-&gt;</span> <span class="n">value</span>
+<span class="n">withDefault</span> <span class="n">defaultValue</span> <span class="n">result</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">result</span> <span class="kr">of</span>
+        <span class="kt">Ok</span> <span class="n">value</span> <span class="o">-&gt;</span>
+            <span class="n">value</span>
+
+        <span class="kt">Err</span> <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="n">defaultValue</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">addOneFrequencyTest</code> jednoduše používá fuzzer, generovaný funkcí <code class="highlighter-rouge">frequencyFuzzer</code> k testování funkce <code class="highlighter-rouge">addOne</code>. Abychom si ji pustili, přidáme ji k funkci <code class="highlighter-rouge">allTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="p">[</span> <span class="n">addOneTests</span>
+        <span class="p">,</span> <span class="n">addTests</span>
+        <span class="p">,</span> <span class="n">addOneFrequencyTest</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Obnovená stránka na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a> by nám měla sdělit, že všechny testy prošly.
+
+<p>Dosud jsme popsali fuzzery <code class="highlighter-rouge">int</code>, <code class="highlighter-rouge">constant</code>, a <code class="highlighter-rouge">frequency</code>. Proberme si některé další fuzzery, které <code class="highlighter-rouge">elm-test</code> poskytuje pro generování hodnot různých vestavěných typů.</p>
+
+<h3 id="bool-fuzzer">Fuzzer bool</h3>
+
+<p>Fuzzer <code class="highlighter-rouge">bool</code> generuje hodnoty typu <code class="highlighter-rouge">Bool</code>: <code class="highlighter-rouge">True</code> a <code class="highlighter-rouge">False</code>. Přidejte následující definici funkce na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">flip</span> <span class="o">:</span> <span class="kt">Bool</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="n">flip</span> <span class="n">x</span> <span class="o">=</span>
+    <span class="n">not</span> <span class="n">x</span>
+
+
+<span class="n">flipTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">flipTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"flip"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="n">bool</span> <span class="s">"negates the given boolean value"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">value</span> <span class="o">-&gt;</span>
+                <span class="n">flip</span> <span class="n">value</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">not</span> <span class="n">value</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Přidejte <code class="highlighter-rouge">flipTests</code> do seznamu testů v <code class="highlighter-rouge">allTests</code> a obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>. Mělo by vše proběhnout v pořádku.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="p">[</span> <span class="n">addOneTests</span>
+        <span class="p">,</span> <span class="n">addTests</span>
+        <span class="p">,</span> <span class="n">addOneFrequencyTest</span>
+        <span class="p">,</span> <span class="n">flipTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<h3 id="float-fuzzer">Fuzzer float</h3>
+
+<p>Fuzzer <code class="highlighter-rouge">float</code> je velice podobný fazzeru <code class="highlighter-rouge">int</code>. Implicitně generuje náhodné hodnoty typu <code class="highlighter-rouge">Float</code> mezi -50 a 50. Protože jsou fuzz testy zejména užitečné pro vysledování obskurních chyb, způsobených neočekávanými hodnotami jako je 0, fuzzer <code class="highlighter-rouge">float</code> rovněž zahrnuje tuto hodnotu mezi generované vstupy. Přidejte následující definice funkcí na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">multiplyFloat</span> <span class="o">:</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Float</span>
+<span class="n">multiplyFloat</span> <span class="n">x</span> <span class="n">y</span> <span class="o">=</span>
+    <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">toFloat</span> <span class="n">y</span><span class="p">)</span>
+
+
+<span class="n">multiplyFloatTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">multiplyFloatTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"multiplyFloat"</span>
+        <span class="p">[</span> <span class="n">fuzz2</span> <span class="n">float</span> <span class="n">int</span> <span class="s">"multiplies given numbers"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">x</span> <span class="n">y</span> <span class="o">-&gt;</span>
+                <span class="n">multiplyFloat</span> <span class="n">x</span> <span class="n">y</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">toFloat</span> <span class="n">y</span><span class="p">))</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Mohl jste si všimnout, že jsme v našem testu pěkně duplikovali logiku uvnitř funkce <code class="highlighter-rouge">multiplyFloat</code>. U jednoduché funkce často končíme tím, že do testu kopírujeme její implementaci. Jak roste složitost naší funkce, musíme být při definování testovaných vlastností více kreativní.</p>
+
+<p>Přidejte <code class="highlighter-rouge">multiplyFloatTests</code> do seznamu testů v <code class="highlighter-rouge">allTests</code> a obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>. Všechny testy by měly projít.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">flipTests</span>
+        <span class="p">,</span> <span class="n">multiplyFloatTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">multiplyFloatTests</code> kombinuje dva různé fuzzery: <code class="highlighter-rouge">float</code> a <code class="highlighter-rouge">int</code>. Vstupní hodoty různých typů jsou u funkcí Elmu normální. Potažmo to platí i pro fuzzery, které jsou za scénou rovněž funkcemi.</p>
+
+<p>Fuzzer <code class="highlighter-rouge">float</code> nikdy nevyprodukuje tyto hodnoty, definované v <a href="https://en.wikipedia.org/wiki/IEEE_floating_point" target="_blank">IEEE 754</a>: <code class="highlighter-rouge">NaN</code>, <code class="highlighter-rouge">-Infinity</code> a <code class="highlighter-rouge">Infinity</code>.</p>
+
+<h4 id="nan">NaN</h4>
+
+<p><code class="highlighter-rouge">NaN</code> znamená "not a number". Když výpočet ústí do neprezentovatelného desetinného  čísla, vrací nám Elm <code class="highlighter-rouge">NaN</code>. Zde je několik příkladů:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">0</span> <span class="o">/</span> <span class="mi">0</span>
+<span class="kt">NaN</span> <span class="o">:</span> <span class="kt">Float</span>
+
+<span class="o">&gt;</span> <span class="n">sqrt</span> <span class="o">-</span><span class="mi">5</span>
+<span class="kt">NaN</span> <span class="o">:</span> <span class="kt">Float</span></code></pre></figure>
+
+<p>Modul <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Basics" target="_blank"><code class="highlighter-rouge">Basics</code></a> definuje funkci nazvanou <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Basics#isNaN" target="_blank"><code class="highlighter-rouge">isNaN</code></a>, kterou lze použít k ověření, zda je výsledek opravdu  <code class="highlighter-rouge">NaN</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">isNaN</span> <span class="p">(</span><span class="mi">0</span> <span class="o">/</span> <span class="mi">0</span><span class="p">)</span>
+<span class="kt">True</span> <span class="o">:</span> <span class="kt">Bool</span>
+
+<span class="o">&gt;</span> <span class="n">isNaN</span> <span class="p">(</span><span class="n">sqrt</span> <span class="o">-</span><span class="mi">5</span><span class="p">)</span>
+<span class="kt">True</span> <span class="o">:</span> <span class="kt">Bool</span></code></pre></figure>
+
+<h4 id="infinity-and--infinity">Nekonečno a - nekonečno</h4>
+<p><img src="images/known-universe.png" alt="" /></p>
+
+<div style="text-align:center">
+    <a href="http://hubblesite.org/news_release/news/2016-39" target="_blank">
+        Galaxies visible in the Great Observatories Origins Deep Survey
+    </a>
+</div>
+
+<p><code class="highlighter-rouge">Infinity</code> and <code class="highlighter-rouge">-Infinity</code> reprezentují čísla větší než jakákoli počítatelná čísla. Nejsou to pouze velká čísla. Jsou to ve skutečnosti nikdy nekončící čísla. Zde je několik příkladů:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span>
+<span class="kt">Infinity</span> <span class="o">:</span> <span class="kt">Float</span>
+
+<span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span>
+<span class="o">-</span><span class="kt">Infinity</span> <span class="o">:</span> <span class="kt">Float</span></code></pre></figure>
+
+<p>Modul <code class="highlighter-rouge">Basics</code> také poskytuje funkci nazvanou <code class="highlighter-rouge">isInfinite</code>, která ověřuje, zda daný výpočet směřuje do nekonečna.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">isInfinite</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">0</span><span class="p">)</span>
+<span class="kt">True</span> <span class="o">:</span> <span class="kt">Bool</span>
+
+<span class="o">&gt;</span> <span class="n">isInfinite</span> <span class="p">(</span><span class="mi">0</span> <span class="o">/</span> <span class="mi">0</span><span class="p">)</span>
+<span class="kt">False</span> <span class="o">:</span> <span class="kt">Bool</span>
+
+<span class="o">&gt;</span> <span class="n">googol</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">^</span> <span class="mi">100</span>
+<span class="mf">1.0000000000000002e+100</span> <span class="o">:</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="n">isInfinite</span> <span class="n">googol</span>
+<span class="kt">False</span> <span class="o">:</span> <span class="kt">Bool</span></code></pre></figure>
+
+<p><a href="https://en.wikipedia.org/wiki/Googol" target="_blank">Googol</a> je číslo tak veliké, že je větší než celkový počet  <a href="https://en.wikipedia.org/wiki/Elementary_particle" target="_blank">elementárních částic</a>, přítomných ve známém univerzu. A ani to není považováno za nekonečné číslo. Všimněte si, že výraz <code class="highlighter-rouge">0/0</code> není považován za <code class="highlighter-rouge">Infinity</code>. Je prezentován jako <code class="highlighter-rouge">NaN</code>, což není totéž co <code class="highlighter-rouge">Infinity</code>.</p>
+
+<h4 id="controlling-the-range-of-float-values">Rozsah desetinných čísel</h4>
+
+<p>Podobně jako u <code class="highlighter-rouge">intRange</code>, můžeme rovněž určit rozsah desetinných čísel fuzzerem <code class="highlighter-rouge">floatRange</code>. Upravte funkci <code class="highlighter-rouge">multiplyFloatTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code>, tak aby použila <code class="highlighter-rouge">floatRange</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">multiplyFloatTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">multiplyFloatTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"multiplyFloat"</span>
+        <span class="p">[</span> <span class="n">fuzz2</span> <span class="p">(</span><span class="n">floatRange</span> <span class="o">-</span><span class="mf">1.0</span> <span class="mf">1.0</span><span class="p">)</span> <span class="n">int</span> <span class="s">"multiplies given numbers"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">x</span> <span class="n">y</span> <span class="o">-&gt;</span>
+                <span class="n">multiplyFloat</span> <span class="n">x</span> <span class="n">y</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">toFloat</span> <span class="n">y</span><span class="p">))</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Osvěžíte-li stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, měl byste zjistit, že všechny testy prošly.</p>
+
+<h3 id="percentage-fuzzer">Procentní fuzzer</h3>
+
+<p>Fuzzer <code class="highlighter-rouge">percentage</code> generuje desetinná čísla mezi <code class="highlighter-rouge">0.0</code> a <code class="highlighter-rouge">1.0</code>. 
+It generates zero and one about 10% of the time. Přidejte následující definici funkce na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">pizzaLeft</span> <span class="o">:</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">Float</span>
+<span class="n">pizzaLeft</span> <span class="n">eatenPercent</span> <span class="n">totalSlices</span> <span class="o">=</span>
+    <span class="n">totalSlices</span> <span class="o">-</span> <span class="p">(</span><span class="n">eatenPercent</span> <span class="o">*</span> <span class="n">totalSlices</span><span class="p">)</span>
+
+
+<span class="n">pizzaLeftTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">pizzaLeftTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"pizzaLeft"</span>
+        <span class="p">[</span> <span class="n">fuzz2</span> <span class="n">percentage</span> <span class="n">float</span> <span class="s">"returns remaining pizza slices"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">eaten</span> <span class="n">total</span> <span class="o">-&gt;</span>
+                <span class="n">pizzaLeft</span> <span class="n">eaten</span> <span class="n">total</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">total</span> <span class="o">-</span> <span class="p">(</span><span class="n">eaten</span> <span class="o">*</span> <span class="n">total</span><span class="p">))</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Nyní přidejte <code class="highlighter-rouge">pizzaLeftTests</code> do seznamu testů v <code class="highlighter-rouge">allTests</code> a obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>. Měl byste vidět, že všechny testy prošly.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">multiplyFloatTests</span>
+        <span class="p">,</span> <span class="n">pizzaLeftTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<h3 id="string-fuzzer">Fuzzer string</h3>
+
+<p>Fuzzer <code class="highlighter-rouge">string</code> generuje náhodné tisknutelné <a href="https://en.wikipedia.org/wiki/ASCII" target="_blank">ASCII</a>
+řetězce, skládající se z až 1000 znaků. Mezi generovanými hodnotami nechybí často opomíjený prázdný řetězec.</p>
+
+<p>Tato stránka <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0" target="_blank">oficiální dokumentace</a> pro paket <code class="highlighter-rouge">elm-test</code> má pěkný příklad, který používá fuzzer <code class="highlighter-rouge">string</code>. My si jej nyní vypůjčíme. Přidejte následující testy na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">stringTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">stringTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"The String module"</span>
+        <span class="p">[</span> <span class="n">describe</span> <span class="s">"String.reverse"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"has no effect on a palindrome"</span> <span class="o">&lt;|</span>
+                <span class="c1">-- Unit Test - 1</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="kr">let</span>
+                        <span class="n">palindrome</span> <span class="o">=</span>
+                            <span class="s">"hannah"</span>
+                    <span class="kr">in</span>
+                        <span class="n">palindrome</span>
+                            <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">reverse</span>
+                            <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="n">palindrome</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"reverses a known string"</span> <span class="o">&lt;|</span>
+                <span class="c1">-- Unit Test - 2</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="s">"ABCDEFG"</span>
+                        <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">reverse</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="s">"GFEDCBA"</span>
+            <span class="p">,</span> <span class="n">fuzz</span> <span class="n">string</span> <span class="s">"restores the original string if you run it again"</span> <span class="o">&lt;|</span>
+                <span class="c1">-- Fuzz Test</span>
+                <span class="nf">\</span><span class="n">randomlyGeneratedString</span> <span class="o">-&gt;</span>
+                    <span class="n">randomlyGeneratedString</span>
+                        <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">reverse</span>
+                        <span class="o">|&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">reverse</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="n">randomlyGeneratedString</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Všimněte si, jak <code class="highlighter-rouge">stringTests</code> doplňuje fuzz test dvěma jednotkovými testy. První jednotkový test ověřuje, že mezní případ pro převrácený palindrom pracuje dle očekávání. Druhý jednotkový test objasňuje činnost funkce <code class="highlighter-rouge">String.reverse</code>. Tyto testy jsou dobrou ukázkou, jak by se náš kód měl chovat a bránit regresím.</p>
+
+<dl>
+  <dt>Regrese</dt>
+  <dd><em>"Opětovný výskyt stejné chyby v již opraveném kódu" - <a href="https://en.wiktionary.org/wiki/regression" target="_blank">Wikitionary</a></em></dd>
+</dl>
+
+<p>Přidejte <code class="highlighter-rouge">stringTests</code> do funkce <code class="highlighter-rouge">allTests</code> a obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>. Všechny testy by měly projít.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">pizzaLeftTests</span>
+        <span class="p">,</span> <span class="n">stringTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<h3 id="list-fuzzer">Fuzzer list</h3>
+
+<p>Fuzzer <code class="highlighter-rouge">list</code> generuje seznam náhodných hodnot daného typu. Řekněme, že si chceme ověřit, že funkce <a href="/list.html#checking-length" target="_blank"><code class="highlighter-rouge">List.length</code></a> nikdy nevrací zápornou hodnotu. Přidejte následující test na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">listLengthTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">listLengthTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"List.length"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="p">(</span><span class="n">list</span> <span class="n">int</span><span class="p">)</span> <span class="s">"never returns a negative value"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">intList</span> <span class="o">-&gt;</span>
+                <span class="n">intList</span>
+                    <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">atLeast</span> <span class="mi">0</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Zde poprvé vidíme fuzzer, který přijímá jiný fuzzer jako argument. Pohleďme na signaturu typu fuzzeru <code class="highlighter-rouge">list</code>, abychom porozuměli jeho působení.</p>
+
+<p><img src="images/list-fuzzer-type-signature.png" alt="" /></p>
+
+<p>Stejně jako u fuzzerů <code class="highlighter-rouge">intRange</code> a <code class="highlighter-rouge">floatRange</code> musí být fuzzer <code class="highlighter-rouge">list</code> a jeho argumenty obklopeny závorkami. Jinak si Elm myslí, že zadáváme dva různé fuzzery funkci <code class="highlighter-rouge">fuzz</code>, která přijímá pouze jeden. I když jsou <code class="highlighter-rouge">list</code> and <code class="highlighter-rouge">int</code> dva různé typy fuzzerů, vrací výraz <code class="highlighter-rouge">(list int)</code> pouze jeden.</p>
+
+<p>Abychom mohli výše uvedený test spustit, potřebujeme jej přidat do funkce <code class="highlighter-rouge">allTests</code> v souboru <code class="highlighter-rouge">FuzzTetss.elm</code>. Poté obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a> a měl byste vidět, že testy prošly.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">stringTests</span>
+        <span class="p">,</span> <span class="n">listLengthTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<h3 id="array-fuzzer">Fuzzer array</h3>
+
+<p>Stejně jako fuzzer <code class="highlighter-rouge">list</code>, generuje fuzzer <code class="highlighter-rouge">array</code> array náhodných hodnot zadaného typu. Jeho typová signature je také velmi podobná signatuře fuzzeru <code class="highlighter-rouge">list</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">array</span> <span class="o">:</span> <span class="kt">Fuzzer</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="p">(</span><span class="kt">Array</span> <span class="n">a</span><span class="p">)</span></code></pre></figure>
+
+<p>Napišme test, který ověří, že funkce <code class="highlighter-rouge">Array.get</code> vždy vrací <code class="highlighter-rouge">Nothing</code>, pokusíme-li se o přístup k indexu mimo rozsah. Přidejte následující test na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">arrayGetTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">arrayGetTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Array.get"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="p">(</span><span class="n">array</span> <span class="p">(</span><span class="n">intRange</span> <span class="o">-</span><span class="mi">20</span> <span class="mi">20</span><span class="p">))</span> <span class="s">"returns Nothing for out of range index"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">intArray</span> <span class="o">-&gt;</span>
+                <span class="kr">let</span>
+                    <span class="n">length</span> <span class="o">=</span>
+                        <span class="kt">Array</span><span class="o">.</span><span class="n">length</span> <span class="n">intArray</span>
+                <span class="kr">in</span>
+                    <span class="n">intArray</span>
+                        <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="n">length</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="kt">Nothing</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Požádali jsme fuzzer <code class="highlighter-rouge">array</code>, aby generoval náhodné arraye celých čísel mezi <code class="highlighter-rouge">-20</code> a <code class="highlighter-rouge">20</code>. Potom jsme určili délku generovaného arraye a použili ji jako index. Použijeme-li délku jako index, jsme určitě mimo rozsah, protože indexy arraye začínají v Elmu číslem <code class="highlighter-rouge">0</code>. Otevřte <code class="highlighter-rouge">elm-repl</code> a zadejte následující kód.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">Array</span>
+
+<span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">:</span> <span class="kt">Array</span><span class="o">.</span><span class="kt">Array</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">2</span> <span class="n">myArray</span>
+<span class="kt">Just</span> <span class="mi">3</span> <span class="o">:</span> <span class="kt">Maybe</span><span class="o">.</span><span class="kt">Maybe</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="n">length</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">length</span> <span class="n">myArray</span>
+<span class="mi">3</span> <span class="o">:</span> <span class="kt">Int</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="n">length</span> <span class="n">myArray</span>
+<span class="kt">Nothing</span> <span class="o">:</span> <span class="kt">Maybe</span><span class="o">.</span><span class="kt">Maybe</span> <span class="n">number</span></code></pre></figure>
+
+<p>Před spuštěním testu 'arrayGetTests' musíme importovat modul <code class="highlighter-rouge">Array</code> do souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">FuzzTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Array</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Nyní přidejte <code class="highlighter-rouge">arrayGetTests</code> do funkce <code class="highlighter-rouge">allTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code> a obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a> abychom viděli výsledek.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">listLengthTests</span>
+        <span class="p">,</span> <span class="n">arrayGetTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<h3 id="tuple-fuzzer">Fuzzer tuple</h3>
+
+<p>Fuzzer <code class="highlighter-rouge">tuple</code> generuje entici náhodných hodnot daného typu. Pro lepší pochopení jeho funkce  prozkoumejme jeho signaturu.</p>
+
+<p><img src="images/tuple-fuzzer-type-signature.png" alt="" /></p>
+
+<p>Fuzzer <code class="highlighter-rouge">tuple</code> přijímá jako první argument<em>entici</em> dvou různých fuzzerů. Kdyby měl přijmout dva fuzzery jako oddělené argumenty, byla by jeho signatura takováto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">tuple</span> <span class="o">:</span> <span class="kt">Fuzzer</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span></code></pre></figure>
+
+<p>Upravte funkci <code class="highlighter-rouge">addTests</code> v souboru <code class="highlighter-rouge">FuzzTests.elm</code> aby použila fuzzer <code class="highlighter-rouge">tuple</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"add"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="p">(</span><span class="n">tuple</span> <span class="p">(</span> <span class="n">int</span><span class="p">,</span> <span class="n">int</span> <span class="p">))</span> <span class="s">"adds two given integers"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="p">(</span> <span class="n">num1</span><span class="p">,</span> <span class="n">num2</span> <span class="p">)</span> <span class="o">-&gt;</span>
+                <span class="n">add</span> <span class="n">num1</span> <span class="n">num2</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num1</span> <span class="o">+</span> <span class="n">num2</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Takto vypadala funkce <code class="highlighter-rouge">addTests</code> předtím:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"add"</span>
+        <span class="p">[</span> <span class="n">fuzz2</span> <span class="n">int</span> <span class="n">int</span> <span class="s">"adds two given integers"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">num1</span> <span class="n">num2</span> <span class="o">-&gt;</span>
+                <span class="n">add</span> <span class="n">num1</span> <span class="n">num2</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num1</span> <span class="o">+</span> <span class="n">num2</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Předchozí funkce byla poněkud úpravnější, že? To proto, že <code class="highlighter-rouge">fuzz2</code> je účelová (convenience) funkce, která nám umožňuje psát testy s fuzzery <code class="highlighter-rouge">tuple</code> elegantnějším způsobem. Napišme další příklad, odhalující inherentní ošklivost fuzzeru <code class="highlighter-rouge">tupple</code>. Přidejte následující test na spodek souboru <code class="highlighter-rouge">FuzzTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">listReverseTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">listReverseTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"List.reverse"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="p">(</span><span class="n">tuple</span> <span class="p">(</span> <span class="p">(</span><span class="n">list</span> <span class="n">int</span><span class="p">),</span> <span class="n">int</span> <span class="p">))</span> <span class="s">"doesn't remove a member of the list"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="p">(</span> <span class="n">intList</span><span class="p">,</span> <span class="n">num</span> <span class="p">)</span> <span class="o">-&gt;</span>
+                <span class="n">intList</span>
+                    <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">reverse</span>
+                    <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">num</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">num</span> <span class="n">intList</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Tento test potvrzuje, že funkce <code class="highlighter-rouge">List.reverse</code> neodebírá element seznamu. Podívejte se, jak nepřehledná je část za <code class="highlighter-rouge">fuzz</code> se všemi závorkami. Mnohem čistší je verze s <code class="highlighter-rouge">fuzz2</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">listReverseTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">listReverseTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"List.reverse"</span>
+        <span class="p">[</span> <span class="n">fuzz2</span> <span class="p">(</span><span class="n">list</span> <span class="n">int</span><span class="p">)</span> <span class="n">int</span> <span class="s">"doesn't remove a member of the list"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">intList</span> <span class="n">num</span> <span class="o">-&gt;</span>
+                <span class="n">intList</span>
+                    <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">reverse</span>
+                    <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">num</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">num</span> <span class="n">intList</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Přidejme <code class="highlighter-rouge">listReverseTests</code> (verzi s fuzzerem <code class="highlighter-rouge">tuple</code>) do funkce <code class="highlighter-rouge">allTests</code>, abychom ji mohli spustit.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Example Fuzz Tests"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">arrayGetTests</span>
+        <span class="p">,</span> <span class="n">listReverseTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, měl byste vidět, že všechny testy prošly.</p>
+
+<p>Jak se ukazuje, funkce <code class="highlighter-rouge">fuzz3</code>, <code class="highlighter-rouge">fuzz4</code> a <code class="highlighter-rouge">fuzz5</code>, s nimiž jsme se setkali dříve, jsou také zkratky pro fuzzery <code class="highlighter-rouge">tupple3</code>, <code class="highlighter-rouge">tupple4</code> a <code class="highlighter-rouge">tupple5</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">tuple3</span>
+    <span class="o">:</span> <span class="p">(</span><span class="kt">Fuzzer</span> <span class="n">a</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">b</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">c</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+
+
+<span class="n">tuple4</span>
+    <span class="o">:</span>  <span class="p">(</span><span class="kt">Fuzzer</span> <span class="n">a</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">b</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">c</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">d</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+
+<span class="n">tuple5</span>
+    <span class="o">:</span>  <span class="p">(</span><span class="kt">Fuzzer</span> <span class="n">a</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">b</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">c</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">d</span><span class="p">,</span> <span class="kt">Fuzzer</span> <span class="n">e</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="kt">Fuzzer</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span></code></pre></figure>
+
+<h3 id="exercise-481">Cvičení 4.8.1</h3>
+
+<p>V sekci <a href="type-system.html#recursive-types" target="_blank">Rekurzivní typy</a> jsme napsali funkci, která počítá součet všech nodů, obsažených v seznamu typu <code class="highlighter-rouge">MyList</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">sum</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">sum</span> <span class="n">myList</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">myList</span> <span class="kr">of</span>
+        <span class="kt">Empty</span> <span class="o">-&gt;</span>
+            <span class="mi">0</span>
+
+        <span class="kt">Node</span> <span class="n">intValue</span> <span class="n">remainingNodes</span> <span class="o">-&gt;</span>
+            <span class="n">intValue</span> <span class="o">+</span> <span class="n">sum</span> <span class="n">remainingNodes</span></code></pre></figure>
+
+<p>Zkuste několika fuzz testy ověřit, že tato funkce pracuje dle očekávání.</p>
+
+<h3 id="testing-the-ripplecarryadder-function">Test funkce <code class="highlighter-rouge">rippleCarryAdder</code> </h3>
+
+<p>Nyní když víme, jak fuzz testy pracují, obraťme naši pozornost k testování funkce  <a href="function-composition.html#implementing-a-4-bit-ripple-carry-adder-1" target="_blank"><code class="highlighter-rouge">rippleCarryAdder</code></a>. V sekci <a href="easy-to-test.html#testing-the-ripplecarryadder-function" target="_blank">¨Snadné testování</a> jsme napsali čtyři jednotkové testy, které  pokrývaly mezní případy a jeden, který ukazoval fungování funkce.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdderTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">rippleCarryAdderTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"4-bit ripple carry adder"</span>
+        <span class="p">[</span> <span class="n">describe</span> <span class="s">"given two binary numbers and a carry-in digit"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"returns the sum of those numbers and a carry-out digit"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">1001</span> <span class="mi">1101</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">10111</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 1111, and the 2nd input is 1111"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0, the output is 11110"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">1111</span> <span class="mi">1111</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">11110</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"and carry-in is 1, the output is 11111"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">1111</span> <span class="mi">1111</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">11111</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 0000, and the 2nd input is 0000"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0, the output is 0000"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">0</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"and carry-in is 1, the output is 0001"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">1</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Jak zmíněno na začátku této sekce, funkce <code class="highlighter-rouge">rippleCarryAdder</code> má devět vstupních signálů, které vedou k <code class="highlighter-rouge">2 ^ 9 = 512</code> různých vstupních situací. V sekci <a href="easy-to-test.html#testing-the-ripplecarryadder-function" target="_blank">Snadné testování </a> jsme si rychle uvědomili, že pro nás nebylo proveditelné použít jednotkové testy k prověření oněch všech situací. A co fuzz testy?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdderFuzzTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">rippleCarryAdderFuzzTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Fuzz tests"</span>
+        <span class="p">[</span> <span class="n">fuzz3</span>
+            <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1111</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1111</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="s">"fuzz tests for ripple carry adder"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">-&gt;</span>
+                <span class="n">rippleCarryAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="o">...</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Kód nahoře ukazuje hrubý obrys fuzz testu, který se pokouší pokrýt všech <code class="highlighter-rouge">512</code> situací, ale rychle naráží na velký problém: jak ověřit, že funkce <code class="highlighter-rouge"> rippleCarryAdder</code> pracuje dle očekávání bez rozsáhlé duplicity její logiky. Zatím jsme fuzz testy použili k ověření malých triviálních funkcí duplikováním logiky přímo v testu. Provést totéž s funkcí  <code class="highlighter-rouge">rippleCarryAdder</code> nedává mnoho smyslu.</p>
+
+<p>Potřebujeme udělat krok zpátky a ptát se, co je zde naším cílem. Jistě jím není testování každé jednotlivé vstupní situace. Měli bychom zapřemýšlet o obecných vlastnostech naší funkce a použít fuzz testy k ověření, že tyto vlastnosti platí pro široký rozsah vstupů.</p>
+
+<p class="info"><em>"Být pyšný na stoprocentní pokrytí testem je jako být pyšný na přečtení každého slova v novinách. Některé jsou důležitější než jiné" - <a href="https://twitter.com/kentbeck/status/812703192437981184?lang=en" target="_blank">Kent Beck</a></em></p>
+
+<p>Níže je uvedeno několik vlastností funkce <code class="highlighter-rouge">rippleCarryAdder</code>, které můžeme testovat:</p>
+
+<p><strong>Vlastnost #1:</strong> Jsou-li nejvýznamnější číslice obou vstupů <code class="highlighter-rouge">0</code>, bude  carry-out číslice vždy <code class="highlighter-rouge">0</code>.</p>
+
+<p><img src="images/most-significant-digits-as-zero.png" alt="" /></p>
+
+<p><strong>Vlastnost #2:</strong> Jsou-li nejvýznamnější číslice obou vstupů <code class="highlighter-rouge">1</code>, bude carry-out číslice vždy <code class="highlighter-rouge">1</code>.</p>
+
+<p><img src="images/most-significant-digits-as-one.png" alt="" /></p>
+
+<p><strong>Vlastnost #3:</strong> Jsou-li nejméně významné číslice obou vstupů <code class="highlighter-rouge">0</code> a carry-in číslice je také <code class="highlighter-rouge">0</code>, nejméně významná číslice výstupu bude vždy <code class="highlighter-rouge">0</code>.</p>
+
+<p><img src="images/least-significant-digits-as-zero.png" alt="" /></p>
+
+<p><strong>Vlastnost #4:</strong> Jsou-li nejméně významné číslice obou vstupů <code class="highlighter-rouge">1</code> a  carry-in číslice je <code class="highlighter-rouge">0</code>, nejméně významnou číslicí bude vždy <code class="highlighter-rouge">0</code>.</p>
+
+<p><img src="images/least-significant-digits-as-one.png" alt="" /></p>
+
+<h3 id="testing-property-1">Testování vlastnosti #1</h3>
+
+<p>Začněme naše testování s vlastností #1. Přidejte následující test na spodek souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> v adresáři <code class="highlighter-rouge">beginning-elm/tests</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdderProperty1</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">rippleCarryAdderProperty1</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"carry-out's relationship with most significant digits"</span>
+        <span class="p">[</span> <span class="n">fuzz3</span>
+            <span class="p">(</span><span class="n">list</span> <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">list</span> <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="s">"carry-out is 0 when most significant digits are both 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">list1</span> <span class="n">list2</span> <span class="n">carryIn</span> <span class="o">-&gt;</span>
+                <span class="kr">let</span>
+                    <span class="n">convertToBinary</span> <span class="n">digitsList</span> <span class="o">=</span>
+                        <span class="n">digitsList</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">take</span> <span class="mi">3</span>
+                            <span class="o">|&gt;</span> <span class="n">numberFromDigits</span>
+
+                    <span class="n">firstInput</span> <span class="o">=</span>
+                        <span class="n">convertToBinary</span> <span class="n">list1</span>
+
+                    <span class="n">secondInput</span> <span class="o">=</span>
+                        <span class="n">convertToBinary</span> <span class="n">list2</span>
+                <span class="kr">in</span>
+                    <span class="n">rippleCarryAdder</span> <span class="n">firstInput</span> <span class="n">secondInput</span> <span class="n">carryIn</span>
+                        <span class="o">|&gt;</span> <span class="n">digits</span>
+                        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">lessThan</span> <span class="mi">5</span>
+        <span class="p">]</span></code></pre></figure>
+
+<h4 id="generating-input-values">Generování vstupních hodnot</h4>
+
+<p>Elm v současné době neposkytuje fuzzer pro generování binárních čísel. Mohli bychom si napsat vlastní fuzzer ale to je pokročilé téma, vyžadující mnoho vysvětlování. Spokojíme se místo toho s tím, že budeme generovat seznamy binárních číslic, které potom přeměníme na binární čísla. Zde je několik příkladů seznamů, generovaných fuzzerem <code class="highlighter-rouge">(list (intRange 0 1))</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">[ ]</span>
+<span class="p">[</span> <span class="mi">0</span> <span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span> <span class="p">]</span>
+<span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Potom použijeme funkci <code class="highlighter-rouge">convertToBinary</code>, jíž tyto seznamy konvertujeme na binární čísla.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">convertToBinary</span> <span class="n">digitsList</span> <span class="o">=</span>
+    <span class="n">digitsList</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">take</span> <span class="mi">3</span>
+        <span class="o">|&gt;</span> <span class="n">numberFromDigits</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">rippleCarryAdder</code> přijímá binární čísla, která mají nejvíce čtyři číslice.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="mi">1001</span> <span class="mi">1100</span> <span class="mi">0</span>
+<span class="mi">10101</span></code></pre></figure>
+
+<p>Bohužel, není snadné limitovat délku seznamů, generovaných funkcí <code class="highlighter-rouge">(list (intRange 0 1))</code> na čtyři. Můžeme ale použít funkci <a href="list.html#take-it-or-drop-it" target="_blank"><code class="highlighter-rouge">List.take</code></a> pro extrahování prvních čtyř elementů ze seznamu. Ve funkci <code class="highlighter-rouge">convertToBinary</code> extrahujeme ve skutečnosti pouze tři, protože vlastnost #1 vyžaduje aby nejvýznamnější číslice obou vstupních čísel byla <code class="highlighter-rouge">0</code>, příčemž funkce <code class="highlighter-rouge">rippleCarryAdder</code> považuje seznam s pouze třemi elementy za binární číslo se čtyřmi číslicemi, jejichž nejvýznamnější číslice je <code class="highlighter-rouge">0</code>. Takže <code class="highlighter-rouge">[ 1, 0, 1 ]</code> je ekvivalentní k <code class="highlighter-rouge">0101</code>.</p>
+
+<p>Dále použijeme funkci <code class="highlighter-rouge">numberFromDigits</code> ke konverzi seznamu číslic na skutečné binární číslo.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">numberFromDigits</span> <span class="n">digitsList</span> <span class="o">=</span>
+    <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">digit</span> <span class="n">number</span> <span class="o">-&gt;</span> <span class="n">digit</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">number</span><span class="p">)</span> <span class="mi">0</span> <span class="n">digitsList</span></code></pre></figure>
+
+<p>Tuto funkci jsme psali v odstavci <a href="function-composition.html#improving-output" target="_blank">Zlepšení výstupu</a> sekce Ripple-Carry Adder. Pokud si ji nepamatujete, vraťte se a přečtěte si odstavec znova.</p>
+
+<p>Co se týče generování carry-in číslice, vše co potřebujeme je fuzzer <code class="highlighter-rouge">intRange</code> s rozsahem od <code class="highlighter-rouge">0</code> do <code class="highlighter-rouge">1</code>, protože carry-in číslice může být buď <code class="highlighter-rouge">0</code> nebo <code class="highlighter-rouge">1</code>.</p>
+
+<h4 id="private-functions">Privátní funkce</h4>
+
+<p>Je obecně považováno za špatný postup, volat z našich testů privátní funkce jako je <code class="highlighter-rouge">numberFromDigits</code>, byť to je technicky veřejná funkce, protože jsme exponovali vše z modulu <code class="highlighter-rouge">RippleCarryAdder</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RippleCarryAdder</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>To bylo z naší strany přehlédnutí. Měli jsme pouze exponovat ty funkce, které jsou míněny jako veřejné ale jak máme vědět, které funkce by měly být veřejné a které privátní?</p>
+
+<p>Modul <code class="highlighter-rouge">RippleCarryAdder</code> obsahuje tucet funkcí, ale když se na ně podíváme pozorně, uvědomíme si, že pouze jedna funkce je zodpovědná za výpočet součtu dvou 4-bit binárních čísel a touto funkcí je <code class="highlighter-rouge">rippleCarryAdder</code>. Všechny ostatní funkce jsou pomocníky funkce <code class="highlighter-rouge">rippleCarryAdder</code>. Proto pouze tato funkce potřebuje být veřejná.</p>
+
+<p>Nabízí se otázka, proč potřebujeme rozdělit funkcionalitu do více funkcí, jak jsme to udělali v případě modulu <code class="highlighter-rouge">RippleCarryAdder</code>? Nešlo by konzolidovat všechny pomocné funkce do jedné <code class="highlighter-rouge">rippleCarryAdder</code>, což je jediná funce, o kterou se vnější svět zajímá? Odpovědí je to, že jedna obrovitá funkce, která dělá všechno, se v delším časovém horizontu těžko udržuje. Je obtížné určit, co se od tak velké funkce očekává. Jenom pohleďte na následující kód, vypisující takový pokus o konzolidaci všech pomocných funkcí do jedné <code class="highlighter-rouge">rippleCarryAdder</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">halfAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+            <span class="kr">let</span>
+                <span class="n">d</span> <span class="o">=</span>
+                    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">and</span> <span class="n">a</span> <span class="n">b</span>
+
+                <span class="n">e</span> <span class="o">=</span>
+                    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">or</span> <span class="n">a</span> <span class="n">b</span>
+                        <span class="o">|&gt;</span> <span class="kr">case</span> <span class="n">a</span> <span class="kr">of</span>
+                            <span class="mi">0</span> <span class="o">-&gt;</span>
+                                <span class="mi">1</span>
+
+                            <span class="mi">1</span> <span class="o">-&gt;</span>
+                                <span class="mi">0</span>
+
+                            <span class="kr">_</span> <span class="o">-&gt;</span>
+                                <span class="o">-</span><span class="mi">1</span>
+
+                <span class="n">sumDigit</span> <span class="o">=</span>
+                    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">and</span> <span class="n">a</span> <span class="n">b</span>
+
+                <span class="n">carryOut</span> <span class="o">=</span>
+                    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">and</span> <span class="n">a</span> <span class="n">b</span>
+            <span class="kr">in</span>
+                <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">carryOut</span>
+                <span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">sumDigit</span>
+                <span class="p">}</span>
+
+        <span class="n">fullAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+            <span class="kr">let</span>
+                <span class="n">firstResult</span> <span class="o">=</span>
+                    <span class="n">halfAdder</span> <span class="n">b</span> <span class="n">carryIn</span>
+
+                <span class="n">secondResult</span> <span class="o">=</span>
+                    <span class="n">halfAdder</span> <span class="n">a</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">sum</span>
+
+                <span class="n">finalCarry</span> <span class="o">=</span>
+                    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">or</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+            <span class="kr">in</span>
+                <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">finalCarry</span>
+                <span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">sum</span>
+                <span class="p">}</span>
+
+        <span class="n">digits</span> <span class="n">number</span> <span class="o">=</span>
+            <span class="kr">if</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span>
+                <span class="kt">[]</span>
+            <span class="kr">else</span>
+                <span class="n">digits</span> <span class="p">(</span><span class="n">number</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">++</span> <span class="p">[</span> <span class="n">number</span> <span class="o">%</span> <span class="mi">10</span> <span class="p">]</span>
+
+        <span class="n">padZeros</span> <span class="n">total</span> <span class="n">list</span> <span class="o">=</span>
+            <span class="kr">let</span>
+                <span class="n">numberOfZeros</span> <span class="o">=</span>
+                    <span class="n">total</span> <span class="o">-</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="n">list</span><span class="p">)</span>
+            <span class="kr">in</span>
+                <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">repeat</span> <span class="n">numberOfZeros</span> <span class="mi">0</span><span class="p">)</span> <span class="o">++</span> <span class="n">list</span>
+
+        <span class="n">arrayToTuple</span> <span class="n">array</span> <span class="o">=</span>
+            <span class="kr">let</span>
+                <span class="n">firstElement</span> <span class="o">=</span>
+                    <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">0</span> <span class="n">array</span>
+                        <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+
+                <span class="n">secondElement</span> <span class="o">=</span>
+                    <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">1</span> <span class="n">array</span>
+                        <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+
+                <span class="n">thirdElement</span> <span class="o">=</span>
+                    <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">2</span> <span class="n">array</span>
+                        <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+
+                <span class="n">fourthElement</span> <span class="o">=</span>
+                    <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">3</span> <span class="n">array</span>
+                        <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="kr">in</span>
+                <span class="p">(</span> <span class="n">firstElement</span><span class="p">,</span> <span class="n">secondElement</span><span class="p">,</span> <span class="n">thirdElement</span><span class="p">,</span> <span class="n">fourthElement</span> <span class="p">)</span>
+
+        <span class="c1">-- Extract digits</span>
+        <span class="p">(</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">digits</span> <span class="n">number</span>
+                <span class="o">|&gt;</span> <span class="n">padZeros</span> <span class="mi">4</span>
+                <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span>
+                <span class="o">|&gt;</span> <span class="n">arrayToTuple</span>
+
+        <span class="p">(</span> <span class="n">b3</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">digits</span> <span class="n">number</span>
+                <span class="o">|&gt;</span> <span class="n">padZeros</span> <span class="mi">4</span>
+                <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span>
+                <span class="o">|&gt;</span> <span class="n">arrayToTuple</span>
+
+        <span class="c1">-- Compute sum</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a0</span> <span class="n">b0</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a1</span> <span class="n">b1</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">thirdResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a2</span> <span class="n">b2</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">finalResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a3</span> <span class="n">b3</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">[</span> <span class="n">finalResult</span><span class="p">,</span> <span class="n">thirdResult</span><span class="p">,</span> <span class="n">secondResult</span><span class="p">,</span> <span class="n">firstResult</span> <span class="p">]</span>
+            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="o">.</span><span class="n">sum</span>
+            <span class="o">|&gt;</span> <span class="p">(</span><span class="o">::</span><span class="p">)</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">carry</span>
+            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">digit</span> <span class="n">number</span> <span class="o">-&gt;</span> <span class="n">digit</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">number</span><span class="p">)</span> <span class="mi">0</span></code></pre></figure>
+
+<p>Kdo tento kód čte poprvé, má jistě problém pochopit, jak takováto <code class="highlighter-rouge">rippleCarryAdder</code> pracuje. Děje se v ní mnoho věcí. Pokud však extrahujeme několik funkcí mimo, dáme jim vhodná jména a přidáme menší strukturu k celkovému kódu, stane se mnohem snadnější pochopit intence funkce <code class="highlighter-rouge">rippleCarryAdder</code> v pouhých 18 řádcích, jak ukázáno níže.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="c1">-- Extract digits</span>
+        <span class="p">(</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">a</span>
+
+        <span class="p">(</span> <span class="n">b3</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b0</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="n">extractDigits</span> <span class="n">b</span>
+
+        <span class="c1">-- Compute sum</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a0</span> <span class="n">b0</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a1</span> <span class="n">b1</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">thirdResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a2</span> <span class="n">b2</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+
+        <span class="n">finalResult</span> <span class="o">=</span>
+            <span class="n">fullAdder</span> <span class="n">a3</span> <span class="n">b3</span> <span class="n">thirdResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">[</span> <span class="n">finalResult</span><span class="p">,</span> <span class="n">thirdResult</span><span class="p">,</span> <span class="n">secondResult</span><span class="p">,</span> <span class="n">firstResult</span> <span class="p">]</span>
+            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="o">.</span><span class="n">sum</span>
+            <span class="o">|&gt;</span> <span class="p">(</span><span class="o">::</span><span class="p">)</span> <span class="n">finalResult</span><span class="o">.</span><span class="n">carry</span>
+            <span class="o">|&gt;</span> <span class="n">numberFromDigits</span></code></pre></figure>
+
+<p>
+Jiný udržovací problém, který velké funkce vytvářejí, je nedostatek znovupoužitelnosti. Velké funkce dělávají příliš mnoho věcí. To ztěžuje opětovné použití obsažené logiky někde jinde v  modulu. To má za následek duplikaci kódu, což je rovněž špatné.</p>
+
+<p>Nyní, když víme proč bychom neměli psát dlouhé funkce, vraťme se zpět k předchozí diskusi o tom, které metody by měly být veřejné a které privátní. Obecně řečeno, pomocné funkce, použité pouze uvnitř modulu v němž jsou definovány, by měly být privátní. Podle tohoto pravidla by měly funkce <code class="highlighter-rouge">andGate</code>, <code class="highlighter-rouge">orGate</code>, <code class="highlighter-rouge">inverter</code>, <code class="highlighter-rouge">halfAdder</code> a <code class="highlighter-rouge">fullAdder</code> být rovněž privátní a neměly by být dostupné z našich testů v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>. Tyto testy jsme napsali jako osvětlující cvičení ale v reálném projektu není nutné testovat privátní funkce jako <code class="highlighter-rouge">andGate</code> proto, že jsou skryty uvnitř veřejných funkcí a jejich výsedky nelze vidět prostřednictvím kódu mimo modul, ve kterém jsou definovány. Privátní funkce jsou invokováný veřejnými funkcemi, které by měly být testovány. Takže, když zavedeme chybu do privátní funkce, měla by být odchycena testováním veřejné funkce.</p>
+<!--
+<p>Second, the private functions tend to be more unstable compared to the public functions. Once a function is made public, it can be very risky to change it. If we modify its interface, the client code using that function could stop working. That’s why we need to make public functions as stable as possible. But if a function is private, we don’t have to put a lot of effort into refining its interface. We can always come back and refactor it without the fear of breaking some code out there. Because of this, private functions tend to change a lot more than public functions. So if we write tests for a private function, we might have to change those tests every time that function’s structure has changed even if the underlying behavior hasn’t.
+
+Za druhé, privátní funkce mají tendenci být více nestabilní než veřejné funkce. Změnit veřejnou funkci je velmi riskantní. Změníme-li její rozhraní, může klientský kód, který ji používá, přestat pracovat. Proto potřebujeme učinit veřejné funkce tak stabilní, jak je možné. Je-li však funkce privátní, nemusíme vkládat mnoho úsilí do vylepšení jejího rozhraní. Vždy se k ní můžeme vrátit a přepsat i bez obavy, že rozbijeme nějaký kód mimo zdrojový soubor. Z tohoto důvodu se privátní funkce mění častěji než veřejné funkce. Takže napíšeme-li testy pro privátní funkci, měli bychom měnit tyto testy při každé změně struktury funkce i když se její chování nezměnilo.</p>-->
+
+<p>Protože již víte, jak vytvořit privátní funkci podle sekce <a href="easier-code-organization.html#making-functions-private" target="_blank">Organizace kódu</a>, ponechávám vytvoření privátní funkce <code class="highlighter-rouge">numberFromDigits</code> jako úlohu pro cvičení. Tato privátní funkce nebude přístupná z modulu <code class="highlighter-rouge">RippleCarryAdderTests</code>. Tento problém můžete řešit buď kopírováním funkce do modulu s testem nebo vytvořením nového modulu, sdíleného moduly <code class="highlighter-rouge">RippleCarryAdder</code> a <code class="highlighter-rouge">RippleCarryAdderTests</code>. Kopírování jedné či dvou funkcí z produkčního kódu do testovacího souboru je vhodné. </p>
+
+<h4 id="verifying-output">Verifikace výstupu</h4>
+
+<p>Nyní, když jsme úspěšně generovali a transformovali vstupy, požadované vlastností #1, hovořme o výstupu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="n">firstInput</span> <span class="n">secondInput</span> <span class="n">carryIn</span>
+    <span class="o">|&gt;</span> <span class="n">digits</span>
+    <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span>
+    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">lessThan</span> <span class="mi">5</span></code></pre></figure>
+
+<p>Vlastnost #1 požaduje aby carry-out číslice měla hodnotu <code class="highlighter-rouge">0</code>. Pro ověření tohoto požadavku se potřebujeme ujistit, že ve výstupu jsou pouze čtyři číslice, generované funkcí <code class="highlighter-rouge">rippleCarryAdder</code>. To proto, že je-li carry-out číslice rovna <code class="highlighter-rouge">0</code>, vrací funkce <code class="highlighter-rouge">rippleCarryAdder</code> binární číslo s pouze čtyčmi číslicemi.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="mi">1001</span> <span class="mi">0011</span> <span class="mi">0</span>
+<span class="mi">1100</span></code></pre></figure>
+
+<p>Je-li však carry-out číslice rovna <code class="highlighter-rouge">1</code>, vrací binární číslo s pěti číslicemi.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">rippleCarryAdder</span> <span class="mi">1101</span> <span class="mi">1110</span> <span class="mi">0</span>
+<span class="mi">11011</span></code></pre></figure>
+
+<p>Abychom zjistili, kolik číslic je v čísle, potřebujeme jej nejprve konvertovat na seznam. Přesně to dělá funkce <code class="highlighter-rouge">digits</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">digits</span> <span class="n">number</span> <span class="o">=</span>
+    <span class="kr">if</span> <span class="n">number</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span>
+        <span class="kt">[]</span>
+    <span class="kr">else</span>
+        <span class="n">digits</span> <span class="p">(</span><span class="n">number</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">++</span> <span class="p">[</span> <span class="n">number</span> <span class="o">%</span> <span class="mi">10</span> <span class="p">]</span></code></pre></figure>
+
+<p>Tuto funkci jsme rovněž vytvořili v odstavci <a href="function-composition.html#recursion" target="_blank">Rekurze</a> sekce Ripple-Carry Adder. Konečně, použijeme <code class="highlighter-rouge">Expect.equal</code> k ověření, že délka výstupního seznamu, obsahujícího jednotlivé číslice, je menší než <code class="highlighter-rouge">5</code>.</p>
+
+<p>Abychom si test mohli spustit, přidejte <code class="highlighter-rouge">rippleCarryAdderProperty1</code> k funkci <code class="highlighter-rouge">allTests</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">rippleCarryAdderTests</span>
+        <span class="p">,</span> <span class="n">rippleCarryAdderProperty1</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Potřebujeme rovněž importovat modul <code class="highlighter-rouge">Fuzz</code> a exponovat <code class="highlighter-rouge">fuzz3</code> a <code class="highlighter-rouge">Test</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RippleCarryAdderTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Fuzz</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">describe</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">fuzz3</span><span class="p">,</span> <span class="kt">Test</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Když nyní obnovíte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, měl byste vidět, že všechny testy prošly.</p>
+
+<h3 id="exercise-482">Cvičení 4.8.2</h3>
+
+<p>Vlastnost #2 je velmi podobná vlastnosti #1. Pokuste se napsat fuzz test, který potvrdí, že tato vlastnost platí pro široké pásmo vstupů.</p>
+
+<h3 id="testing-property-3">Testování vlastnosti #3</h3>
+
+<p>Nyní ověříme, že je vlastnost #3 rovněž pravdivá: jsou-li nejméně významné číslice obou vstupů rovny <code class="highlighter-rouge">0</code> a carry-in číslice je také rovna <code class="highlighter-rouge">0</code>, bude nejméně významná číslice výstupu vždy rovna <code class="highlighter-rouge">0</code>. Přidejte následující test na spodek souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdderProperty3</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">rippleCarryAdderProperty3</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"carry-in's relationship with least significant digits"</span>
+        <span class="p">[</span> <span class="n">fuzz3</span>
+            <span class="p">(</span><span class="n">list</span> <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">list</span> <span class="p">(</span><span class="n">intRange</span> <span class="mi">0</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">constant</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="s">"""
+            the least significant digit of the output is 0 when the
+            carry-in is 0 and the least significant digits of both
+            inputs are 0
+            """</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="n">list1</span> <span class="n">list2</span> <span class="n">carryIn</span> <span class="o">-&gt;</span>
+                <span class="kr">let</span>
+                    <span class="n">firstInput</span> <span class="o">=</span>
+                        <span class="n">convertToBinary</span> <span class="n">list1</span>
+
+                    <span class="n">secondInput</span> <span class="o">=</span>
+                        <span class="n">convertToBinary</span> <span class="n">list2</span>
+
+                    <span class="n">convertToBinary</span> <span class="n">digitsList</span> <span class="o">=</span>
+                        <span class="n">digitsList</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">take</span> <span class="mi">4</span>
+                            <span class="o">|&gt;</span> <span class="n">setLastDigitToZero</span>
+                            <span class="o">|&gt;</span> <span class="n">numberFromDigits</span>
+
+                    <span class="n">setLastDigitToZero</span> <span class="n">digitsList</span> <span class="o">=</span>
+                        <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="n">digitsList</span>
+                            <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">set</span> <span class="p">(</span><span class="n">lastIndex</span> <span class="n">digitsList</span><span class="p">)</span> <span class="mi">0</span>
+                            <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">toList</span>
+
+                    <span class="n">lastIndex</span> <span class="n">digitsList</span> <span class="o">=</span>
+                        <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="n">digitsList</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+                    <span class="n">isLastDigitZero</span> <span class="n">digitsList</span> <span class="o">=</span>
+                        <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="n">digitsList</span>
+                            <span class="o">|&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="p">(</span><span class="n">lastIndex</span> <span class="n">digitsList</span><span class="p">)</span>
+                            <span class="o">|&gt;</span> <span class="kt">Maybe</span><span class="o">.</span><span class="n">withDefault</span> <span class="mi">0</span>
+                            <span class="o">|&gt;</span> <span class="p">(</span><span class="o">==</span><span class="p">)</span> <span class="mi">0</span>
+                <span class="kr">in</span>
+                    <span class="n">rippleCarryAdder</span> <span class="n">firstInput</span> <span class="n">secondInput</span> <span class="n">carryIn</span>
+                        <span class="o">|&gt;</span> <span class="n">digits</span>
+                        <span class="o">|&gt;</span> <span class="n">isLastDigitZero</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="kt">True</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Zde použité fuzzery pro generování seznamů náhodných binárních čísel jsou ty samé, které jsme použili v <code class="highlighter-rouge">rippleCarryAdderProperty1</code> - <code class="highlighter-rouge">(list (intRange 0 1))</code>. 
+Protože tato vlastnost je trošku složitější než vlastnost #1, 
+potřebujeme použít o trochu víc transformací, než dospějeme k požadovaným vstupům.</p>
+
+<p>Funkce <code class="highlighter-rouge">convertToBinary</code> extrahuje čtyři číslice z náhodného seznamu; nastaví poslední číslici na nulu a konvertuje seznam číslic na binární číslo.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">convertToBinary</span> <span class="n">digitsList</span> <span class="o">=</span>
+    <span class="n">digitsList</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">take</span> <span class="mi">4</span>
+        <span class="o">|&gt;</span> <span class="n">setLastDigitToZero</span>
+        <span class="o">|&gt;</span> <span class="n">numberFromDigits</span></code></pre></figure>
+
+<p>Použili jsme fuzzer <code class="highlighter-rouge">constant</code> abychom se ujistili, že carry-in číslice je vždy <code class="highlighter-rouge">0</code>. Tento fuzzer generuje pouze určenou hodnotu bez ohledu na cokoli. Zde jsme také k popisu testu poprvé použili <a href="/string.html#multiline-strings" target="_blank">víceřádkový řetězec</a>. Obecně vzato, popisy by měly být krátké ale neváhejte použít více slov, nedaří-li se vám distilovat podstatu testu do krátké věty.</p>
+
+<p>Konečně, abychom ověřili výstup, konvertovali jsme binární číslo na seznam číslic a ověřili, zda poslední číslice je či není rovna <code class="highlighter-rouge">0</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdder</span> <span class="n">firstInput</span> <span class="n">secondInput</span> <span class="n">carryIn</span>
+    <span class="o">|&gt;</span> <span class="n">digits</span>
+    <span class="o">|&gt;</span> <span class="n">isLastDigitZero</span>
+    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="kt">True</span></code></pre></figure>
+
+<p>Pro spuštění testu importujte modul <code class="highlighter-rouge">Array</code> a přidejte <code class="highlighter-rouge">rippleCarryAdderProperty3</code> do funkce <code class="highlighter-rouge">allTests</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>. Potom obnovte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RippleCarryAdderTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Array</span>
+<span class="o">.</span>
+<span class="o">.</span>
+
+<span class="n">allTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">,</span> <span class="n">rippleCarryAdderProperty1</span>
+        <span class="p">,</span> <span class="n">rippleCarryAdderProperty3</span>
+        <span class="p">]</span></code></pre></figure>
+
+<h3 id="exercise-483">Cvičení 4.8.3</h3>
+
+<p>Vlastnost #4 je rovněž velmi podobná vlastnosti #3. Zkuste napsat fuzz test, kterým projde funkce <code class="highlighter-rouge">rippleCarryAdder</code>.</p>
+
+<h3 id="summary">Shrnutí</h3>
+
+<p>Prozkoumali jsme docela velkou oblast  - od psaní jednoduchých fuzz testů až k ověření obecných vlastností složitých funkcí. Neznepokojujte se, pokud se vám nedaří samostatně určit testované vlastnosti. Identifikace vlastností k testování je docela obtížná i pro zkušeného programátora. Proto jsou fuzz testy na psaní obtížnější než jednotkové testy, zejména při složitější logice funkce. Určit několik jednotlivých vstupních scénářů není postačující. Musíme soustředěně přemýšlet o vlastnostech, které musí být pravdivé pro širokou oblast vstupů. Jedinou možností, jak se zlepšit, je praxe. Až tedy budete příště psát nějaký kód, zkuste si identifikovat několik vlastností a použijte fuzz testy k jejich prověření.</p>
+
+<p>Modul <code class="highlighter-rouge">Fuzz</code> obsahuje mnohem více fuzzerů, než kolik jsme jich probrali v této sekci. Můžete se o nich dozvědět více <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Fuzz" target="_blank">zde</a>.</p>
+
+</article>
+
+<nav class="pagination">
+<a class="pagination-next" href="easier-code-organization.html">
+<em>&larr; Previous</em>
+<strong>Organizace kódu</strong>
+</a>
+<a class="pagination-next" href="pattern-matching.html">
+<em>Next &rarr;</em><strong>Pattern matching</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 4.10 </h1>
+<h2>Výhody - shrnutí</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="elm-architecture.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="pattern-matching.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>In this chapter, we learned how some of the features present in Elm enable us to write reliable and maintainable programs. Much of that reliability comes from immutable values, pure functions, and a powerful type system. These three features are at the core of some of Elm’s truly exciting features such as the <a href="/elm-architecture-intro.html" target="_blank">Elm Architecture</a> and a <a href="http://elm-lang.org/blog/the-perfect-bug-report" target="_blank">powerful debugger</a> which makes reproducing bugs quite easy.</p>
+
+<p>Organizing functions, constants, type definitions, and other values in Elm is relatively easy through the use of modules. Once created, modules can be shared with other programmers first by including them in a package and then publishing the package on the <a href="http://package.elm-lang.org/" target="_blank">online catalog</a>. Elm also mitigates the <a href="https://en.wikipedia.org/wiki/Dependency_hell" target="_blank">“dependency hell”</a> problem by automatically enforcing <a href="http://semver.org/" target="_blank">semantic versioning</a> on all packages published on its online catalog. Elm’s package manager makes sure that we’ll never run into a breaking API change again when we install a patch.</p>
+
+<p>Elm encourages us to identify important properties of our programs and then use fuzz testing to makes sure that those properties do hold true for a wide variety of inputs. It also offers traditional unit tests if we feel the need to supplement our test suite with tests that provide better documentation and cover tricky edge cases.</p>
+
+<p>Finally, Elm lets us reach deep into our data structures and match complex patterns, enabling us to write compact yet readable code.</p>
+
+<p>In the next chapter, we’ll learn the ins and outs of the Elm Architecture and find out how it helps us build robust front-end web applications.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="pattern-matching.html">
+<em>&larr; Previous</em>
+<strong>Pattern matching</strong>
+</a>
+<a class="pagination-next" href="elm-architecture-intro.html">
+<em>Next &rarr;</em><strong>Architektura Elmu 2</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 4.7 </h1>
+<h2>Organizace kódu</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="fuzz-testing.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="type-system.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+	  
+<article class="content">
+<p>Softwérový program je jako živý organismus. Je-li poprvé uveden do digitálního světa, je útloučký. Může obsahovat několik málo funkcí, které řeší problém s úzkým rozsahem. Potom počne růst, funkce za funkcí. Než se stačíme nadát, stane se obludou s monstrózní složitostí řešení problémů.</p>
+
+<p>Je snadné číst a měnit malý program. Jak se ale program rozroste do tisíců kódových řádků, je těžké mu rozumět a jej spravovat bez dobré organizační struktury. Některé z dříve probíraných vlastností Elmu, jako je neměnitelnost, čisté funkce, testování a typový systém - nám pomáhají psát robustní programy ale neumožňují nám organizovat kód udržitelným způsobem. Elm poskytuje tři další útvary, které jsou specielně navrženy pro lepší organizací kódu: moduly, pakety a Elm Architecture. Elm Architecture bude popsána v <a href="elm-architecture-intro.html" target="_blank">kapitole 5</a>. V této sekci vysvětlíme zbývající dva systémy.</p>
+
+<p><img src="images/module-hierarchy.png" alt="" /></p>
+
+<p>Pojem <em>value</em> (hodnota) je nejzákladnějším konceptem v Elmu. <code class="highlighter-rouge">1</code>, <code class="highlighter-rouge">a</code>, <code class="highlighter-rouge">"Hannibal"</code>, <code class="highlighter-rouge">[ 1, 2, 3 ]</code> jsou všechno hodnoty. Výraz nám umožňuje spočítat hodnotu seskupením jiných hodnot, operátorů a konstant. <code class="highlighter-rouge">3 * x + 5 * y + 10</code> je výraz. Můžeme dokonce použít procedury <code class="highlighter-rouge">if</code>, <code class="highlighter-rouge">case</code> a <code class="highlighter-rouge">let</code> ke spojení více výrazů a jejich provedení, pokud jsou splněny jisté podmínky. Jak píšeme více a více výrazů, nevyhnutelně chceme některé z nich opakovaně použít na více místech. K tomu nám slouží funkce, které zapouzdří několik výrazů dohromady a připojí jméno, vyjadřující jejich účel.</p>
+
+<p>Jak náš program roste, roste také složitost naší datové struktury. Abychom byli schopni snadno popsat složité datové struktury, potřebujeme nejprve definovat vztahy mezi rozdílnými druhy používaných hodnot zavedením jejich typů. Jak roste počet funkcí a definic typů, potřebujeme je začít seskupovat do modulů, řešících podobné úlohy. Modul je v podstatě kolekce funkcí, konstant, typových definicí a jiných hodnot, které mohou být opakovaně použity v různých kontextech. Na příklad, všechny funkce, které provádějí jistý druh operací se seznamem hodnot, jsou seskupeny do modulu s názvem <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/List" target="_blank">List</a>. Můžeme dokonce chtít spojit několik modulů, které řeší podobné problémy, do paketu (package). Na příklad v paketu <a href="http://package.elm-lang.org/packages/elm-lang/html/latest" target="_blank">Html</a> jsou seskupeny různé moduly, které poskytují funkcionalitu pro psaní a manipulaci kódu HTML. Paket můžeme sdílet s ostatními programátory jeho publikováním v <a href="http://package.elm-lang.org/" target="_blank">online katalogu</a>.</p>
+
+<p>V této knize jsme již několik modulů vytvořili, aniž bychom věděli, jak ve skutečnosti pracují. V této sekci se pokusíme pochopit syntaxi při vytváření nových modulů a jejich importování do jiných modulů. Přitom se seznámíme s nejlepšími postupy, které zajistí lepší udržovatelnost kódu v našich modulech.</p>
+
+<h3 id="creating-a-module">Vytvoření modulu</h3>
+
+<p>V sekci <a href="type-system.html#recursive-types" target="_blank">Recursive Types</a> jsme vytvořili vlastní datovou strukturu <code class="highlighter-rouge">MyList</code>, která vypadala skoro stejně jako vestavěný typ <code class="highlighter-rouge">List</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="kt">MyList</span> <span class="n">a</span>
+    <span class="o">=</span> <span class="kt">Empty</span>
+    <span class="o">|</span> <span class="kt">Node</span> <span class="n">a</span> <span class="p">(</span><span class="kt">MyList</span> <span class="n">a</span><span class="p">)</span></code></pre></figure>
+
+<p>Bohužel jsme v našem typu <code class="highlighter-rouge">MyList</code> nemohli použít žádnou z funkcí, definovanou v modulu <code class="highlighter-rouge">List</code>, protože všechny tyto funkce očekávají seznam typu <code class="highlighter-rouge">List</code>. Přepišme funkci z modulu <code class="highlighter-rouge">List</code> tak, aby také pracovala s typem <code class="highlighter-rouge">MyList</code>. Zdrojový kód standardní knihovny Elmu je volně přístupný. Můžeme si z něj vyčíst, jak jsou uvedeny funkce v modulu <code class="highlighter-rouge">List</code>. Zde je originální znění funkce <code class="highlighter-rouge">List.isEmpty</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">isEmpty</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="n">isEmpty</span> <span class="n">xs</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">xs</span> <span class="kr">of</span>
+        <span class="kt">[]</span> <span class="o">-&gt;</span>
+            <span class="kt">True</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="kt">False</span></code></pre></figure>
+
+<p class="info">Zdrojový kód všech modulů z paketu Core lze nalézt <a href="https://github.com/elm-lang/core/tree/master/src" target="_blank">ZDE</a>.</p>
+
+<p>Docela jednoduché, není-liž pravda? Je-li seznam prázdný, vrací fukce hodnotu <code class="highlighter-rouge">True</code>, v opačném případě vrací <code class="highlighter-rouge">False</code>. Přepracujme funkci <code class="highlighter-rouge">isEmpty</code> tak aby pracovala také s typem <code class="highlighter-rouge">MyList</code>. Než tak učiníme, potřebujeme nejprve vytvořit modul. Vytvořte soubor s názvem <code class="highlighter-rouge">MyList.elm</code> v adresáři <code class="highlighter-rouge">beginning-elm/elm-examples</code>.</p>
+
+<p><img src="images/mylist-module-directory.png" alt="" /></p>
+
+<p>Do souboru <code class="highlighter-rouge">MyList.elm</code> přidejme následující kód.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">MyList</span><span class="p">(</span><span class="o">..</span><span class="p">),</span> <span class="n">sum</span><span class="p">,</span> <span class="n">isEmpty</span><span class="p">)</span>
+
+
+<span class="kr">type</span> <span class="kt">MyList</span> <span class="n">a</span>
+    <span class="o">=</span> <span class="kt">Empty</span>
+    <span class="o">|</span> <span class="kt">Node</span> <span class="n">a</span> <span class="p">(</span><span class="kt">MyList</span> <span class="n">a</span><span class="p">)</span>
+
+
+<span class="n">sum</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">sum</span> <span class="n">myList</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">myList</span> <span class="kr">of</span>
+        <span class="kt">Empty</span> <span class="o">-&gt;</span>
+            <span class="mi">0</span>
+
+        <span class="kt">Node</span> <span class="n">intValue</span> <span class="n">remainingNodes</span> <span class="o">-&gt;</span>
+            <span class="n">intValue</span> <span class="o">+</span> <span class="n">sum</span> <span class="n">remainingNodes</span>
+
+
+<span class="n">isEmpty</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="n">isEmpty</span> <span class="n">xs</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">xs</span> <span class="kr">of</span>
+        <span class="kt">Empty</span> <span class="o">-&gt;</span>
+            <span class="kt">True</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="kt">False</span></code></pre></figure>
+
+<p>Vytvořili jsme modul s názvem <code class="highlighter-rouge">MyList</code>, který obsahuje definici typu <code class="highlighter-rouge">MyList</code> a dvou funkcí: <code class="highlighter-rouge">sum</code> a <code class="highlighter-rouge">isEmpty</code>. V sekci <a href="type-system.html#recursive-types" target="_blank">Rekurzivní typy</a> jsme již <code class="highlighter-rouge">MyList</code> a <code class="highlighter-rouge">sum</code> v souboru <code class="highlighter-rouge">Playground.elm</code> definovali. Nyní, když máme samostatný modul, který bude obsahovat všechen kód, vztahující se k typu <code class="highlighter-rouge">MyList</code>, má smysl přemístit jej do souboru <code class="highlighter-rouge">MyList.elm</code>. Nezapomeňte definice typu<code class="highlighter-rouge">MyList</code> a funkce <code class="highlighter-rouge">sum</code> ze souboru  <code class="highlighter-rouge">Playground.elm</code> odebrat.</p>
+
+<p>Již víte, jak <code class="highlighter-rouge">MyList</code> a <code class="highlighter-rouge">sum</code> pracují. Pokud ne, osvěžte si paměť opětovným přečtením odstavce <a href="type-system.html#recursive-types" target="_blank">Rekurzivní typy</a>. Funkce <code class="highlighter-rouge">isEmpty</code> je adaptace funkce <code class="highlighter-rouge">List.isEmpty</code>. Jediným rozdílem mezi naší adaptací a originálem Elmu je to, že my pro prezentaci prázdnoty používáme slovo <code class="highlighter-rouge">Empty</code>, zatímco Elm používá <code class="highlighter-rouge">[]</code>.</p>
+
+<p class="info">Je úplně v pořádku použít stejné jméno pro modul i typ. S tuto praxí se budete opětovně setkávat u mnoha modulů, které Elm poskytuje, jako jsou <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Array" target="_blank">Array</a>, <a href="http://package.elm-lang.org/packages/elm-lang/html/latest/Html" target="_blank">Html</a> a <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Task" target="_blank">Task</a>. Elm nám ovšem nedovolí mít dva moduly nebo typy stejného jména.</p>
+
+<p>Entity <code class="highlighter-rouge">MyList</code>, <code class="highlighter-rouge">sum</code> a <code class="highlighter-rouge">isEmpty</code> nejsou přístupné mimo modul, v němž jsou definovány, ledaže je "exponujeme". Expozice entity je přímočará. Vložíme její jméno mezi závorky za klíčové slovo <code class="highlighter-rouge">exposing</code>. Expozice modulu však vyžaduje připojení <code class="highlighter-rouge">(..)</code> k názvu typu. Přidáním <code class="highlighter-rouge">(..)</code>, žádáme Elm aby rovněž exponoval datové konstruktory <code class="highlighter-rouge">Empty</code> a <code class="highlighter-rouge">Node</code>.</p>
+
+<p><img src="images/module-syntax.png" alt="" /></p>
+
+<h3 id="importing-a-module">Import modulu</h3>
+
+<p>Abychom byli schopni používat funkci <code class="highlighter-rouge">isEmpty</code> mimo modul <code class="highlighter-rouge">MyList</code>, potřebujeme importovat modul, který ji obsahuje. Importujme modul <code class="highlighter-rouge">MyList</code> do souboru <code class="highlighter-rouge">Playground.elm</code> hned pod řádkem, který importuje modul <code class="highlighter-rouge">Bitwise</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+<span class="kr">import</span> <span class="nn">Bitwise</span>
+<span class="kr">import</span> <span class="nn">MyList</span></code></pre></figure>
+
+<p>Můžeme si ověřit, zda náš modul <code class="highlighter-rouge">MyList</code> byl úspěšně importován načtením modulu <code class="highlighter-rouge">Playground</code> do prohlížeče. V adresáři <code class="highlighter-rouge">beginning-elm</code> spusťte <code class="highlighter-rouge">elm-reactor</code> a přejděte na stránku <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>v prohlížeči. Nevidíte-li žádnou chybu, znamená to, že byl modul úspěšně importován. Pokud však vidíte následující chybu, ujistěte se, že je adresář <code class="highlighter-rouge">elm-examples</code> přidán k seznamu <code class="highlighter-rouge">source-directories</code> v souboru <code class="highlighter-rouge">beginning-elm/elm-package.json</code>.</p>
+
+<p><img src="images/missing-module-error.png" alt="" /></p>
+
+<figure class="highlight"><pre><code class="language-code" data-lang="code">{
+    .
+    .
+    "source-directories": [
+        ".",
+        "elm-examples"
+    ],
+    .
+    .
+}</code></pre></figure>
+
+<p>Nyní jsme již připraveni použít funkci <code class="highlighter-rouge">isEmpty</code> v modulu <code class="highlighter-rouge">Playground</code>. Přidejte následující dvě konstanty hned nad funkci  <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">list1</span> <span class="o">:</span> <span class="kt">MyList</span><span class="o">.</span><span class="kt">MyList</span> <span class="n">a</span>
+<span class="n">list1</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="kt">Empty</span>
+
+
+<span class="n">list2</span> <span class="o">:</span> <span class="kt">MyList</span><span class="o">.</span><span class="kt">MyList</span> <span class="n">number</span>
+<span class="n">list2</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="kt">Node</span> <span class="mi">9</span> <span class="kt">MyList</span><span class="o">.</span><span class="kt">Empty</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Přidejte funkci <code class="highlighter-rouge">isEmpty</code> do funkce <code class="highlighter-rouge">main</code>, abychom zjistili, zda je seznam <code class="highlighter-rouge">list1</code> prázdný či nikoliv.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="n">isEmpty</span> <span class="n">list1</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, měli byste vidět "True". Aplikujme funkci <code class="highlighter-rouge">isEmpty</code> na seznam <code class="highlighter-rouge">list2</code> abychom zkontrolovali druhý seznam.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, měli byste vidět "False". Vytvoření seznamu je nyní poněkud zdlouhavější ve srovnání se tím, jak jsme jej vytvářeli v odstavci <a href="type-system.html#recursive-types" target="_blank">Rekurzivní typy</a>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="c1">-- Dříve</span>
+<span class="kt">Node</span> <span class="mi">9</span> <span class="kt">Empty</span>
+
+<span class="c1">-- Nyní</span>
+<span class="kt">MyList</span><span class="o">.</span><span class="kt">Node</span> <span class="mi">9</span> <span class="kt">MyList</span><span class="o">.</span><span class="kt">Empty</span></code></pre></figure>
+
+<p>Důvod, proč musíme uvozovat slova <code class="highlighter-rouge">Node</code> a <code class="highlighter-rouge">Empty</code> názvem modulu <code class="highlighter-rouge">MyList</code> je ten, že <code class="highlighter-rouge">MyList</code> je nyní používán uvnitř jiného zdrojového kódu místo v replu. Dříve, když jsme do replu importovali modul <code class="highlighter-rouge">Playground</code>, použili jsme za klíčovým slovem <code class="highlighter-rouge">exposing</code> označení <code class="highlighter-rouge">(..)</code>, označující, že vše uvnit modulu je exponováno (připraveno k importu).</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span></code></pre></figure>
+
+<p>To nám umožňovalo vypustit prefix <code class="highlighter-rouge">MyList</code> a použít datové konstruktory přímo. Abychom mohli vypustit prefix také v souboru <code class="highlighter-rouge">Playground.elm</code>, potřebujeme tento typ explicitně exponovat při importu modulu. Přidejte <code class="highlighter-rouge">exposing (MyList(..))</code> na konec řádku, který importuje typ <code class="highlighter-rouge">MyList</code> v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+<span class="kr">import</span> <span class="nn">Bitwise</span>
+<span class="kr">import</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">MyList</span><span class="p">(</span><span class="o">..</span><span class="p">))</span></code></pre></figure>
+
+<p>Všimněte si, že syntaxe pro expozici typu (či jakékoli jiné hodoty) v modulu je přesně stejná jako expozice, použitá v modulu, ve kterém byl typ vytvořen.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">MyList</span><span class="p">(</span><span class="o">..</span><span class="p">),</span> <span class="n">sum</span><span class="p">,</span> <span class="n">isEmpty</span><span class="p">)</span>
+
+
+<span class="kr">type</span> <span class="kt">MyList</span> <span class="n">a</span>
+    <span class="o">=</span> <span class="kt">Empty</span>
+    <span class="o">|</span> <span class="kt">Node</span> <span class="n">a</span> <span class="p">(</span><span class="kt">MyList</span> <span class="n">a</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Nyní se můžeme zbavit prefixů v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">.</span>
+<span class="o">.</span>
+<span class="n">list1</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">a</span>
+<span class="n">list1</span> <span class="o">=</span>
+    <span class="kt">Empty</span>
+
+
+<span class="n">list2</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">number</span>
+<span class="n">list2</span> <span class="o">=</span>
+    <span class="kt">Node</span> <span class="mi">9</span> <span class="kt">Empty</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, měl byste stále vidět "False". Mohli jsme rovněž odstranit prefix <code class="highlighter-rouge">MyList</code> z anotace typu, když jsme nyní explicitně exponovali do té doby prefixovaný typ.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="c1">-- Before</span>
+<span class="n">list1</span> <span class="o">:</span> <span class="kt">MyList</span><span class="o">.</span><span class="kt">MyList</span> <span class="n">a</span>
+
+<span class="c1">-- Now</span>
+<span class="n">list1</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">a</span></code></pre></figure>
+
+<p>A co <code class="highlighter-rouge">MyList.isEmpty</code> uvnitř <code class="highlighter-rouge">main</code>? Můžeme se zde také zbavit prefixu? Jistě. Jenom přidejte název <code class="highlighter-rouge">isEmpty</code> do seznamu exponovaných hodnot v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+<span class="kr">import</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">MyList</span><span class="p">(</span><span class="o">..</span><span class="p">),</span> <span class="n">isEmpty</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+
+<span class="n">list1</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">a</span>
+<span class="n">list1</span> <span class="o">=</span>
+    <span class="kt">Empty</span>
+
+
+<span class="n">list2</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">number</span>
+<span class="n">list2</span> <span class="o">=</span>
+    <span class="kt">Node</span> <span class="mi">9</span> <span class="kt">Empty</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p><img src="/images/easier-code-organization/module-import-syntax.png" alt="" /></p>
+
+<p>Jedinou neexponovanou entitou do modulu <code class="highlighter-rouge">Playground</code> zůstává funkce <code class="highlighter-rouge">sum</code>. Exponujme ji tedy také. Přidejte <code class="highlighter-rouge">sum</code> do seznamu exponovaných entit v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">MyList</span><span class="p">(</span><span class="o">..</span><span class="p">),</span> <span class="n">sum</span><span class="p">,</span> <span class="n">isEmpty</span><span class="p">)</span></code></pre></figure>
+
+<p>V této chvíli jsme exponovali všechny hodnoty z modulu <code class="highlighter-rouge">MyList</code>. Místo exponování každé entity zvlášť, můžeme použít zkratku <code class="highlighter-rouge">(..)</code> exponující vše v modulu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+<span class="kr">import</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span></code></pre></figure>
+
+<p>Zkratku <code class="highlighter-rouge">(..)</code> jste viděl v knize na různým místech. Nyní víte, co znamená. Tato syntaxe se také používá při deklaraci modulu v souboru.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>V této chvíli však nemusíte nahradit zkratkou <code class="highlighter-rouge">(..)</code> vše za slovem <code class="highlighter-rouge">exposing</code> v definici modulu <code class="highlighter-rouge">MyList</code>. Jsme-li v tom zkracování, můžeme se také zbavit prefixu <code class="highlighter-rouge">Html</code> expozicí funkce <code class="highlighter-rouge">text</code> a typu <code class="highlighter-rouge">Html</code> v souboru <code class="highlighter-rouge">Playground.elm</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Html</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="n">text</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">toString</code> je obsažena v modulu <code class="highlighter-rouge">Basics</code>, jenž je automaticky importován Elmem do každého souboru. Proto ji můžeme použít bez prefixu, i když jsme modul <code class="highlighter-rouge">Basics</code> explicitně do souboru  <code class="highlighter-rouge">Playground.elm</code> neimportovali.</p>
+
+<h3 id="qualified-vs-unqualified-import">Kvalifikovaný vs nekvalifikovaný import</h3>
+
+<p>Co se stane, když chceme uvnitř souboru <code class="highlighter-rouge">Playground.elm</code> použít také funkci <code class="highlighter-rouge">isEmpty</code> z modulu <code class="highlighter-rouge">List</code>? Vyzkoušejme to. Importujte modul <code class="highlighter-rouge">List</code> a přidejte další konstantu <code class="highlighter-rouge">list3</code> hned nad funnkci <code class="highlighter-rouge">main</code>. Potom aplikujte funkci <code class="highlighter-rouge">isEmpty</code> na <code class="highlighter-rouge">list3</code> v <code class="highlighter-rouge">main</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+<span class="kr">import</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">List</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">isEmpty</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+
+<span class="n">list1</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">a</span>
+<span class="n">list1</span> <span class="o">=</span>
+    <span class="kt">Empty</span>
+
+
+<span class="n">list2</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">number</span>
+<span class="n">list2</span> <span class="o">=</span>
+    <span class="kt">Node</span> <span class="mi">9</span> <span class="kt">Empty</span>
+
+
+<span class="n">list3</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">a</span>
+<span class="n">list3</span> <span class="o">=</span>
+    <span class="kt">[]</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">isEmpty</span> <span class="n">list3</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, uvidíte následující chybové hlášení:</p>
+
+<p><img src="images/module-ambiguity-error.png" alt="" /></p>
+
+<p>Elm je zmaten. Neví které <code class="highlighter-rouge">isEmpty</code> použít, protože jsme je exponovali jak z modulu <code class="highlighter-rouge">List</code>, tak z modulu <code class="highlighter-rouge">MyList</code>. To je stinná stránka exponování hodnot při importování modulu. Abychom tuto potíž vyřešili, musime říci přesně, které <code class="highlighter-rouge">isEmpty</code> chceme použit. Prefixujte <code class="highlighter-rouge">isEmpty</code> názvem modulu  <code class="highlighter-rouge">List</code> ve funkci <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">List</span><span class="o">.</span><span class="n">isEmpty</span> <span class="n">list3</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="n">text</span></code></pre></figure>
+
+<p>Obnovte stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>. Chyba by měla být pryč.</p>
+
+<dl>
+<dt>Kvalifikovaný import</dt>
+<dd>Když importujeme modul bez expozice čehokoliv, říkáme tomu <em>kvalifikovaný</em> import. To znamená, že musíme prefixovat všechny funkce, typy, konstanty a jiné hodnoty názvem modulu.</dd>
+</dl>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="c1">-- Qualified Imports</span>
+
+<span class="kr">import</span> <span class="nn">Html</span>
+<span class="kr">import</span> <span class="nn">MyList</span>
+
+
+<span class="n">list2</span> <span class="o">:</span> <span class="kt">MyList</span><span class="o">.</span><span class="kt">MyList</span> <span class="n">number</span>
+<span class="n">list2</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="kt">Node</span> <span class="mi">9</span> <span class="kt">MyList</span><span class="o">.</span><span class="kt">Empty</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<dl>
+<dt>Nekvalifikovaný import</dt>
+<dd>Když explicitně (jmenovitě nebo zkratkou) exponujeme hodnoty v deklaraci importu, nazývá se to  <em>nekvalifikovaný</em> import, což znamená, že nemusíme žádný prefix uvádět.</dd>
+</dl>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="c1">-- Unqualified Imports</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Html</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="n">list2</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">number</span>
+<span class="n">list2</span> <span class="o">=</span>
+    <span class="kt">Node</span> <span class="mi">9</span> <span class="kt">Empty</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="n">text</span></code></pre></figure>
+
+<p>Psaní kódu s nekvalifikovaným importem je příjemně stručné ale je to také nebezpečné, jak jsme viděli výše při střetu jmen.
+Měli bychom dávat přednost kvalifikovanému importu před nekvalifikovaným? Toť otázka. Nejlepší přístup je používat kvalifikovaný import implicitně. Nejen proto, že se vylučují chyby ze střetu jmen ale také proto, že tento import má také určitý dokumentační význam. Když vidíme kód psaný nekvalifikovaným stylem, jako tento:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Html</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">List</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">isEmpty</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">SomeOtherModule</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="n">text</span></code></pre></figure>
+
+<p>není zřejmé, odkud funkce <code class="highlighter-rouge">isEmpty</code> pochází a co dělá. Pochází z modulu <code class="highlighter-rouge">List</code>, <code class="highlighter-rouge">MyList</code> nebo <code class="highlighter-rouge">SomeOtherModule</code>? Použijeme-li kvalifikovaný styl, víme přesně, odkud <code class="highlighter-rouge">isEmpty</code> příchází. Můžeme být dokonce schopni dedukovat co dělá podle místa svého původu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">Html</span>
+<span class="kr">import</span> <span class="nn">List</span>
+<span class="kr">import</span> <span class="nn">MyList</span>
+<span class="kr">import</span> <span class="nn">SomeOtherModule</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+  <span class="kt">List</span><span class="o">.</span><span class="n">isEmpty</span> <span class="n">list2</span>
+    <span class="o">|&gt;</span> <span class="n">toString</span>
+    <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Nyní víme, že <code class="highlighter-rouge">isEmpty</code> určitě pochází z modulu <code class="highlighter-rouge">List</code> a zjišťuje, zda je seznam prázdný či nikoliv. Jsou ale situace, kdy použití nekvalifikovaného stylu činí náš kód přehlednější. V sekci <a href="getting-started.html#2.2" target="_blank">Vytvoření webové stránky</a> jsme napsali následující kód:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">BeginningElm</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="n">view</span> <span class="o">:</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"jumbotron"</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Welcome to Dunder Mifflin!"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="n">p</span> <span class="kt">[]</span>
+            <span class="p">[</span> <span class="n">text</span> <span class="s">"Dunder Mifflin Inc. (stock symbol "</span>
+            <span class="p">,</span> <span class="n">strong</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"DMI"</span> <span class="p">]</span>
+            <span class="p">,</span> <span class="n">text</span> <span class="s">") is a micro-cap regional paper and office
+                    supply distributor with an emphasis on
+                    servicing small-business clients."</span>
+            <span class="p">]</span>
+        <span class="p">]</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">view</span> <span class="s">"dummy model"</span></code></pre></figure>
+
+<p>Jak vidíme, moduly <code class="highlighter-rouge">Html</code> a <code class="highlighter-rouge">Html.Attributes</code>jsou importovány nekvalifikovaným stylem. Důvod je ten, že tyto dva modulu obsahují rozdílné funkce. Možnost konfliktu názvu je zde tedy minimální. Navíc, názvy funkcí v těchto modulech velmi připomínají termíny z HTML, pročež je čtení kódu, který v Elmu reprezentuje HTML, docela intuitivní. Kdybychom výše uvedený kód zapsali kvalifikovaným stylem, byl by obtížně čitelný.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">BeginningElm</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="kr">import</span> <span class="nn">Html</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span>
+
+
+<span class="n">view</span> <span class="o">:</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">div</span> <span class="p">[</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Attributes</span><span class="o">.</span><span class="kr">class</span> <span class="s">"jumbotron"</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="kt">Html</span><span class="o">.</span><span class="n">h1</span> <span class="kt">[]</span> <span class="p">[</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="s">"Welcome to Dunder Mifflin!"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">p</span> <span class="kt">[]</span>
+            <span class="p">[</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="s">"Dunder Mifflin Inc. (stock symbol "</span>
+             <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">strong</span> <span class="kt">[]</span> <span class="p">[</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="s">"DMI"</span> <span class="p">]</span>
+             <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="s">") is a micro-cap regional paper and office
+                          supply distributor with an emphasis on
+                          servicing small-business clients."</span>
+            <span class="p">]</span>
+        <span class="p">]</span>
+
+
+<span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">view</span> <span class="s">"dummy model"</span></code></pre></figure>
+
+<p>Rozhodnete-li se použít nekvalifikovaný styl, potom vám radím, abyste se omezili na jedno  <code class="highlighter-rouge">exposing (..)</code> v souboru. U skupiny modulů, které se často používají společně, jako <code class="highlighter-rouge">Html</code> a <code class="highlighter-rouge">Html.Attributes</code> a kde je pravděpodobnost konfliktu názvů minimální, je bezpečné použít více než jeden <code class="highlighter-rouge">exposing (..)</code>.</p>
+
+<dl>
+  <dt>Jména modulů s prefixem</dt>
+  <dd>Všimli jste si, že modul <code class="highlighter-rouge">Html.Attributes</code> má ve svém názvu prefix <code class="highlighter-rouge">Html</code>. Je to proto, že modul sídlí v paketu zvaném <a href="http://package.elm-lang.org/packages/elm-lang/html/latest/" target="_blank">Html</a>, jenž obsahuje i další moduly:</dd>
+  <dd>
+    <ul>
+      <li>Html</li>
+      <li>Html.Attributes</li>
+      <li>Html.Events</li>
+      <li>Html.Keyed</li>
+      <li>Html.Lazy</li>
+    </ul>
+  </dd>
+  <dd>
+    <p>Importujeme-li modul z paketu s více moduly, musíme jako prefix přidat název paketu - kromě případu, kdy je název modulu shodný s názvem paketu, jako u názvu <code class="highlighter-rouge">Html</code>. V tom případě se název paketu stává částí názvu modulu. Jednou výjimkou z tohoto pravidla je paket <a href="http://package.elm-lang.org/packages/elm-lang/core/latest" target="_blank"><code class="highlighter-rouge">Core</code></a>. Moduly z tohoto paketu se při importu nepředsazují slovem <code class="highlighter-rouge">Core</code>.</p>
+  </dd>
+</dl>
+
+<h3 id="as-syntax">Syntaxe AS</h3>
+
+<p>Je-li název modulu dlouhý, je psaní kódu kvalifikovaným stylem únavné a výsledný kód je zbytečně mnohoslovný. Elm má například modul <a href="http://package.elm-lang.org/packages/elm-lang/page-visibility/latest" target="_blank">PageVisibility</a>, jehož jméno je poněkud delší než jména dosud použitých modulů. Prohlédněte si následující kód a soustřeďte se na místa, kde se vyskytuje <code class="highlighter-rouge">PageVisibility</code> appears.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">PageVisibility</span>
+
+
+<span class="kr">type</span> <span class="kt">Msg</span> <span class="o">=</span>
+    <span class="kt">VisibilityChanged</span> <span class="kt">PageVisibility</span><span class="o">.</span><span class="kt">Visibility</span>
+
+
+<span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+        <span class="kt">VisibilityChanged</span> <span class="kt">PageVisibility</span><span class="o">.</span><span class="kt">Visible</span> <span class="o">-&gt;</span>
+            <span class="o">...</span>
+
+        <span class="kt">VisibilityChanged</span> <span class="kt">PageVisibility</span><span class="o">.</span><span class="kt">Hidden</span> <span class="o">-&gt;</span>
+            <span class="o">...</span>
+
+
+<span class="n">subscriptions</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Sub</span> <span class="kt">Msg</span>
+<span class="n">subscriptions</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kt">PageVisibility</span><span class="o">.</span><span class="n">visibilityChanges</span> <span class="kt">VisibilityChanged</span></code></pre></figure>
+
+<p>Tuto slovní tlačenici můžeme redukovat zavedením kratšího aliasu pro <code class="highlighter-rouge">PageVisibility</code> s použitím syntaxe <code class="highlighter-rouge">as</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">PageVisibility</span> <span class="k">as</span> <span class="n">PV</span>
+
+
+<span class="kr">type</span> <span class="kt">Msg</span> <span class="o">=</span>
+    <span class="kt">VisibilityChanged</span> <span class="kt">PV</span><span class="o">.</span><span class="kt">Visibility</span>
+
+
+<span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">Model</span><span class="p">,</span> <span class="kt">Cmd</span> <span class="kt">Msg</span> <span class="p">)</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+        <span class="kt">VisibilityChanged</span> <span class="kt">PV</span><span class="o">.</span><span class="kt">Visible</span> <span class="o">-&gt;</span>
+            <span class="o">...</span>
+
+        <span class="kt">VisibilityChanged</span> <span class="kt">PV</span><span class="o">.</span><span class="kt">Hidden</span> <span class="o">-&gt;</span>
+            <span class="o">...</span>
+
+
+<span class="n">subscriptions</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Sub</span> <span class="kt">Msg</span>
+<span class="n">subscriptions</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kt">PV</span><span class="o">.</span><span class="n">visibilityChanges</span> <span class="kt">VisibilityChanged</span></code></pre></figure>
+
+<p>Vypadá to lépe, že? Je také zavedena dobrá rovnováha mezi stručností a popisností. Alias <code class="highlighter-rouge">PV</code>je mnohem stručnější než <code class="highlighter-rouge">PageVisibility</code>, avšak zároveň víme, odkud funkce <code class="highlighter-rouge">visibilityChanges</code> pochází. <!--It’s prefixed with <code class="highlighter-rouge">PV</code> which is an alias for <code class="highlighter-rouge">PageVisibility</code>, so it must be from that module.--></p>
+
+<p><img src="images/module-import-as-syntax.png" alt="" /></p>
+
+<p>Syntaxi <code class="highlighter-rouge">as</code> můžeme kombinovat s nekvalifikovaným importem takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">PageVisibility</span> <span class="k">as</span> <span class="n">PV</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">visibilityChanges</span><span class="p">)</span></code></pre></figure>
+
+<p>Alias musí příjít před slovo <code class="highlighter-rouge">exposing</code>, jinak vyvolá Elm chybové hlášení.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="c1">-- This will throw an error</span>
+
+<span class="kr">import</span> <span class="nn">PageVisibility</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">visibilityChanges</span><span class="p">)</span> <span class="n">as</span> <span class="kt">PV</span></code></pre></figure>
+
+<p>Nebo můžeme import rozdělit do dvou řádků.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">PageVisibility</span> <span class="k">as</span> <span class="n">PV</span>
+<span class="kr">import</span> <span class="nn">PageVisibility</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">visibilityChanges</span><span class="p">)</span></code></pre></figure>
+
+<h3 id="making-functions-private">Privatizace funkcí</h3>
+
+<p>Psaní privátních funkcí v Elmu je snadné. Jednoduše je neexponujeme. Řekněme, že funkce <code class="highlighter-rouge">isEmpty</code> v modulu <code class="highlighter-rouge">MyList</code> deleguje určování prázdnosti seznamu jiné funkci a my nechceme, aby svět o tomto malém tajemství věděl. Přidejte novou definici funkce pod funci <code class="highlighter-rouge">isEmpty</code> v souboru <code class="highlighter-rouge">MyList.elm</code> 
+a přeneste na ni odpovědnost za určování prázdnoty.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">MyList</span><span class="p">(</span><span class="o">..</span><span class="p">),</span> <span class="n">sum</span><span class="p">,</span> <span class="n">isEmpty</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+
+<span class="n">isEmpty</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="n">isEmpty</span> <span class="n">xs</span> <span class="o">=</span>
+    <span class="n">isItReallyEmpty</span> <span class="n">xs</span>
+
+
+<span class="n">isItReallyEmpty</span> <span class="o">:</span> <span class="kt">MyList</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="n">isItReallyEmpty</span> <span class="n">xs</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">xs</span> <span class="kr">of</span>
+        <span class="kt">Empty</span> <span class="o">-&gt;</span>
+            <span class="kt">True</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="kt">False</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">isItReallyEmpty</code> je privátní, protože není přidána k seznamu exponovaných hodnot. Zkusme k ní přesto přístoupit v souboru <code class="highlighter-rouge">Playground.elm</code> a uvidíme, co se stane. Změňte obsah funkce <code class="highlighter-rouge">main</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="n">isItReallyEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, Elm vhodně poukazuje na to, že nezná funkci <code class="highlighter-rouge">isItReallyEmpty</code>.</p>
+
+<p><img src="images/is-it-really-empty-error.png" alt="" /></p>
+
+<p>Pokud jste tuto chybu nedostal, ujistěte se, že modul <code class="highlighter-rouge">MyList</code> neexponuje všechno. Jeho definice má vypadt takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">MyList</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">MyList</span><span class="p">(</span><span class="o">..</span><span class="p">),</span> <span class="n">sum</span><span class="p">,</span> <span class="n">isEmpty</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Abyste se zbavil chyby, nahraďte <code class="highlighter-rouge">isItReallyEmpty</code> funkcí <code class="highlighter-rouge">isEmpty</code> v hlavní funkci <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">MyList</span><span class="o">.</span><span class="n">isEmpty</span> <span class="n">list2</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Nejlepší vůbec je udržovat funkce jako privátní, pokud je nemusíte exponovat. Jakmile jsou jednou exponovány pro okolní svět, může být velmi riskantní je změnit. Upravujeme-li vstupní či výstupní formát funkce bez zpětné kompatibility, může klientský kód, který funkci používá, přestat pracovat. Je-li však funkce privátní, můžeme ji předělat bez obav, že někde rozhodíme nějaký kód.</p>
+
+<p>Neznepokojujte se, zdá-li se vám seznam exponovaných hodnot v definici modulu příliš dlouhý. Většina modulů v Elmu exponuje dlouhý seznam hodnot. Zde je napříkad seznam hodnot v modulu <code class="highlighter-rouge">List</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">List</span> <span class="n">exposing</span>
+    <span class="p">(</span> <span class="n">isEmpty</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">reverse</span><span class="p">,</span> <span class="n">member</span>
+    <span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">tail</span><span class="p">,</span> <span class="n">filter</span><span class="p">,</span> <span class="n">take</span><span class="p">,</span> <span class="n">drop</span>
+    <span class="p">,</span> <span class="n">singleton</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span> <span class="n">range</span><span class="p">,</span> <span class="p">(</span><span class="o">::</span><span class="p">),</span> <span class="n">append</span><span class="p">,</span> <span class="n">concat</span><span class="p">,</span> <span class="n">intersperse</span>
+    <span class="p">,</span> <span class="n">partition</span><span class="p">,</span> <span class="n">unzip</span>
+    <span class="p">,</span> <span class="n">map</span><span class="p">,</span> <span class="n">map2</span><span class="p">,</span> <span class="n">map3</span><span class="p">,</span> <span class="n">map4</span><span class="p">,</span> <span class="n">map5</span>
+    <span class="p">,</span> <span class="n">filterMap</span><span class="p">,</span> <span class="n">concatMap</span><span class="p">,</span> <span class="n">indexedMap</span>
+    <span class="p">,</span> <span class="n">foldr</span><span class="p">,</span> <span class="n">foldl</span>
+    <span class="p">,</span> <span class="n">sum</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">minimum</span><span class="p">,</span> <span class="n">all</span><span class="p">,</span> <span class="n">any</span><span class="p">,</span> <span class="n">scanl</span>
+    <span class="p">,</span> <span class="n">sort</span><span class="p">,</span> <span class="n">sortBy</span><span class="p">,</span> <span class="n">sortWith</span>
+    <span class="p">)</span></code></pre></figure>
+
+<p>Bohužel, <code class="highlighter-rouge">elm-format</code> v současnosti umisťuje každou exponovanou hodnotu na nový řádek, což není příliš šikovné. Doufejme, že se to v budoucnosti změní.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">List</span>
+    <span class="n">exposing</span>
+        <span class="p">(</span> <span class="n">isEmpty</span>
+        <span class="p">,</span> <span class="n">length</span>
+        <span class="p">,</span> <span class="n">reverse</span>
+        <span class="p">,</span> <span class="n">member</span>
+        <span class="p">,</span> <span class="n">head</span>
+        <span class="p">,</span> <span class="n">tail</span>
+        <span class="p">,</span> <span class="n">filter</span>
+        <span class="o">.</span>
+        <span class="o">.</span>
+        <span class="p">)</span></code></pre></figure>
+
+<p>Pro shrnutí, Elm velmi usnadňuje seskupování funkcí, konstant, definic typů a jiných hodnot s použitím modulů. Syntaxe pro vytváření a import modulů je přímočará. Můžeme rovněž sdílet své moduly s jinými programátory vložením do paketů a jejich publikováním v online katalogu. Několik dalších příkladů modulů uvidíme v kapitole, která popisuje <a href="elm-architecture-intro.html" target="_blank">Elm Architecture</a>.</p>
+</article>
+
+<nav class="pagination">
+<a class="pagination-next" href="type-system.html">
+<em>&larr; Previous</em>
+<strong>Systém typů</strong>
+</a>
+<a class="pagination-next" href="fuzz-testing.html">
+<em>Next &rarr;</em><strong>Fuzz testing</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.17 </h1>
+<h2>Array</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="tuple.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="list.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+	  <article class="content">
+<p>Probrali jsme již řadu funkcí z modulu <code class="highlighter-rouge">List</code> ale nedostali jsme se k nejbecnější operaci, prováděné na seznamu a to je přístup k elementům prostřednictvím indexu. Je to proto, že u seznamů to není snadné. V důsledku toho, jak jsou konstruovány, je snadné jimi lineárně traverzovat (procházet) ale přístup k elementu v náhodném pořadí je nákladný.<br>
+Dostat se například k poslednímu elementu níže zobrazeného seznamu, vyžaduje traverzovat všemi elementy předcházejícími - což je neefektivní. Můžeme si představit, jak hodně by to bylo neefektivní, kdyby seznam obsahoval tisíce položek.</p>
+
+<p><img src="images/list-traversal.png" alt="" /></p>
+
+<p>Žádné strachy - Elm nabízí jinou datovou strukturu, zvanou, <em>Array</em>, u níž je přístup k elementům hračkou. Jinak se arraye velmi podobají seznamům. Téměř každá operace, která může být provedena v seznamu, může být provedena v arrayi.</p>
+
+<h3 id="creating-an-array">Vytovoření arraye</h3>
+
+<p>Array nemůžeme vytvořit literální syntaxí jako seznam. Nejobvyklejší způsob vytvoření arraye je transformace seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">Array</span>
+
+<span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">] :</span> <span class="n">Array.Array number</span>
+
+<span class="o">&gt;</span> <span class="n">myArray</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p"> ] :</span> <span class="n">Array.Array number</span>   </code></pre></figure>
+
+<p><code class="highlighter-rouge">Array</code> je první modul z těch, o kterých jsme doposud hovořili, který není automaticky načten replem. Proto jej musíme importovat explicitně. Útvar <code class="highlighter-rouge">fromList</code> je funkce, která přijímá seznam a vytváří z něho array. Když jsme zadali definici konstanty <code class="highlighter-rouge">myArray</code>, vrátil nám repl <code class="highlighter-rouge">Array.fromList [1,2,3,4] : Array.Array number</code>. Celý tento výstup je prezentace arraye, jejíž součástí je seznam <code class="highlighter-rouge">[1,2,3,4]</code>.</p>
+
+<p><img src="/images/elm-intro/array-representation.png" alt="" /></p>
+
+<p>Můžeme rovněž transformovat array na seznam.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">toList</span> <span class="n">myArray</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Chceme-li při transformaci arraye na seznam připojit ke každé položce její index, můžeme tak učinit funkcí <code class="highlighter-rouge">toIndexedList</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="s">"Doctor"</span><span class="p">,</span> <span class="s">"River"</span><span class="p">,</span> <span class="s">"Clara"</span><span class="p">,</span> <span class="s">"Tardis"</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="s">"Doctor"</span><span class="p">,</span><span class="s">"River"</span><span class="p">,</span><span class="s">"Clara"</span><span class="p">,</span><span class="s">"Tardis"</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">toIndexedList</span> <span class="n">myArray</span>
+<span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="s">"Doctor"</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="s">"River"</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="s">"Clara"</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="s">"Tardis"</span><span class="p">)]</span></code></pre></figure>
+
+<p>Někdy potřebujeme inicializovat každý element arraye nějakou hodnotou. Můžeme pro to použít funkci <code class="highlighter-rouge">initialize </code>. Následující příklad vytváří seznam se všemi elementy nastavenými na nulu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">initialize</span> <span class="mi">5</span> <span class="p">(</span><span class="n">always</span> <span class="mi">0</span><span class="p">)</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">initialize</code> přijímá dva parametry:</p>
+
+<ul>
+  <li>Délku arraye</li>
+  <li>Funkci pro generování každého elementu. <!--Funkce <code class="highlighter-rouge">initialize</code> předává
+  passes the index of an element as an argument to this function.--></li>
+</ul>
+
+<p>Použili jsme funkci <code class="highlighter-rouge">always</code> (definovanou v modulu <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Basics" target="_blank">Basics</a>) pro zadání hodnoty <code class="highlighter-rouge">0</code> každému elementu. Funkce <code class="highlighter-rouge">always</code> je definována takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">always</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span></code></pre></figure>
+
+<p>Je to konstantní funkce, která ignoruje druhý argument a vždy vrací první argument.</p>
+
+<dl>
+  <dt>Constant Function</dt>
+  <dd>A constant function in mathematics is a function whose output is the same for every input value.</dd>
+  <dd>
+    <p><img src="images/array-always-zero.png" alt="" /></p>
+  </dd>
+</dl>
+
+<p>Jiný způsob inicializace arraye se stejnými hodnotami je s užitím funkce <code class="highlighter-rouge">repeat</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">repeat</span> <span class="mi">5</span> <span class="mi">0</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">repeat</span> <span class="mi">3</span> <span class="s">"hodor"</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="s">"hodor"</span><span class="p">,</span><span class="s">"hodor"</span><span class="p">,</span><span class="s">"hodor"</span><span class="p">]</span></code></pre></figure>
+
+<p>Modul <code class="highlighter-rouge">Basics</code> také poskytuje funkci zvanou <code class="highlighter-rouge">identity</code>, která na rozdíl od funkce <code class="highlighter-rouge">always</code> vrací danou hodnotu. Použijme tuto funkci k vytvoření arraye, jehož elementy mají hodnotu stejnou jako jejich indexy.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">initialize</span> <span class="mi">5</span> <span class="n">identity</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Na rozdíl od <code class="highlighter-rouge">always</code>, není funkce <code class="highlighter-rouge">identity</code> konstantní, neboť její výstup závisí na vstupu.</p>
+
+<h3 id="getting-and-setting-a-value">Nastavení a získání hodnoty</h3>
+
+<p>Abychom získali element z arraye, musíme zadat jeho index a název arraye funkci <code class="highlighter-rouge">get</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">3</span> <span class="n">myArray</span>
+<span class="kt">Just</span> <span class="mi">3</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">get</code> vrací element uvnitř <code class="highlighter-rouge">Just</code>. Podobný příklad jsme viděli, když jsme žádali seznam aby nám vydal své čelo (head). Kterak vybalit hodnotu z obálky <code class="highlighter-rouge">Just</code> se dozvíte v kapitole 4. 
+Co se stane, když se pokusíme o přístup k indexu, který neexistuje?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="mi">5</span> <span class="n">myArray</span>
+<span class="kt">Nothing</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">get</span> <span class="o">-</span><span class="mi">1</span> <span class="n">myArray</span>
+<span class="kt">Nothing</span></code></pre></figure>
+
+<p>Místo chybového hlášení dostáváme <code class="highlighter-rouge">Nothing</code>, což je smysluplné. Podobně můžeme zadat hodnotu elementu s určitým indexem použitím funkce <code class="highlighter-rouge">set</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">set</span> <span class="mi">3</span> <span class="mi">8</span> <span class="n">myArray</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">set</code> přijímá tři argumenty:</p>
+
+<ul>
+  <li>Index elementu, který chceme měnit</li>
+  <li>Novou hodnotu elementu, která nahradí dosavadní</li>
+  <li>Název araye</li>
+</ul>
+
+<p>Je důležité vědět, že funkce <code class="highlighter-rouge">set</code> vrací nový array místo měnění starého. Vytiskneme-li si obsah kolektoru <code class="highlighter-rouge">myArray</code>, uvidíme že se vůbec nezměnil.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myArray</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Toto chování je konzistentní se všemi ostatními operacemi. Nezáleží na tom, s jakými daty manipulujeme, Elm je nikdy nemění. O neměnnosti budeme podrobněji hovořit v další kapitole.</p>
+
+<h3 id="checking-length">Ověřování délky</h3>
+
+<p>Funkce <code class="highlighter-rouge">isEmpty</code> určuje, zda je či není array prázdný, zatímco funkce <code class="highlighter-rouge">length</code> vrací počet elementů v arrayi.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">isEmpty</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="kt">[]</span><span class="p">)</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">isEmpty</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="s">"Dolores"</span><span class="p">,</span> <span class="s">"Teddy"</span><span class="p">,</span> <span class="s">"Elsie"</span> <span class="p">])</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">length</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="kt">[]</span><span class="p">)</span>
+<span class="mi">0</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">length</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">])</span>
+<span class="mi">3</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">length</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="s">"Daenerys"</span><span class="p">,</span> <span class="s">"Tyrion"</span><span class="p">,</span> <span class="s">"Arya"</span><span class="p">,</span> <span class="s">"Khal Drogo"</span> <span class="p">])</span>
+<span class="mi">4</span></code></pre></figure>
+
+<p>Tyto funkce pracují přesně stejným způsobem jako u seznamů.</p>
+
+<h3 id="combining-arrays">Spojování arrayů</h3>
+
+<p>Funkce <code class="highlighter-rouge">append</code> umožňuje spojovat dva arraye.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">array1</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">array2</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">append</span> <span class="n">array1</span> <span class="n">array2</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<p>Ke spojení dvou arrayů nemůžeme použít operátor <code class="highlighter-rouge">++</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">array1</span> <span class="o">++</span> <span class="n">array2</span>
+
+<span class="c1">----------------- TYPE MISMATCH -----------------------</span>
+<span class="kt">The</span> <span class="n">left</span> <span class="n">argument</span> <span class="kr">of</span> <span class="p">(</span><span class="o">++</span><span class="p">)</span> <span class="n">is</span> <span class="n">causing</span> <span class="n">a</span> <span class="kr">type</span> <span class="n">mismatch</span><span class="o">.</span>
+
+<span class="mi">6</span><span class="o">|</span>   <span class="n">array1</span> <span class="o">++</span> <span class="n">array2</span>
+     <span class="o">^^^^^^</span>
+<span class="p">(</span><span class="o">++</span><span class="p">)</span> <span class="n">is</span> <span class="n">expecting</span> <span class="n">the</span> <span class="n">left</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">be</span> <span class="n">a</span><span class="o">:</span>
+
+    <span class="n">appendable</span>
+
+<span class="kt">But</span> <span class="n">the</span> <span class="n">left</span> <span class="n">argument</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="kt">Array</span><span class="o">.</span><span class="kt">Array</span> <span class="n">number</span>
+
+<span class="kt">Hint</span><span class="o">:</span> <span class="kt">Only</span> <span class="n">strings</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">and</span> <span class="n">lists</span> <span class="n">are</span> <span class="n">appendable</span><span class="o">.</span></code></pre></figure>
+
+<p>Chceme-li přidat element na konec arraye, můžeme tak učinit funkcí <code class="highlighter-rouge">push</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">push</span> <span class="mi">4</span> <span class="n">array1</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Pro přidání elementu na začátek arraye žádná funkce neexistuje. Je to proto, že to je nákladná operace. Každý element musí být posunut o jedno místo vpravo a je-li těchto elementů mnoho, může to chvíli trvat. Přidání elementu na konec je za hubičku, protože se nic nepřemisťuje.</p>
+
+<p><img src="images/array-add-to-the front.png" alt="" /></p>
+
+<p>Jeden způsob, jak obejít tento problém, spočívá v přidání stávajícího arraye k arrayi s přidávaným elementem.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="n">array1</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span></code></pre></figure>
+
+<h3 id="splitting-arrays">Štěpení arrayů</h3>
+
+<p>Pamatujete, jak jsme extrahovali substring z řetězce s použitím funkce <code class="highlighter-rouge">slice</code>?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="mi">0</span> <span class="mi">5</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Bears"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="mi">7</span> <span class="mi">12</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Beets"</span></code></pre></figure>
+
+<p>Modul <code class="highlighter-rouge">Array</code> rovněž poskytuje funkci zvanou <code class="highlighter-rouge">slice</code>, která nám umožní získat subsekci z arraye. Stejně jako <code class="highlighter-rouge">String.slice</code> přijímá tři parametry:</p>
+
+<ul>
+  <li>Počáteční index subarraye</li>
+  <li>Koncový index subarraye</li>
+  <li>Array</li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">slice</span> <span class="mi">0</span> <span class="mi">3</span> <span class="n">myArray</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span></code></pre></figure>
+
+<p><code class="highlighter-rouge">Array.slice</code> také extrahuje elementy exkluzivně bez koncového indexu. Můžeme rovněž použít záporné indexy jako ve funkci <code class="highlighter-rouge">List.slice</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myArray</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">slice</span> <span class="mi">0</span> <span class="o">-</span><span class="mi">1</span> <span class="n">myArray</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Všimněte si, jak jsme vypustili poslední element kolektoru <code class="highlighter-rouge">myArray</code> s použitím negativního indexu. Šikovný trik, není-liž pravda?</p>
+
+<h3 id="mapping-filtering-and-folding-an-array">
+Mapování, filtrování a redukce (folding) arraye</h3>
+
+<p>V kapitole <a href="list.html#filtering-a-list" target="_blank">List</a> jsme se podrobněji zabývali operacemi map, filter a fold. Jejich chování je úplně stejné i u arrayů. Prohlédněme si několik příkladů.</p>
+
+<h4 id="mapping">Mapping</h4>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">])</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">8</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">guardians</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="s">"Star-lord"</span><span class="p">,</span> <span class="s">"Groot"</span><span class="p">,</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Drax"</span><span class="p">,</span> <span class="s">"Rocket"</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="s">"Star-lord"</span><span class="p">,</span><span class="s">"Groot"</span><span class="p">,</span><span class="s">"Gamora"</span><span class="p">,</span><span class="s">"Drax"</span><span class="p">,</span><span class="s">"Rocket"</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">lengths</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">map</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="n">guardians</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<h4 id="filtering">Filtering</h4>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span> <span class="n">lengths</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">isOdd</span> <span class="n">number</span> <span class="o">=</span> <span class="kr">if</span> <span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span> <span class="kt">False</span> <span class="kr">else</span> <span class="kt">True</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">filter</span> <span class="n">isOdd</span> <span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">])</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">isHost</span> <span class="n">name</span> <span class="o">=</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">name</span> <span class="p">[</span> <span class="s">"Dolores"</span><span class="p">,</span> <span class="s">"Teddy"</span><span class="p">,</span> <span class="s">"Maeve"</span> <span class="p">]</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="n">westWorldCharacters</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="s">"William"</span><span class="p">,</span> <span class="s">"Bernard"</span><span class="p">,</span> <span class="s">"Dolores"</span><span class="p">,</span> <span class="s">"Teddy"</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="s">"William"</span><span class="p">,</span><span class="s">"Bernard"</span><span class="p">,</span><span class="s">"Dolores"</span><span class="p">,</span><span class="s">"Teddy"</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">filter</span> <span class="n">isHost</span> <span class="n">westWorldCharacters</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="s">"Dolores"</span><span class="p">,</span><span class="s">"Teddy"</span><span class="p">]</span></code></pre></figure>
+
+<h4 id="folding-from-left">Folding from left</h4>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="o">+</span><span class="p">)</span> <span class="mi">0</span> <span class="n">myArray</span>
+<span class="mi">10</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="mi">1</span> <span class="n">myArray</span>
+<span class="mi">24</span>
+
+<span class="o">&gt;</span> <span class="n">guardians</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="s">"Star-lord"</span><span class="p">,</span> <span class="s">"Groot"</span><span class="p">,</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Drax"</span><span class="p">,</span> <span class="s">"Rocket"</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="s">"Star-lord"</span><span class="p">,</span><span class="s">"Groot"</span><span class="p">,</span><span class="s">"Gamora"</span><span class="p">,</span><span class="s">"Drax"</span><span class="p">,</span><span class="s">"Rocket"</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span> <span class="mi">0</span> <span class="n">guardians</span>
+<span class="mi">30</span></code></pre></figure>
+
+<h4 id="folding-from-right">Folding from right</h4>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myArray</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">Array</span><span class="o">.</span><span class="n">foldr</span> <span class="p">(</span><span class="o">^</span><span class="p">)</span> <span class="mi">1</span> <span class="n">myArray</span>
+<span class="mi">65536</span></code></pre></figure>
+
+<h3 id="list-vs-array">List versus Array</h3>
+
+<p>Nyní, když víme, co seznamy a arraye jsou, nabízí se důležitá otázka: který kolektor bychom měli používat a kdy? Protože seznamy nemají snadný přístup k elementům pomocí indexů, nemáme žádný výběr než použít array, potřebujeme-li poziční přístup. Ve všech ostatních případech doporučuji používat seznamy, protože jsou standardní volbou pro prezentaci sekvencí hodnot v Elmu. Navíc, vytvoření seznamu je snadné s pomocí hranatých závorek, zatímco vytvoření arraye je poněkud složitější. Musíme nejprve vytvořit seznam a potom jej konvertovat na array funkcí <code class="highlighter-rouge">fromList</code>.</p>
+</article>
+
+<nav class="pagination">
+<a class="pagination-next" href="list.html">
+<em>&larr; Previous</em>
+<strong>Seznamy</strong>
+</a>
+<a class="pagination-next" href="tuple.html">
+<em>Next &rarr;</em><strong>Entice</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

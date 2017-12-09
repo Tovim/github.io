@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.12 </h1>
+<h2>Výraz CASE</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="indentation.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="let-expression.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Řekněme, že máme dny v týdnu reprezentované číslicemi mezi <code class="highlighter-rouge">0</code> a <code class="highlighter-rouge">6</code> a chceme tato čísla přeměnit na řetězce (<code class="highlighter-rouge">0</code> = Sunday, <code class="highlighter-rouge">1</code> = Monday, etc.). Můžeme k tomu použít výraz <code class="highlighter-rouge">if</code>. Zapište následující definici funkce nad funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">weekday</span> <span class="n">dayInNumber</span> <span class="o">=</span>
+    <span class="kr">if</span> <span class="n">dayInNumber</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span>
+        <span class="s">"Sunday"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">dayInNumber</span> <span class="o">==</span> <span class="mi">1</span> <span class="kr">then</span>
+        <span class="s">"Monday"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">dayInNumber</span> <span class="o">==</span> <span class="mi">2</span> <span class="kr">then</span>
+        <span class="s">"Tuesday"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">dayInNumber</span> <span class="o">==</span> <span class="mi">3</span> <span class="kr">then</span>
+        <span class="s">"Wednesday"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">dayInNumber</span> <span class="o">==</span> <span class="mi">4</span> <span class="kr">then</span>
+        <span class="s">"Thursday"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">dayInNumber</span> <span class="o">==</span> <span class="mi">5</span> <span class="kr">then</span>
+        <span class="s">"Friday"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">dayInNumber</span> <span class="o">==</span> <span class="mi">6</span> <span class="kr">then</span>
+        <span class="s">"Saturday"</span>
+    <span class="kr">else</span>
+        <span class="s">"Unknown day"</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní zobrazme "Friday" v prohlížeči použitím funkce <code class="highlighter-rouge">weekday</code>, volané funkcí <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">weekday</span> <span class="mi">5</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, měli bychom vidět "Friday". Jak se věci mají právě teď, je funkce <code class="highlighter-rouge">weekday</code> poněkud předimenzovaná. Nevykonává nic víc než porovnávání čísel v každé podmínkové větvi. Lze to vyjádřit stručněji? Zkusme výraz <code class="highlighter-rouge">case</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">weekday</span> <span class="n">dayInNumber</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">dayInNumber</span> <span class="kr">of</span>
+        <span class="mi">0</span> <span class="o">-&gt;</span>
+            <span class="s">"Sunday"</span>
+
+        <span class="mi">1</span> <span class="o">-&gt;</span>
+            <span class="s">"Monday"</span>
+
+        <span class="mi">2</span> <span class="o">-&gt;</span>
+            <span class="s">"Tuesday"</span>
+
+        <span class="mi">3</span> <span class="o">-&gt;</span>
+            <span class="s">"Wednesday"</span>
+
+        <span class="mi">4</span> <span class="o">-&gt;</span>
+            <span class="s">"Thursday"</span>
+
+        <span class="mi">5</span> <span class="o">-&gt;</span>
+            <span class="s">"Friday"</span>
+
+        <span class="mi">6</span> <span class="o">-&gt;</span>
+            <span class="s">"Saturday"</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="s">"Unknown day"</span></code></pre></figure>
+
+<p>Oho! Mnohem lepší!</p>
+
+<h3 id="case-expression-syntax">Syntaxe výrazu case</h3>
+
+<p><img src="images/case-expression-syntax.png" alt="" /></p>
+
+<p>Výraz <code class="highlighter-rouge">case</code> provádí porovnávání výrazu se vzorem. Je-li nalezena shoda, vyhodnotí výraz na hodnotu vpravo od  <code class="highlighter-rouge">-&gt;</code> a vrací ji jako výstupní hodnotu.</p>
+
+<dl>
+<dt>Pattern Matching</dt>
+<dd>Pattern matching je akt porovnávání jednoho či více vstupů s předefinovaným vzorem a hledání shody. Pattern matching budeme podrobněji zkoumat v <a href="pattern-matching.html" target="_blank">kapitole 4</a>.</dd>
+</dl>
+
+<p>Výraz za klíčovým slovem <code class="highlighter-rouge">case</code> může být cokoli od jednoduché hodnoty až ke složitému výpočtu včetně evokace funkce. Chceme-li například generovat "hashtag" pro každý den týdnu, můžeme napsat další funkci, která přijme řetězec, vrácený funkcí <code class="highlighter-rouge">weekday</code> a porovná jej s hashtagem. Vložte následující definici funkce nad <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">hashtag</span> <span class="n">dayInNumber</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">weekday</span> <span class="n">dayInNumber</span> <span class="kr">of</span>
+        <span class="s">"Sunday"</span> <span class="o">-&gt;</span>
+            <span class="s">"#SinDay"</span>
+
+        <span class="s">"Monday"</span> <span class="o">-&gt;</span>
+            <span class="s">"#MondayBlues"</span>
+
+        <span class="s">"Tuesday"</span> <span class="o">-&gt;</span>
+            <span class="s">"#TakeMeBackTuesday"</span>
+
+        <span class="s">"Wednesday"</span> <span class="o">-&gt;</span>
+            <span class="s">"#HumpDay"</span>
+
+        <span class="s">"Thursday"</span> <span class="o">-&gt;</span>
+            <span class="s">"#ThrowbackThursday"</span>
+
+        <span class="s">"Friday"</span> <span class="o">-&gt;</span>
+            <span class="s">"#FlashbackFriday"</span>
+
+        <span class="s">"Saturday"</span> <span class="o">-&gt;</span>
+            <span class="s">"#Caturday"</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="s">"#Whatever"</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní v <code class="highlighter-rouge">main</code> použijte funkci <code class="highlighter-rouge">hashtag</code> místo  <code class="highlighter-rouge">weekday</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">hashtag</span> <span class="mi">5</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, uvidíte <em>“#FlashbackFriday”</em>. <br>Můžete být při zápisu výrazu case v pokušení psát dvojice souvisících stringů do jednoho řádku, jako v následující ukázce:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">hashtag</span> <span class="n">dayInNumber</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">weekday</span> <span class="n">dayInNumber</span> <span class="kr">of</span>
+        <span class="s">"Sunday"</span>    <span class="o">-&gt;</span> <span class="s">"#SinDay"</span>
+        <span class="s">"Monday"</span>    <span class="o">-&gt;</span> <span class="s">"#MondayBlues"</span>
+        <span class="s">"Tuesday"</span>   <span class="o">-&gt;</span> <span class="s">"#TakeMeBackTuesday"</span>
+        <span class="s">"Wednesday"</span> <span class="o">-&gt;</span> <span class="s">"#HumpDay"</span>
+        <span class="s">"Thursday"</span>  <span class="o">-&gt;</span> <span class="s">"#ThrowbackThursday"</span>
+        <span class="s">"Friday"</span>    <span class="o">-&gt;</span> <span class="s">"#FlashbackFriday"</span>
+        <span class="s">"Saturday"</span>  <span class="o">-&gt;</span> <span class="s">"#Caturday"</span>
+        <span class="kr">_</span>           <span class="o">-&gt;</span> <span class="s">"#Whatever"</span></code></pre></figure>
+
+<p>Rukověť <a href="http://elm-lang.org/docs/style-guide" target="_blank">Style guide</a> nám říká abychom to nedělali. I když je toto uspořádání jednodušší, ztěžuje případnou pozdější úpravu.</p>
+<!--
+<p>Let’s say we need to add another day with a long name to the list of patterns. Now we need to move all the arrows. But if we arrange the code as suggested by the style guide, then it becomes much easier to modify. Although <code class="highlighter-rouge">elm-format</code> automatically reformats our code to follow the style guide, I wanted to point it out here so that you understand why a <code class="highlighter-rouge">case</code> expression in Elm is formatted like that.</p>-->
+
+<h4 id="catch-all-pattern">Odchycení všech vzorů</h4>
+
+<p>Povšimněte si použití dvou podtržítek  <code class="highlighter-rouge">_</code> u posledních vzorů. Bez nich by Elm vyvolal chybové hlášení. Pokračujte dál a odstraňte řádek, který obsahuje podtržítka <code class="highlighter-rouge">_</code> z funkce <code class="highlighter-rouge">weekday</code> a obnovte stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>. Mělo by se zobrazit toto chybové hlášení:</p>
+
+<p><img src="images/case-expression-error.png" alt="" /></p>
+
+<p>Musíme se postarat o každou hodnotu, kterou výraz může mít. Protože funkce <code class="highlighter-rouge">dayInNumber</code> obsahuje integer, jehož interval je docela veliký, je ošetření každé jednotlivé možné hodnoty neproveditelné.  Znak <code class="highlighter-rouge">_</code> pracuje jako žolík (catch-all-pattern). Z toho důvodu umisťujeme nejvíce specifický vzor na první místo a nejméně specifický na konec. Kdybychom umístili znak <code class="highlighter-rouge">_</code> na první místo, bude funkce <code class="highlighter-rouge">weekday</code> vždy vracet "Unknown day", bez ohledu na to, jaké číslo zadáme. Vraťte žolíka (<code class="highlighter-rouge">_</code>) zpět do funkce <code class="highlighter-rouge">weekday</code>.</p>
+
+<h3 id="if-expression-vs-case-expression">Výraz IF versus CASE</h3>
+
+<p>Mohou být všechny výrazy <code class="highlighter-rouge">if</code> nahrazeny výrazy <code class="highlighter-rouge">case</code>? Nikoliv nezbytně. Výraz <code class="highlighter-rouge">case</code> pracuje vyhledáváním shody se vzorem, zatímco výraz <code class="highlighter-rouge">if</code> kontroluje, zda je podmínka pravdivá či nikoli. Následující kód například vůbec neobsahuje vzor.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">escapeEarth</span> <span class="n">velocity</span> <span class="n">speed</span> <span class="o">=</span>
+    <span class="kr">if</span> <span class="n">velocity</span> <span class="o">&gt;</span> <span class="mf">11.186</span> <span class="kr">then</span>
+        <span class="s">"Godspeed"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">speed</span> <span class="o">==</span> <span class="mf">7.67</span> <span class="kr">then</span>
+        <span class="s">"Stay in orbit"</span>
+    <span class="kr">else</span>
+        <span class="s">"Come back"</span></code></pre></figure>
+
+<p>Pokusíme-li se jej přepsat s výrazem <code class="highlighter-rouge">case</code>, dostaneme chybové hlášení.   
+Doplňte následující definici funkce nad <code class="highlighter-rouge">main</code> v <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">escapeEarthWithCase</span> <span class="n">velocity</span> <span class="n">speed</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="n">speed</span><span class="p">)</span> <span class="kr">of</span>
+        <span class="p">(</span><span class="n">velocity</span> <span class="o">&gt;</span> <span class="mf">11.186</span><span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="s">"Godspeed"</span>
+
+        <span class="p">(</span><span class="n">speed</span> <span class="o">==</span> <span class="mf">7.67</span><span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="s">"Stay in orbit"</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="s">"Come back"</span>
+
+
+<span class="n">main</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Po obnovení stránky na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, by mělo byt vidět následující chybové hlášení.</p>
+
+<p><img src="images/case-if-expression-error.png" alt="" /></p>
+
+<p>Důvodem tohoto hlášení je to, že není uveden žádný vzor k porovnání. Všechno co máme, je několik nesouvisejících podmínek. Navíc, část před znakem <code class="highlighter-rouge">-&gt;</code> musí být vzor, nemůže to být výraz. My se zde pokoušíme porovnat danou velocity a speed s nějakým číslem s použitím výrazu.</p>
+
+<p>Ovšem, když se pokoušíme zjistit, na které oběžné dráze může naše vesmírná loď zaparkovat, můžeme pro to použít výraz <code class="highlighter-rouge">case</code>. Doplňte následující definici funkce přímo nad <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">whereToPark</span> <span class="n">speed</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">speed</span> <span class="kr">of</span>
+        <span class="mf">7.67</span> <span class="o">-&gt;</span>
+            <span class="s">"Low Earth Orbit"</span>
+
+        <span class="mf">3.8</span> <span class="o">-&gt;</span>
+            <span class="s">"Medium Earth Orbit"</span>
+
+        <span class="mf">3.07</span> <span class="o">-&gt;</span>
+            <span class="s">"Geostationary Orbit"</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="s">"Nowhere"</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní v <code class="highlighter-rouge">main</code> volejme funkci <code class="highlighter-rouge">whereToPark</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">whereToPark</span> <span class="mf">7.67</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Odeberte definici funkce <code class="highlighter-rouge">escapeEarthWithCase</code> ze souboru <code class="highlighter-rouge">Playground.elm</code> a obnovte stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>. Mělo by se zobrazit "Low Earth Orbit".</p>
+
+<p>
+Shrnutí: máme-li k ověření různorodé podmínky, je výraz <code class="highlighter-rouge">if</code> dobrou volbou avšak pokud potřebujeme porovnat výraz se vzorem, potom je výraz <code class="highlighter-rouge">case</code> lepší volbou.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="let-expression.html">
+<em>&larr; Previous</em>
+<strong>Výraz LET</strong>
+</a>
+<a class="pagination-next" href="indentation.html">
+<em>Next &rarr;</em><strong>Indentace</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

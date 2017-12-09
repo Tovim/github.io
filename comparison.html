@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.4 </h1>
+<h2>Srovnávání</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="comment.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="boolean.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Elm porovnává hodnoty těmito operátory:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">==</code> - <em>Equal</em></li>
+  <li><code class="highlighter-rouge">/=</code> - <em>Not equal</em></li>
+  <li><code class="highlighter-rouge">&gt;</code> - <em>Greater than</em></li>
+  <li><code class="highlighter-rouge">&lt;</code> - <em>Less than</em></li>
+  <li><code class="highlighter-rouge">&gt;=</code> - <em>Greater than or equal to</em></li>
+  <li><code class="highlighter-rouge">&lt;=</code> - <em>Less than or equal to</em></li>
+  <li><code class="highlighter-rouge">max</code> - <em>Find the larger of two</em></li>
+  <li><code class="highlighter-rouge">min</code> - <em>Find the smaller of two</em></li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">5</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="mi">1</span> <span class="o">/=</span> <span class="mi">2</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="mi">10</span> <span class="o">&lt;</span> <span class="mi">7</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="mi">100</span> <span class="o">&gt;</span> <span class="mi">99</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="mi">7</span> <span class="o">&gt;=</span> <span class="mi">10</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="mi">9</span> <span class="o">&lt;=</span> <span class="mi">9</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="n">max</span> <span class="mi">5</span> <span class="mi">6</span>
+<span class="mi">6</span>
+
+<span class="o">&gt;</span> <span class="n">min</span> <span class="mi">3</span> <span class="mi">8</span>
+<span class="mi">3</span></code></pre></figure>
+
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="boolean.html">
+<em>&larr; Previous</em>
+<strong>Boolean</strong>
+</a>
+<a class="pagination-next" href="comment.html">
+<em>Next &rarr;</em><strong>Komentáře</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

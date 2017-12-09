@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 4.9 </h1>
+<h2>Pattern Matching - PM</h2>
+
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+<!--<i class="fa fa-heart-o"></i>-->
+<span></span>
+<span></span> 
+<span></span>     
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="benefits-conclusion.html">
+<i class="fa fa-angle-right"></i>
+<span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="fuzz-testing.html">
+<i class="fa fa-angle-left"></i>
+<span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Shoda se vzorkem (pattern matching) je akt porovnávání jednoho či více vstupů s určeným vzorkem a zkoumání, zda se shodují. Jinými slovy, pattern matching je hledání shody se vzorkem. V Elmu je k disposici jenom určitá množina vzorů, jež lze porovnávat, takže pattern matching má omezené použití.
+V této sekci si projdeme několika příklady, abychom pochopili, jak pattern matching v Elmu pracuje.</p>
+
+<h3 id="pattern-matching-in-case-expression">PM ve výrazech  CASE</h3>
+
+<p>Výraz <code class="highlighter-rouge">case</code> pracuje porovnáváním výrazu se vzorem. Je-li nalezena shoda, vyhodnotí se výraz vpravo od šipky <code class="highlighter-rouge">-&gt;</code> a výsledek tvoří vratnou hodnotu výrazu case. Jednoduchý příkad na PM jsme viděli v sekci <a href="case-expression.html" target="_blank">Výraz case</a>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">weekday</span> <span class="n">dayInNumber</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">dayInNumber</span> <span class="kr">of</span>
+        <span class="mi">0</span> <span class="o">-&gt;</span>
+            <span class="s">"Sunday"</span>
+
+        <span class="mi">1</span> <span class="o">-&gt;</span>
+            <span class="s">"Monday"</span>
+
+        <span class="mi">2</span> <span class="o">-&gt;</span>
+            <span class="s">"Tuesday"</span>
+
+        <span class="mi">3</span> <span class="o">-&gt;</span>
+            <span class="s">"Wednesday"</span>
+
+        <span class="mi">4</span> <span class="o">-&gt;</span>
+            <span class="s">"Thursday"</span>
+
+        <span class="mi">5</span> <span class="o">-&gt;</span>
+            <span class="s">"Friday"</span>
+
+        <span class="mi">6</span> <span class="o">-&gt;</span>
+            <span class="s">"Saturday"</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="s">"Unknown day"</span></code></pre></figure>
+
+<p>V tomto příkladě je výrazem <code class="highlighter-rouge">dayInNumber</code> a vzorem jsou čísla <code class="highlighter-rouge">0</code> až <code class="highlighter-rouge">6</code> s žolíkem (catchcall) <code class="highlighter-rouge">_</code> na konci. Zde je poněkud složitější příklad:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">map2</span> <span class="o">:</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">value</span>
+<span class="n">map2</span> <span class="n">func</span> <span class="n">ra</span> <span class="n">rb</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="p">(</span> <span class="n">ra</span><span class="p">,</span> <span class="n">rb</span> <span class="p">)</span> <span class="kr">of</span>
+        <span class="p">(</span> <span class="kt">Ok</span> <span class="n">a</span><span class="p">,</span> <span class="kt">Ok</span> <span class="n">b</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">Ok</span> <span class="p">(</span><span class="n">func</span> <span class="n">a</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="p">(</span> <span class="kt">Err</span> <span class="n">x</span><span class="p">,</span> <span class="kr">_</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">Err</span> <span class="n">x</span>
+
+        <span class="p">(</span> <span class="kr">_</span><span class="p">,</span> <span class="kt">Err</span> <span class="n">x</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">Err</span> <span class="n">x</span></code></pre></figure>
+
+<p>Výše uvedený kód ukazuje použití funkce <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Result#map2" target="_blank"><code class="highlighter-rouge">Result.map2</code></a>, která přijímá tři argumenty: funkci a dva výsledky. Funkce <code class="highlighter-rouge">map2</code> používá výraz <code class="highlighter-rouge">case</code> k určení dalšího postupu v závislosti na výsledkových argumentech.</p>
+
+<p><strong>Case #1:</strong> Jsou-li oba výsledky <code class="highlighter-rouge">Ok</code>, je funkce aplikována na payloady každého <code class="highlighter-rouge">Ok</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Result</span><span class="o">.</span><span class="n">map2</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"2"</span><span class="p">)</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"3"</span><span class="p">)</span>
+<span class="kt">Ok</span> <span class="mi">6</span> <span class="o">:</span> <span class="kt">Result</span><span class="o">.</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">Int</span></code></pre></figure>
+
+<p><strong>Case #2:</strong> Obsahuje-li první výsledek <code class="highlighter-rouge">Err</code>, je druhý výsledek ignorován v důsledku <code class="highlighter-rouge">_</code> a vrací se<code class="highlighter-rouge">Err</code> z prvního výsledku.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Result</span><span class="o">.</span><span class="n">map2</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"y"</span><span class="p">)</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"3"</span><span class="p">)</span>
+<span class="kt">Err</span> <span class="s">"could not convert string 'y' to an Int"</span> <span class="o">:</span> <span class="kt">Result</span><span class="o">.</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">Int</span></code></pre></figure>
+
+<p><strong>Case #3:</strong> Obsahuje-li druhý výsledek <code class="highlighter-rouge">Err</code>, je první výsledek ignorován a vrací se <code class="highlighter-rouge">Err</code> z druhého výsledku.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Result</span><span class="o">.</span><span class="n">map2</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"2"</span><span class="p">)</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"i"</span><span class="p">)</span>
+<span class="kt">Err</span> <span class="s">"could not convert string 'i' to an Int"</span> <span class="o">:</span> <span class="kt">Result</span><span class="o">.</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">Int</span></code></pre></figure>
+
+<p>Elm nám umožňuje sáhnout do datové struktury a porovnávat vzory přímo bez psaní vnořených výrazů <code class="highlighter-rouge">if</code> a <code class="highlighter-rouge">case</code>. To umožňuje psaní kompaktního, přesto přehledného kódu.</p>
+
+<dl>
+  <dt>Poučení ze standardní knihovny</dt>
+  <dd>Jedním z nejlepších způsobů osvojování Elmu je číst jeho standardní knihovnu. Velká část jejího kódu je napsaná v Elmu. Je to dobrý kód, napsaný zkušenými programátory, z nichž někteří se podíleli na vzniku Elmu samotného.</dd>
+  <dd>
+    <p>Vyberte si <a href="http://package.elm-lang.org/packages/elm-lang/core/5.1.1" target="_blank">modul</a> svého zájmu a projděte si jeho funkcemi, typy a hodnotami. Potom přejděte na <a href="https://github.com/elm-lang/core/tree/5.1.1/src" target="_blank">Github</a> a vyhledejte si jméno souboru, který obsahuje kód modulu, který vás zajímá. Například, kód pro modul <code class="highlighter-rouge">List</code> je obsažen v souboru <code class="highlighter-rouge">List.elm</code> a kód pro typ <code class="highlighter-rouge">Maybe</code> je obsažen v souboru <code class="highlighter-rouge">Maybe.elm</code>.</p>
+  </dd>
+</dl>
+
+<h4 id="using-tuples-to-pattern-match-in-case-expression">PM  s enticemi</h4>
+
+<p>Jedním z důvodů kompaktnosti fukce <code class="highlighter-rouge">map2</code> je to, že nám umožňuje použít entice k porovnávání složitých vzorů ve výrazu <code class="highlighter-rouge">case</code>. Takto by vypadala funkce <code class="highlighter-rouge">map2</code>, kdyby nepoužila entici ve výrazu <code class="highlighter-rouge">case</code> nahoře:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">map2</span> <span class="o">:</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">value</span>
+<span class="n">map2</span> <span class="n">func</span> <span class="n">ra</span> <span class="n">rb</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">ra</span> <span class="kr">of</span>
+        <span class="kt">Ok</span> <span class="n">a</span> <span class="o">-&gt;</span>
+            <span class="kr">case</span> <span class="n">rb</span> <span class="kr">of</span>
+                <span class="kt">Ok</span> <span class="n">b</span> <span class="o">-&gt;</span>
+                    <span class="kt">Ok</span> <span class="p">(</span><span class="n">func</span> <span class="n">a</span> <span class="n">b</span><span class="p">)</span>
+
+                <span class="kt">Err</span> <span class="n">x</span> <span class="o">-&gt;</span>
+                    <span class="kt">Err</span> <span class="n">x</span>
+
+        <span class="kt">Err</span> <span class="n">x</span> <span class="o">-&gt;</span>
+            <span class="kt">Err</span> <span class="n">x</span></code></pre></figure>
+
+<p>Pozorumění kódu je zde obtížné v důsledku přílišného vnořování. Předchozí implementace je mnohem elegantnější a přehlednější. Zde je přesvědčivější případ pro použití entic ve výzazech <code class="highlighter-rouge">case</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">map5</span> <span class="o">:</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">c</span> <span class="o">-&gt;</span> <span class="n">d</span> <span class="o">-&gt;</span> <span class="n">e</span> <span class="o">-&gt;</span> <span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">c</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">d</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">e</span> <span class="o">-&gt;</span> <span class="kt">Result</span> <span class="n">x</span> <span class="n">value</span>
+<span class="n">map5</span> <span class="n">func</span> <span class="n">ra</span> <span class="n">rb</span> <span class="n">rc</span> <span class="n">rd</span> <span class="n">re</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="p">(</span><span class="n">ra</span><span class="p">,</span><span class="n">rb</span><span class="p">,</span><span class="n">rc</span><span class="p">,</span><span class="n">rd</span><span class="p">,</span><span class="n">re</span><span class="p">)</span> <span class="kr">of</span>
+      <span class="p">(</span><span class="kt">Ok</span> <span class="n">a</span><span class="p">,</span> <span class="kt">Ok</span> <span class="n">b</span><span class="p">,</span> <span class="kt">Ok</span> <span class="n">c</span><span class="p">,</span> <span class="kt">Ok</span> <span class="n">d</span><span class="p">,</span> <span class="kt">Ok</span> <span class="n">e</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Ok</span> <span class="p">(</span><span class="n">func</span> <span class="n">a</span> <span class="n">b</span> <span class="n">c</span> <span class="n">d</span> <span class="n">e</span><span class="p">)</span>
+      <span class="p">(</span><span class="kt">Err</span> <span class="n">x</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Err</span> <span class="n">x</span>
+      <span class="p">(</span><span class="kr">_</span><span class="p">,</span> <span class="kt">Err</span> <span class="n">x</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Err</span> <span class="n">x</span>
+      <span class="p">(</span><span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kt">Err</span> <span class="n">x</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Err</span> <span class="n">x</span>
+      <span class="p">(</span><span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kt">Err</span> <span class="n">x</span><span class="p">,</span> <span class="kr">_</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Err</span> <span class="n">x</span>
+      <span class="p">(</span><span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="kt">Err</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Err</span> <span class="n">x</span></code></pre></figure>
+
+<p>Kód nahoře je implementace funkce <code class="highlighter-rouge">Result.map5</code>, která přijímá jako argumenty funkci a pět výsledků. Představte si, jak by takovéto zavedení vypadalo, kdyby nepoužilo entice k porovnávání vzorů. Zde je příklad na použití funkce <code class="highlighter-rouge">map5</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">resultMap5Example</span> <span class="o">:</span> <span class="kt">Result</span> <span class="kt">String</span> <span class="kt">Int</span>
+<span class="n">resultMap5Example</span> <span class="o">=</span>
+    <span class="kt">Result</span><span class="o">.</span><span class="n">map5</span> <span class="n">addFiveNumbers</span>
+        <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"1"</span><span class="p">)</span>
+        <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"2"</span><span class="p">)</span>
+        <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"3"</span><span class="p">)</span>
+        <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"4"</span><span class="p">)</span>
+        <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">toInt</span> <span class="s">"5"</span><span class="p">)</span>
+
+
+<span class="n">addFiveNumbers</span> <span class="o">:</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span> <span class="o">-&gt;</span> <span class="kt">Int</span>
+<span class="n">addFiveNumbers</span> <span class="n">a</span> <span class="n">b</span> <span class="n">c</span> <span class="n">d</span> <span class="n">e</span> <span class="o">=</span>
+    <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="n">e</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Přidejte výše uvedený kód hned nad funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Playground.elm</code> umístěném v adresáři <code class="highlighter-rouge">beginning-elm/elm-examples</code>. Potom můžete zapsat jméno fukce do replu, abyste viděl výsledek.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="n">resultMap5Example</span>
+<span class="kt">Ok</span> <span class="mi">15</span> <span class="o">:</span> <span class="kt">Result</span><span class="o">.</span><span class="kt">Result</span> <span class="kt">String</span> <span class="kt">Int</span></code></pre></figure>
+
+<h4 id="pattern-matching-cant-do-computation">PM nemůže provádět výpočet</h4>
+
+<p>Je důležité si uvědomit, že PM umí pouze nahlédnout do datové struktury. Žádné výpočty s dosaženými hodnotami provádět nemůže. V odstavci <a href="case-expression.html#if-expression-vs-case-expression" target="_blank">Výraz IF vs CASE</a> sekce Výrazy CASE jsme zkoušeli přepsat následující výraz <code class="highlighter-rouge">if</code> výrazem <code class="highlighter-rouge">case</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">escapeEarth</span> <span class="o">:</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">String</span>
+<span class="n">escapeEarth</span> <span class="n">velocity</span> <span class="n">speed</span> <span class="o">=</span>
+    <span class="kr">if</span> <span class="n">velocity</span> <span class="o">&gt;</span> <span class="mf">11.186</span> <span class="kr">then</span>
+        <span class="s">"Godspeed"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">speed</span> <span class="o">==</span> <span class="mf">7.67</span> <span class="kr">then</span>
+        <span class="s">"Stay in orbit"</span>
+    <span class="kr">else</span>
+        <span class="s">"Come back"</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">escapeEarthWithCase</span> <span class="o">:</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">String</span>
+<span class="n">escapeEarthWithCase</span> <span class="n">velocity</span> <span class="n">speed</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="n">speed</span><span class="p">)</span> <span class="kr">of</span>
+        <span class="p">(</span><span class="n">velocity</span> <span class="o">&gt;</span> <span class="mf">11.186</span><span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="s">"Godspeed"</span>
+
+        <span class="p">(</span><span class="n">speed</span> <span class="o">==</span> <span class="mf">7.67</span><span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="s">"Stay in orbit"</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="s">"Come back"</span></code></pre></figure>
+
+<p>Když jsme spustili funkci <code class="highlighter-rouge">escapeEarthWithCase</code>, dostali jsme následující chybu.</p>
+
+<p><img src="images/case-if-expression-error.png" alt="" /></p>
+
+<p>Obdrželi jsme syntaktickou chybu, protože jsme se při PM pokoušeli provést výpočty s hodnotami <code class="highlighter-rouge">velocity</code> a <code class="highlighter-rouge">speed</code>. Elm to nedovoluje. Potřebujeme-li provést výpočty před PM, můžeme to udělat uvnitř výrazu <code class="highlighter-rouge">let</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">escapeEarthWithCase</span> <span class="o">:</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">Float</span> <span class="o">-&gt;</span> <span class="kt">String</span>
+<span class="n">escapeEarthWithCase</span> <span class="n">velocity</span> <span class="n">speed</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">escapeVelocity</span> <span class="o">=</span>
+            <span class="n">velocity</span> <span class="o">&gt;</span> <span class="mf">11.186</span>
+
+        <span class="n">orbitalSpeed</span> <span class="o">=</span>
+            <span class="n">speed</span> <span class="o">==</span> <span class="mf">7.67</span>
+    <span class="kr">in</span>
+        <span class="kr">case</span> <span class="p">(</span> <span class="n">escapeVelocity</span><span class="p">,</span> <span class="n">orbitalSpeed</span> <span class="p">)</span> <span class="kr">of</span>
+            <span class="p">(</span> <span class="kt">True</span><span class="p">,</span> <span class="kr">_</span> <span class="p">)</span> <span class="o">-&gt;</span>
+                <span class="s">"Godspeed"</span>
+
+            <span class="p">(</span> <span class="kr">_</span><span class="p">,</span> <span class="kt">True</span> <span class="p">)</span> <span class="o">-&gt;</span>
+                <span class="s">"Stay in orbit"</span>
+
+            <span class="kr">_</span> <span class="o">-&gt;</span>
+                <span class="s">"Come back"</span></code></pre></figure>
+
+<h3 id="pattern-matching-lists">PM se seznamy</h3>
+
+<p>PM lze použít k dosažení hodnot uvnitř téměž každé datové struktury. Prozkoumejme, jak využít PM ke zjednodušení kódu, obsahujícího manipulaci se seznamy.
+ V sekci <a href="easier-code-organization.html" target="_blank">Organizace kódu</a> jsme viděli, jak modul <code class="highlighter-rouge">List</code> zavádí funkci <code class="highlighter-rouge">isEmpty</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">isEmpty</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="n">isEmpty</span> <span class="n">xs</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">xs</span> <span class="kr">of</span>
+        <span class="kt">[]</span> <span class="o">-&gt;</span>
+            <span class="kt">True</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="kt">False</span></code></pre></figure>
+
+<p>Výraz <code class="highlighter-rouge">case</code> používá označení <code class="highlighter-rouge">[]</code> pro shodu s prázdným seznamem. Při PM seznamu se často setkáte s označením <code class="highlighter-rouge">x</code> pro porovnání s jediným elementem a s označením  <code class="highlighter-rouge">xs</code> pro porovnání s více elementy. Vysvětlení je takové, že <code class="highlighter-rouge">x</code> je obecný název proměnné v matematice a <code class="highlighter-rouge">xs</code> je považován za plurál pro <code class="highlighter-rouge">x</code>. Zde je trošku složitější příklad na PM v seznamu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">foldl</span> <span class="o">:</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span>
+<span class="n">foldl</span> <span class="n">func</span> <span class="n">acc</span> <span class="n">list</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">list</span> <span class="kr">of</span>
+        <span class="kt">[]</span> <span class="o">-&gt;</span>
+            <span class="n">acc</span>
+
+        <span class="n">x</span> <span class="o">::</span> <span class="n">xs</span> <span class="o">-&gt;</span>
+            <span class="n">foldl</span> <span class="n">func</span> <span class="p">(</span><span class="n">func</span> <span class="n">x</span> <span class="n">acc</span><span class="p">)</span> <span class="n">xs</span></code></pre></figure>
+
+<p>Výše uvedený kód je implementace funkce <code class="highlighter-rouge">foldl</code>, kterou jsme probrali v odstavci <a href="list.html#folding-a-list" target="_blank">Redukce seznamu</a> sekce List. Funkce <code class="highlighter-rouge">foldl</code> extrahuje první element z daného seznamu, přičte jej k hodnotě akumulátoru a <a href="function-composition.html#recursion" target="_blank">rekurzivně</a> volá samu sebe pro zbývající položky v seznamu. Když dojdou položky v seznamu, vrací funkce hodnotu akumulátoru. Potom začne akumulovat výsledky z každé invokace. Použijme příklad pro další zkoumání výše uvedené implementace.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="o">+</span><span class="p">)</span> <span class="mi">0</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">10</span> <span class="o">:</span> <span class="n">number</span></code></pre></figure>
+
+<p>Použili jsme funkci <code class="highlighter-rouge">foldl</code> k určení součtu všech položek v seznamu. Jako každá jiná rekuzzivní funkce, vykazuje <code class="highlighter-rouge">foldl</code> <a href="function-composition.html#recursion" target="_blank">tři důležité charakteristiky</a>:</p>
+
+<p><strong>#1 Redukce problému:</strong> Funkce <code class="highlighter-rouge">foldl</code> redukuje původní problém na menší subproblémy vypuštěním prvního elementu z daného seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">x</span> <span class="o">::</span> <span class="n">xs</span></code></pre></figure>
+
+<p>Toto je část, o kterou se z hlediska PM nejvíce zajímáme.</p>
+
+<p><img src="images/list-pattern-matching.png" alt="" /></p>
+
+<p>Za scénou je seznam <code class="highlighter-rouge">[ 1, 2, 3, 4 ]</code> sestaven takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">4</span> <span class="o">::</span> <span class="kt">[]</span>
+<span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="mi">3</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="mi">2</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="mi">1</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span></code></pre></figure>
+
+<p>Proto můžeme provádět PM na seznamu s použitím operátoru cons (<code class="highlighter-rouge">::</code>).</p>
+
+<p><strong>#2 Poskytnutí základního případu:</strong> Funkce<code class="highlighter-rouge">foldl</code> zjednodušuje problém při každé invokaci aby posléze dospěla k následujícímu základnímu případu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">[]</span> <span class="o">-&gt;</span>
+    <span class="n">acc</span></code></pre></figure>
+
+<p><strong>#3 Spojování výsledků z každého subproblému:</strong> Po dosažení bázového případu spustí funkce <code class="highlighter-rouge">foldl</code> proces spojování výsledků z každé invokace. Používá k tomu následující kód:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">foldl</span> <span class="n">func</span> <span class="p">(</span><span class="n">func</span> <span class="n">x</span> <span class="n">acc</span><span class="p">)</span> <span class="n">xs</span></code></pre></figure>
+
+<p>Při pohledu na tento kód není snadné si představit, jak k oné akumulaci výsledků dochází. Zobrazme si průběh každé invokace.</p>
+
+<p><img src="images/foldl-invocation.png" alt="" /></p>
+
+<h3 id="pattern-matching-function-arguments">PM argumentů funkce</h3>
+
+<p>PM můžeme provádět rovněž pro argumenty funkce. Zde je příklad z odstavce <a href="tuple.html#using-tuples" target="_blank">Používání entic</a> sekce Tuples, která počítá obvod trojúhelníka:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="p">)</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span> <span class="o">:</span> <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">number</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span> <span class="p">)</span>
+<span class="mi">15</span> <span class="o">:</span> <span class="n">number</span></code></pre></figure>
+
+<p>Vzor, který ve výše uvedeném příkladu porovnáváme, je entice obsahující tři čísla. Když funkci aplikujeme, sáhne si Elm do entice, která představuje jediný argument fukce  <code class="highlighter-rouge">trianglePerimeter</code> a spojí <code class="highlighter-rouge">a</code> s <code class="highlighter-rouge">5</code>, <code class="highlighter-rouge">b</code> s <code class="highlighter-rouge">4</code> a <code class="highlighter-rouge">c</code> s <code class="highlighter-rouge">6</code>. V případě, že bychom chtěli ignorovat druhý argument, použijeme místo konkretního argumentu žolík <code class="highlighter-rouge">_</code> .</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="n">a</span><span class="p">,</span> <span class="kr">_</span><span class="p">,</span> <span class="n">c</span> <span class="p">)</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">c</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span> <span class="o">:</span> <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">number</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span> <span class="p">)</span>
+<span class="mi">11</span> <span class="o">:</span> <span class="n">number</span></code></pre></figure>
+
+<p>Všimněte si, jak se změnil typ funkce <code class="highlighter-rouge">trianglePerimeter</code> s použitím žolíku <code class="highlighter-rouge">_</code>. Tato schopnost porovnávat vzory u argumentů funkce se hodila, když jsme použili fuzzer <code class="highlighter-rouge">tuple</code> při psaní testů v odstavci <a href="fuzz-testing.html#tuple-fuzzer" target="_blank">Fuzzer tuple</a> sekce Fuzz testing.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">addTests</span> <span class="o">:</span> <span class="kt">Test</span>
+<span class="n">addTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"add"</span>
+        <span class="p">[</span> <span class="n">fuzz</span> <span class="p">(</span><span class="n">tuple</span> <span class="p">(</span> <span class="n">int</span><span class="p">,</span> <span class="n">int</span> <span class="p">))</span> <span class="s">"adds two given integers"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="p">(</span> <span class="n">num1</span><span class="p">,</span> <span class="n">num2</span> <span class="p">)</span> <span class="o">-&gt;</span>
+                <span class="n">add</span> <span class="n">num1</span> <span class="n">num2</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">(</span><span class="n">num1</span> <span class="o">+</span> <span class="n">num2</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Když fuzzer <code class="highlighter-rouge">tuple</code> generuje dvě celá čísla, připojeje je ke konstantám - <code class="highlighter-rouge">num1</code> and <code class="highlighter-rouge">num2</code> - obsaženým uvnitř enticového parametru. To je to, co nám umožňuje použít <code class="highlighter-rouge">num1</code> a <code class="highlighter-rouge">num2</code> v těle funkce přímo bez potřeby použít funkce <code class="highlighter-rouge">Tuple.first</code> a <code class="highlighter-rouge">Tuple.second</code>.</p>
+
+<p>Implementace funkce <code class="highlighter-rouge">List.unzip</code> je další dobrý příklad porovnávání vzorů u argumentů funkce.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">unzip</span> <span class="o">:</span> <span class="kt">List</span> <span class="p">(</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span> <span class="kt">List</span> <span class="n">a</span><span class="p">,</span> <span class="kt">List</span> <span class="n">b</span> <span class="p">)</span>
+<span class="n">unzip</span> <span class="n">pairs</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">step</span> <span class="p">(</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="p">)</span> <span class="p">(</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span> <span class="p">)</span> <span class="o">=</span>
+            <span class="p">(</span> <span class="n">x</span> <span class="o">::</span> <span class="n">xs</span><span class="p">,</span> <span class="n">y</span> <span class="o">::</span> <span class="n">ys</span> <span class="p">)</span>
+    <span class="kr">in</span>
+        <span class="n">foldr</span> <span class="n">step</span> <span class="p">(</span> <span class="kt">[]</span><span class="p">,</span> <span class="kt">[]</span> <span class="p">)</span> <span class="n">pairs</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">unzip</code> konvertuje seznam entic na entici seznamů. Zde je příklad:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">unzip</span> <span class="p">[</span> <span class="p">(</span> <span class="s">"Andy"</span><span class="p">,</span> <span class="kt">True</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Hadley"</span><span class="p">,</span> <span class="kt">False</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Red"</span><span class="p">,</span> <span class="kt">True</span> <span class="p">)</span> <span class="p">]</span>
+<span class="p">([</span><span class="s">"Andy"</span><span class="p">,</span><span class="s">"Hadley"</span><span class="p">,</span><span class="s">"Red"</span><span class="p">],[</span><span class="kt">True</span><span class="p">,</span><span class="kt">False</span><span class="p">,</span><span class="kt">True</span><span class="p">])</span></code></pre></figure>
+
+<p>První seznam ve výstupu obsahuje první položku z každé entice v původním seznamu a druhý seznam obsahuje druhé položky. Privátní funkce <code class="highlighter-rouge">step</code> v implementaci funkce <code class="highlighter-rouge">unzip</code> používá PM k rozpojení párů a k jejich složení do rozdílných seznamů. Podívejte se, jak je kód uvnitř funce <code class="highlighter-rouge">step</code> stručný. Bez PM by pro dosažení stejného účelu bylo zapotřebí mnohem více kódu.</p>
+
+<h3 id="pattern-matching-records">PM záznamů</h3>
+
+<p>V odstavci <a href="type-system.html#creating-our-own-types" target="_blank">Vytvoření vlastního typu</a> sekce Typový systém jsme vytvořili jednoduchou funkci, která prověřovala hodnotu ve flagu aby vrátila vhodné vítací sdělení.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">welcomeMessage</span> <span class="o">:</span> <span class="kt">Bool</span> <span class="o">-&gt;</span> <span class="kt">String</span>
+<span class="n">welcomeMessage</span> <span class="n">isLoggedIn</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">isLoggedIn</span> <span class="kr">of</span>
+        <span class="kt">True</span> <span class="o">-&gt;</span>
+            <span class="s">"Welcome to my awesome site!"</span>
+
+        <span class="kt">False</span> <span class="o">-&gt;</span>
+            <span class="s">"Please log in."</span></code></pre></figure>
+
+<p>Řekněme, že chceme vrátit osobní přivítání, které obsahuje jméno uživatele. Můžeme toho dosíci přidáním druhého parametru. Přidejte následující definici funkce hned nad <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">welcomeMessage</span> <span class="o">:</span> <span class="kt">Bool</span> <span class="o">-&gt;</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">String</span>
+<span class="n">welcomeMessage</span> <span class="n">isLoggedIn</span> <span class="n">name</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">isLoggedIn</span> <span class="kr">of</span>
+        <span class="kt">True</span> <span class="o">-&gt;</span>
+            <span class="s">"Welcome "</span> <span class="o">++</span> <span class="n">name</span> <span class="o">++</span> <span class="s">"!"</span>
+
+        <span class="kt">False</span> <span class="o">-&gt;</span>
+            <span class="s">"Please log in."</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="n">welcomeMessage</span> <span class="kt">True</span> <span class="s">"Gob Bluth"</span>
+<span class="s">"Welcome Gob Bluth!"</span> <span class="o">:</span> <span class="kt">String</span></code></pre></figure>
+
+<p>Místo zadávání uživatelských dat jednotlivě, můžeme zadat celý uživatelský záznam (record) funkci <code class="highlighter-rouge">welcomeMessage</code> prostřednictvím PM. Upravte funkci <code class="highlighter-rouge">welcomeMessage</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">welcomeMessage</span> <span class="o">:</span> <span class="p">{</span> <span class="n">a</span> <span class="o">|</span> <span class="n">isLoggedIn</span> <span class="o">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">String</span> <span class="p">}</span> <span class="o">-&gt;</span> <span class="kt">String</span>
+<span class="n">welcomeMessage</span> <span class="p">{</span> <span class="n">isLoggedIn</span><span class="p">,</span> <span class="n">name</span> <span class="p">}</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">isLoggedIn</span> <span class="kr">of</span>
+        <span class="kt">True</span> <span class="o">-&gt;</span>
+            <span class="s">"Welcome "</span> <span class="o">++</span> <span class="n">name</span> <span class="o">++</span> <span class="s">"!"</span>
+
+        <span class="kt">False</span> <span class="o">-&gt;</span>
+            <span class="s">"Please log in."</span></code></pre></figure>
+
+<p>Dále přidejte následující alias typu hned nad  <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Playground.elm</code></p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="n">alias</span> <span class="kt">User</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">String</span>
+    <span class="p">,</span> <span class="n">email</span> <span class="o">:</span> <span class="kt">String</span>
+    <span class="p">,</span> <span class="n">age</span> <span class="o">:</span> <span class="kt">Int</span>
+    <span class="p">,</span> <span class="n">isLoggedIn</span> <span class="o">:</span> <span class="kt">Bool</span>
+    <span class="p">}</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní můžeme vytvořit záznam <code class="highlighter-rouge">User</code> s použitím <a href="record.html#record-constructor-function" target="_blank">konstruktorové funce</a> a zadat jej funkci <code class="highlighter-rouge">welcomeMessage</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">user</span> <span class="o">=</span> <span class="kt">User</span> <span class="s">"Gob Bluth"</span> <span class="s">"gob@bluthboat.com"</span> <span class="mi">42</span> <span class="kt">True</span>
+<span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Gob Bluth"</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">"gob@bluthboat.com"</span><span class="p">,</span> <span class="n">age</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span> <span class="n">isLoggedIn</span> <span class="o">=</span> <span class="kt">True</span> <span class="p">}</span>
+    <span class="o">:</span> <span class="kt">Playground</span><span class="o">.</span><span class="kt">User</span>
+
+<span class="o">&gt;</span> <span class="n">welcomeMessage</span> <span class="n">user</span>
+<span class="s">"Welcome Gob Bluth!"</span> <span class="o">:</span> <span class="kt">String</span></code></pre></figure>
+
+<p>Co se stane, když zadáme záznam, který obsahuje pouze jméno a status "logged in"?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">user2</span> <span class="o">=</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Gob Bluth"</span><span class="p">,</span> <span class="n">isLoggedIn</span> <span class="o">=</span> <span class="kt">True</span> <span class="p">}</span>
+<span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Gob Bluth"</span><span class="p">,</span> <span class="n">isLoggedIn</span> <span class="o">=</span> <span class="kt">True</span> <span class="p">}</span> <span class="o">:</span> <span class="p">{</span> <span class="n">isLoggedIn</span> <span class="o">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">String</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">welcomeMessage</span> <span class="n">user2</span>
+<span class="s">"Welcome Gob Bluth!"</span> <span class="o">:</span> <span class="kt">String</span></code></pre></figure>
+
+<p>To chodí! A co tohle:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">user3</span> <span class="o">=</span> <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Gob Bluth"</span><span class="p">,</span> <span class="n">magician</span> <span class="o">=</span> <span class="kt">True</span><span class="p">,</span> <span class="n">isLoggedIn</span> <span class="o">=</span> <span class="kt">True</span> <span class="p">}</span>
+<span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Gob Bluth"</span><span class="p">,</span> <span class="n">magician</span> <span class="o">=</span> <span class="kt">True</span><span class="p">,</span> <span class="n">isLoggedIn</span> <span class="o">=</span> <span class="kt">True</span> <span class="p">}</span>
+    <span class="o">:</span> <span class="p">{</span> <span class="n">isLoggedIn</span> <span class="o">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="n">magician</span> <span class="o">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">String</span> <span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="n">welcomeMessage</span> <span class="n">user3</span>
+<span class="s">"Welcome Gob Bluth!"</span> <span class="o">:</span> <span class="kt">String</span></code></pre></figure>
+
+<p>To chodí také. Vpodstatě pracuje funkce <code class="highlighter-rouge">welcomeMessage</code> s <em>každým záznamem</em>, který obsahuje <code class="highlighter-rouge">name</code> a <code class="highlighter-rouge">isLoggedIn</code>. To bylo umožňěno aplikací PM na argument funkce.</p>
+
+<p>PM verze pro funkci <code class="highlighter-rouge">welcomeMessage</code> má zajímavou anotaci typu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">welcomeMessage</span> <span class="o">:</span> <span class="p">{</span> <span class="n">a</span> <span class="o">|</span> <span class="n">isLoggedIn</span> <span class="o">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">String</span> <span class="p">}</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre></figure>
+
+<p>Tomu se říká <em>syntaxe rozšiřitelného záznamu</em> (extensible record syntax). Říká, že argumentem může být každý záznam (reprezentovaný veličinou <code class="highlighter-rouge">a</code>) pokud má <code class="highlighter-rouge">isLoggedIn</code>, jehož typ je <code class="highlighter-rouge">Bool</code> a <code class="highlighter-rouge">name</code>, jehož typ je <code class="highlighter-rouge">String</code>. Částicí, která dělá z našeho argumentu rozšiřitelný záznam je <code class="highlighter-rouge">a |</code>. Kdyby bylo anotací typu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">welcomeMessage</span> <span class="o">:</span> <span class="p">{</span> <span class="n">isLoggedIn</span> <span class="o">:</span> <span class="kt">Bool</span><span class="p">,</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">String</span> <span class="p">}</span> <span class="o">-&gt;</span> <span class="kt">String</span></code></pre></figure>
+
+<p>nebyli bychom schopni zadat <em>žádný záznam</em>, který by obsahoval <code class="highlighter-rouge">isLoggedIn</code> a <code class="highlighter-rouge">name</code> <!--It expects a record that has exactly two elements: <code class="highlighter-rouge">isLoggedIn</code> and <code class="highlighter-rouge">name</code>-->.</p>
+
+<h3 id="summary">Shrnutí</h3>
+
+<p>I když je PM nejvíce přítomné ve výrazech <code class="highlighter-rouge">case</code>, umožňuje nám Elm jeho použití i na jiných místech. Prošli jsme si několika příklady použití entic pro zjednodušení logiky ve funkci nebo ve výrazu <code class="highlighter-rouge">case</code> pomocí PM. 
+Viděli jsme také příklad, který ukazoval, jak nám PM u seznamu může umožnit psaní kompaktních rekurzivních funkcí, jako je <code class="highlighter-rouge">foldl</code>. Dozvěděli jsme se, co to jsou rozšiřitelné záznamy a jak je PM činí flexibilní. Konečně, je důležité míti na paměti, že PM může pouze pohlédnout na strukturu dat, nemůže s nimi provádět žádné výpočty.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="fuzz-testing.html">
+<em>&larr; Previous</em>
+<strong>Fuzz testing</strong>
+</a>
+<a class="pagination-next" href="benefits-conclusion.html">
+<em>Next &rarr;</em>
+<strong>Výhody - shrnutí</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer class="page-footer">
+
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+
+</footer>
+
+</body>
+</html>

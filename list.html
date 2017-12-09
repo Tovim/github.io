@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.16 </h1>
+<h2>List - seznam</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="array.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="regular-expression.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Doposud jsem se setkávali s ukládáním jediné hodnoty do datové struktury. Pro uložení vícerých hodnot můžeme použít jednu z následujících kolekcí, které Elm poskytuje: <code class="highlighter-rouge">List</code>, <code class="highlighter-rouge">Array</code>, <code class="highlighter-rouge">Tuple</code> nebo <code class="highlighter-rouge">Record</code>. Tato sekce pojednává o seznamech (lists). Zbytek bude vysvětlen v následujících sekcích.</p>
+
+<h3 id="creating-a-list">Vytvoření seznamu</h3>
+
+<p>Seznam (list) v Elmu je datová struktura pro ukládání vícerých hodnot <em>stejného</em> druhu. Seznam je jednou z nejpoužívanější datových struktur. Indikuje se hranatými závorkami. Každý element seznamu musí být oddělen čárkou:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="p">[</span> <span class="sc">'a'</span><span class="p">,</span> <span class="sc">'b'</span><span class="p">,</span> <span class="sc">'c'</span> <span class="p">]</span>
+<span class="p">[</span><span class="sc">'a'</span><span class="p">,</span><span class="sc">'b'</span><span class="p">,</span><span class="sc">'c'</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="kt">Char</span>
+
+<span class="o">&gt;</span> <span class="p">[</span> <span class="s">"Tobias"</span><span class="p">,</span> <span class="s">"Gob"</span><span class="p">,</span> <span class="s">"George Michael"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Tobias"</span><span class="p">,</span><span class="s">"Gob"</span><span class="p">,</span><span class="s">"George Michael"</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="kt">String</span></code></pre></figure>
+
+<p class="info">Stylistický průvodce Elmu doporučuje vkládat mezeru za <code class="highlighter-rouge">[</code> a před <code class="highlighter-rouge">]</code>. Repl však toto doporučení nerespektuje. </p>
+
+<p>Co se stane, když do seznamu vložíme hodnoty různého druhu?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="sc">'a'</span> <span class="p">]</span>
+
+<span class="c1">-------------- TYPE MISMATCH --------------------------</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">and</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">elements</span> <span class="n">are</span> <span class="n">different</span> <span class="n">types</span> <span class="kr">of</span> <span class="n">values</span><span class="o">.</span>
+
+<span class="mi">7</span><span class="o">|</span>   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="sc">'a'</span><span class="p">]</span>
+         <span class="o">^^^</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">element</span> <span class="n">has</span> <span class="n">this</span> <span class="kr">type</span><span class="o">:</span>
+
+    <span class="n">number</span>
+
+<span class="kt">But</span> <span class="n">the</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="kt">Char</span></code></pre></figure>
+
+<p>Elm to nemá rád. Můžeme také vytvořit seznam celých čísel zadáním intervalu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">range</span> <span class="mi">1</span> <span class="mi">5</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span></code></pre></figure>
+
+<p class="info">Modul <code class="highlighter-rouge">List</code>je stejně jako modul <code class="highlighter-rouge">String</code> načten v replu automaticky. Proto je nemusíme před použitím příslušných funkcí importovat.</p>
+
+<p>Interval (range) se vytváří určením prvního a posledního (celého) čísla sekvence. Je to příjemná zkratka, která nás zbavuje nutnosti zadávat dlouhé řady čísel.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">range</span> <span class="sc">'a'</span> <span class="sc">'z'</span>
+
+<span class="c1">--------------------- TYPE MISMATCH -----------------------</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">function</span> <span class="p">`</span><span class="n">range</span><span class="p">`</span> <span class="n">is</span> <span class="n">causing</span> <span class="n">a</span> <span class="n">mismatch</span><span class="o">.</span>
+
+<span class="mi">3</span><span class="o">|</span>   <span class="kt">List</span><span class="o">.</span><span class="n">range</span> <span class="sc">'a'</span> <span class="sc">'z'</span>
+                <span class="o">^^^</span>
+<span class="kt">Function</span> <span class="p">`</span><span class="n">range</span><span class="p">`</span> <span class="n">is</span> <span class="n">expecting</span> <span class="n">the</span> <span class="mi">1</span><span class="n">st</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">be</span><span class="o">:</span>
+
+    <span class="kt">Int</span>
+
+<span class="kt">But</span> <span class="n">it</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="kt">Char</span></code></pre></figure>
+
+<p>Stejně jako moduly <code class="highlighter-rouge">String</code> a <code class="highlighter-rouge">Regex</code>, je i modul <code class="highlighter-rouge">List</code> vybaven Platformou Elm. Ta poskytuje množství funkcí pro práci se seznamy. Některé si projděmež.</p>
+
+<h3 id="checking-membership">Ověření příslušnosti</h3>
+
+<p>Funkce <code class="highlighter-rouge">member</code> určuje, zda je položka přítomna v daném seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="s">"Jayne"</span> <span class="p">[</span> <span class="s">"Kaylee"</span><span class="p">,</span> <span class="s">"Jayne"</span><span class="p">,</span> <span class="s">"Malcolm"</span> <span class="p">]</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="s">"Inara"</span> <span class="p">[</span> <span class="s">"Kaylee"</span><span class="p">,</span> <span class="s">"Jayne"</span><span class="p">,</span> <span class="s">"Malcolm"</span> <span class="p">]</span>
+<span class="kt">False</span></code></pre></figure>
+
+<h3 id="checking-length">Ověření délky</h3>
+
+<p>Funkce <code class="highlighter-rouge">isEmpty</code> zjistí, zda je seznam prázdný, zatímco funkce <code class="highlighter-rouge">length</code> vrátí počet elementů v seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">isEmpty</span> <span class="kt">[]</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">isEmpty</span> <span class="p">[</span> <span class="s">"Dolores"</span><span class="p">,</span> <span class="s">"Teddy"</span><span class="p">,</span> <span class="s">"Elsie"</span> <span class="p">]</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="kt">[]</span>
+<span class="mi">0</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="mi">3</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="p">[</span> <span class="s">"Daenerys"</span><span class="p">,</span> <span class="s">"Tyrion"</span><span class="p">,</span> <span class="s">"Arya"</span><span class="p">,</span> <span class="s">"Khal Drogo"</span> <span class="p">]</span>
+<span class="mi">4</span></code></pre></figure>
+
+<h3 id="reversing-a-list">Obrácení seznamu</h3>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">reverse</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">reverse</span> <span class="p">[</span> <span class="s">"Stark"</span><span class="p">,</span> <span class="s">"Tully"</span><span class="p">,</span> <span class="s">"Arryn"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Arryn"</span><span class="p">,</span><span class="s">"Tully"</span><span class="p">,</span><span class="s">"Stark"</span><span class="p">]</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">reverse</code> vrací nový seznam, který obsahuje prvky původního seznamu v obráceném pořadí.</p>
+
+<h3 id="combining-lists">Spojování seznamů</h3>
+
+<p>Modul <code class="highlighter-rouge">List</code> poskytuje několik funkcí pro spojování seznamů do jednoho. Začněme s něčím, co již známe, s operátorem <code class="highlighter-rouge">++</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span> <span class="o">++</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="p">[</span> <span class="s">"Donna"</span><span class="p">,</span> <span class="s">"Eric"</span> <span class="p">]</span> <span class="o">++</span> <span class="p">[</span> <span class="s">"Fez"</span><span class="p">,</span> <span class="s">"Hyde"</span><span class="p">,</span> <span class="s">"Kelso"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Donna"</span><span class="p">,</span><span class="s">"Eric"</span><span class="p">,</span><span class="s">"Fez"</span><span class="p">,</span><span class="s">"Hyde"</span><span class="p">,</span><span class="s">"Kelso"</span><span class="p">]</span></code></pre></figure>
+
+<p>Operátorem <code class="highlighter-rouge">++</code> můžeme spojit více seznamů dohromady.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="s">"Donna"</span><span class="p">,</span> <span class="s">"Eric"</span> <span class="p">]</span> <span class="o">++</span> <span class="p">[</span> <span class="s">"Fez"</span><span class="p">,</span> <span class="s">"Hyde"</span><span class="p">,</span> <span class="s">"Kelso"</span> <span class="p">]</span> <span class="o">++</span> <span class="p">[</span> <span class="s">"Jackie"</span><span class="p">,</span> <span class="s">"Kitty"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Donna"</span><span class="p">,</span><span class="s">"Eric"</span><span class="p">,</span><span class="s">"Fez"</span><span class="p">,</span><span class="s">"Hyde"</span><span class="p">,</span><span class="s">"Kelso"</span><span class="p">,</span><span class="s">"Jackie"</span><span class="p">,</span><span class="s">"Kitty"</span><span class="p">]</span></code></pre></figure>
+
+<p>Stejně jako <code class="highlighter-rouge">String.append</code>, poskytuje i modul <code class="highlighter-rouge">List</code> funkci <code class="highlighter-rouge">append</code>, která umí spojit dva seznamy.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">append</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Spojování více než dvou seznamů funkcí <code class="highlighter-rouge">append</code> je poněkud únavné.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">append</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">[</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">])</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<p>Máme-li skupinu seznamů uvnitř jiného seznamu, můžeme k jejich spojení použít funkci <code class="highlighter-rouge">concat</code> :</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">concat</span> <span class="p">[</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">],</span> <span class="p">[</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">],</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<p>Konečně, můžeme přidat element na začátek seznamu operátorem <code class="highlighter-rouge">::</code> (zvaným <em>cons</em>) .</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">1</span> <span class="o">::</span> <span class="kt">[]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="mi">1</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span></code></pre></figure>
+
+<h3 id="splitting-a-list">Štěpení seznamu</h3>
+
+<h4 id="partitioning-a-list">Rozdělení seznamu</h4>
+
+<p>Na rozdíl od řetězce, nemůžeme u seznamu použít separátor k jeho dělení. Můžeme však rozdělit seznam v závislosti na nějakém kritériu. Elementy, vyhovující danému kritériu, jsou vloženy do jednoho seznamu, elementy nevyhovující jsou vloženy do druhého seznamu. Predikátová funkce je perfektní místo pro uložení našeho kriteria. Jenom pro připomenutí: predikát je funkce, která jako vstup přijímá hodnotu a vrací True nebo False. Zde je příklad, který rozděluje seznam s použitím <a href="string.html#anonymous-function" target="_blank">anonymní funkce</a> jako predikátu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">partition</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span></code></pre></figure>
+
+<p>Zde je jiný příklad, který k dělení seznamu používá normální funkci.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">isEvil</span> <span class="n">name</span> <span class="o">=</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">name</span> <span class="p">[</span> <span class="s">"Joffrey"</span><span class="p">,</span> <span class="s">"Ramsay"</span><span class="p">,</span> <span class="s">"Cersei"</span> <span class="p">]</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">partition</span> <span class="n">isEvil</span> <span class="p">[</span> <span class="s">"Samwell"</span><span class="p">,</span> <span class="s">"Cersei"</span><span class="p">,</span> <span class="s">"Hodor"</span><span class="p">,</span> <span class="s">"Joffrey"</span><span class="p">,</span> <span class="s">"Meera"</span><span class="p">,</span> <span class="s">"Ramsay"</span> <span class="p">]</span>
+<span class="p">([</span><span class="s">"Cersei"</span><span class="p">,</span><span class="s">"Joffrey"</span><span class="p">,</span><span class="s">"Ramsay"</span><span class="p">],[</span><span class="s">"Samwell"</span><span class="p">,</span><span class="s">"Hodor"</span><span class="p">,</span><span class="s">"Meera"</span><span class="p">])</span></code></pre></figure>
+
+<p>Elementy, které vyhovují predikátu, jsou umístěny do prvního seznamu, zbytek je vložen do druhého seznamu. Všímáte si, že funkce  <code class="highlighter-rouge">partition</code> vrací entici (tuple), obsahující oddělené seznamy?</p>
+
+<p class="info">Tuple (entice) je kolektor hodnot stejného i různého druhu, např. <code class="highlighter-rouge">(1, "Sobchak", ['t', 'd'])</code>. Entice jsou užitečný formát pro vícečlené návratové hodnoty funkcí. Budeme o nich pojednávat v sekci <a href="tuple.html" target="_blank">Tuple</a>.</p>
+
+<p>Může vám být divné, proč funkce <code class="highlighter-rouge">partition</code> nevrací seznam místo entice. Přece seznamy mohou obsahovat víceré hodnoty také. Je to proto, že elementy seznamu musí být stejného druhu, což u entic není nutné. <!-- After all a list can hold multiple lists inside it too. That’s because lists must contain values of the same kind, but tuples don’t have to. In the future, if <code class="highlighter-rouge">partition</code> decides to also return the number of elements in each list like this: <code class="highlighter-rouge">(3, [1,2,3], 3, [4,5,6])</code>, it won’t be able to do that with a list. Tuples on the other hand are perfect for situations like this.--></p>
+
+<h4 id="unzipping-a-list">Přeskupení seznamu</h4>
+
+<p>Mějme seznam entic se dvěma elementy.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">[</span> <span class="p">(</span> <span class="s">"Andy"</span><span class="p">,</span> <span class="kt">True</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Hadley"</span><span class="p">,</span> <span class="kt">False</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Red"</span><span class="p">,</span> <span class="kt">True</span> <span class="p">)</span> <span class="p">]</span></code></pre></figure>
+
+<p>Jak jej rozdělíme do dvou seznamů? Použijeme funkci <code class="highlighter-rouge">unzip</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">unzip</span> <span class="p">[</span> <span class="p">(</span> <span class="s">"Andy"</span><span class="p">,</span> <span class="kt">True</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Hadley"</span><span class="p">,</span> <span class="kt">False</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Red"</span><span class="p">,</span> <span class="kt">True</span> <span class="p">)</span> <span class="p">]</span>
+<span class="p">([</span><span class="s">"Andy"</span><span class="p">,</span><span class="s">"Hadley"</span><span class="p">,</span><span class="s">"Red"</span><span class="p">],[</span><span class="kt">True</span><span class="p">,</span><span class="kt">False</span><span class="p">,</span><span class="kt">True</span><span class="p">])</span></code></pre></figure>
+
+<p>První seznam obsahuje první položku z každé entice původního seznamu a druhý seznam obsahuje druhé položky. Všimněte si, že funkce <code class="highlighter-rouge">unzip</code> rovněž vrací entici místo listu. S návratovou hodnotu funkce ve formátu entice se v Elmu setkáváme často.
+
+<h3 id="sorting-a-list">Třídění seznamu</h3>
+
+<h4 id="ascending-order">Stoupající pořadí</h4>
+
+<p>Níže je seznam sedmi nejvyšších skóre zápasů v historii NBA.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">[</span> <span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span> <span class="p">]</span></code></pre></figure>
+
+<p>Nejsou však nikterak uspořádány. Ve stoupajícím pořadí je uspořádáme funkcí <code class="highlighter-rouge">sort</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">sort</span> <span class="p">[</span> <span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">312</span><span class="p">,</span><span class="mi">314</span><span class="p">,</span><span class="mi">316</span><span class="p">,</span><span class="mi">318</span><span class="p">,</span><span class="mi">320</span><span class="p">,</span><span class="mi">337</span><span class="p">,</span><span class="mi">370</span><span class="p">]</span></code></pre></figure>
+
+<h4 id="descending-order">Klesající pořadí</h4>
+
+<p>Funkce <code class="highlighter-rouge">sort</code> třídí seznam pouze ve stoupajícím pořadí.  Chceme-li třídit seznam v klesajícím pořadí, nechá nás Elm proskakovat několika obručemi. Následující příklad si vyzkoušejte v souboru <code class="highlighter-rouge">Playground.elm</code>, protože je na zapisování do replu poněkud delší. Definujte funkci <code class="highlighter-rouge">descending</code> hned nad main. <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">descending</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">compare</span> <span class="n">a</span> <span class="n">b</span> <span class="kr">of</span>
+        <span class="kt">LT</span> <span class="o">-&gt;</span>
+            <span class="kt">GT</span>
+
+        <span class="kt">GT</span> <span class="o">-&gt;</span>
+            <span class="kt">LT</span>
+
+        <span class="kt">EQ</span> <span class="o">-&gt;</span>
+            <span class="kt">EQ</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní změňte <code class="highlighter-rouge">main</code> na:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span> <span class="p">]</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">sortWith</span> <span class="n">descending</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Nemáte-li již  spuštěný <code class="highlighter-rouge">elm-reactor</code>, spusťte jej z adresáře <code class="highlighter-rouge">beginning-elm</code>. Přejděte v prohlížeči na stránku <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a> a měli byste vidět původní seznam v klesajícím pořadí:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">[</span><span class="mi">370</span><span class="p">,</span><span class="mi">337</span><span class="p">,</span><span class="mi">320</span><span class="p">,</span><span class="mi">318</span><span class="p">,</span><span class="mi">316</span><span class="p">,</span><span class="mi">314</span><span class="p">,</span><span class="mi">312</span><span class="p">]</span></code></pre></figure>
+
+<p>Projeděme si kódem krok za krokem. Nevím, jestli jste si všimli, že ve funkci <code class="highlighter-rouge">main</code> jsme použili funkci <code class="highlighter-rouge">sortWith</code> místo naší tvrdošíjné známé <code class="highlighter-rouge">sort</code> k procházení seznamem výsledků v klesajícím pořadí. Funkce <code class="highlighter-rouge">sortWith</code> přijímá dva argumenty: porovnávací funkci a seznam, který se má uspořádat.</p>
+
+<p>Pro dvě dané hodnoty nám porovnávací funkce řekne, zda první hodnota je stejná jako, menší nebo větší než druhá hodnota. Pro tento účel nabízí Elm funkci <code class="highlighter-rouge">compare</code>. Je-li první hodnota menší než druhá, <code class="highlighter-rouge">compare</code> vrací <code class="highlighter-rouge">LT</code>. Je-li první hodnota větší než dvuhá, vrací <code class="highlighter-rouge">GT</code>. Jsou-li obě hodnoty stejné, vrací se <code class="highlighter-rouge">EQ</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">compare</span> <span class="mi">1</span> <span class="mi">2</span>
+<span class="kt">LT</span>
+
+<span class="o">&gt;</span> <span class="n">compare</span> <span class="mi">2</span> <span class="mi">1</span>
+<span class="kt">GT</span>
+
+<span class="o">&gt;</span> <span class="n">compare</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="kt">EQ</span></code></pre></figure>
+
+<p class="info">Funkce <code class="highlighter-rouge">compare</code> je definována v modulu <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Basics" target="_blank">Basics</a>. Jak již bylo zmíněno dříve, Elm vkládá generické hodnoty a funkce, které mohou operovat s různými typy dat, jako jsou řetězce, seznamy, záznamy (records), etc - do modulu <code class="highlighter-rouge">Basics</code> module. Modul <code class="highlighter-rouge">Basics</code>, stejně jako modul <code class="highlighter-rouge">String</code> a <code class="highlighter-rouge">List</code>, jsou do replu načítány automaticky, proto je nemusíme explicitně importovat.</p>
+
+<p>Funkcí <code class="highlighter-rouge">compare</code> můžeme také porovnávat řetězce.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">compare</span> <span class="s">"Blade"</span> <span class="s">"Dragonetti"</span>
+<span class="kt">LT</span>
+
+<span class="o">&gt;</span> <span class="n">compare</span> <span class="s">"Dragonetti"</span> <span class="s">"Blade"</span>
+<span class="kt">GT</span>
+
+<span class="o">&gt;</span> <span class="n">compare</span> <span class="s">"Blade"</span> <span class="s">"Blade"</span>
+<span class="kt">EQ</span></code></pre></figure>
+
+<p>Řetězce jsou porovnávány podle <a href="https://en.wikipedia.org/wiki/Lexicographical_order" target="_blank">abecedního</a> pořadí tak, jako jsou uspořádána slova ve slovnících. Například je "Thomas" považován za menší než "Thompson", protože je v abecedě písmeno 'a' před písmenem 'b'.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">compare</span> <span class="s">"Thomas"</span> <span class="s">"Thompson"</span>
+<span class="kt">LT</span></code></pre></figure>
+
+<p>Když chceme třídit seznam v sestupném pořadí, potřebujeme aby se funkce <code class="highlighter-rouge">compare</code> chovala opačným způsobem. Jak to můžeme zařídit? Vložením šikovného přepínače:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">descending</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">compare</span> <span class="n">a</span> <span class="n">b</span> <span class="kr">of</span>
+        <span class="kt">LT</span> <span class="o">-&gt;</span>
+            <span class="kt">GT</span>
+
+        <span class="kt">GT</span> <span class="o">-&gt;</span>
+            <span class="kt">LT</span>
+
+        <span class="kt">EQ</span> <span class="o">-&gt;</span>
+            <span class="kt">EQ</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">descending</code> vrací <code class="highlighter-rouge">GT</code>, když <code class="highlighter-rouge">compare</code> vlastně míní <code class="highlighter-rouge">LT</code> a <code class="highlighter-rouge">LT</code>, když míní <code class="highlighter-rouge">GT</code>. Funkci <code class="highlighter-rouge">descending</code> poskytneme funkci<code class="highlighter-rouge">sortWith</code> a náš seznam se utřídí v sestupném pořadí.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">List</span><span class="o">.</span><span class="n">sortWith</span> <span class="n">descending</span> <span class="p">[</span> <span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span> <span class="p">]</span></code></pre></figure>
+
+<p>Tříděný seznam se předává funkci <code class="highlighter-rouge">toString</code>, která generuje řetězcovou prezentaci seznamu, kterou posléze funkce <code class="highlighter-rouge">Html.text</code> zobrazí v prohlížeči.</p>
+
+<p class="info">Funkce <code class="highlighter-rouge">toString</code> je rovněž definována v modulu  <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Basics" target="_blank">Basics</a>, protože to je generická funkce pro transformaci různých druhů hodnot na řetězec.</p>
+
+<p>Funkci <code class="highlighter-rouge">main</code> jsme mohli napsat také takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">sortWith</span> <span class="n">descending</span> <span class="p">[</span> <span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span> <span class="p">]))</span></code></pre></figure>
+
+<p>Naše původní funkce <code class="highlighter-rouge">main</code>, která používala operátor <code class="highlighter-rouge">|&gt;</code>, byla poněkud přehlednější. Zde je zpět pro srovnání.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span> <span class="p">]</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">sortWith</span> <span class="n">descending</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<h4 id="arbitrary-order">Libovolné pořadí</h4>
+
+<p>Funkce <code class="highlighter-rouge">sortWith</code> vlastně otevírá vrátka pro uspořádávání hodnot podle libovolného pořadí, nejenom stoupajícího nebo klesajícího. Řekněme, že chceme uspořádat postavy ze seriálu "Hra o trůny" podle toho, jak jsou zlé. Přidejte následující definici funkce hned nad <code class="highlighter-rouge">main</code> v <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">evilometer</span> <span class="n">character1</span> <span class="n">character2</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="p">(</span> <span class="n">character1</span><span class="p">,</span> <span class="n">character2</span> <span class="p">)</span> <span class="kr">of</span>
+        <span class="p">(</span> <span class="s">"Joffrey"</span><span class="p">,</span> <span class="s">"Ramsay"</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">LT</span>
+
+        <span class="p">(</span> <span class="s">"Joffrey"</span><span class="p">,</span> <span class="s">"Night King"</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">LT</span>
+
+        <span class="p">(</span> <span class="s">"Ramsay"</span><span class="p">,</span> <span class="s">"Joffrey"</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">GT</span>
+
+        <span class="p">(</span> <span class="s">"Ramsay"</span><span class="p">,</span> <span class="s">"Night King"</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">LT</span>
+
+        <span class="p">(</span> <span class="s">"Night King"</span><span class="p">,</span> <span class="s">"Joffrey"</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">GT</span>
+
+        <span class="p">(</span> <span class="s">"Night King"</span><span class="p">,</span> <span class="s">"Ramsay"</span> <span class="p">)</span> <span class="o">-&gt;</span>
+            <span class="kt">GT</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="kt">GT</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní použijeme funkci <code class="highlighter-rouge">evilometer</code> v <code class="highlighter-rouge">main</code> abychom vytřídili seznam zlých postav.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="s">"Night King"</span><span class="p">,</span> <span class="s">"Joffrey"</span><span class="p">,</span> <span class="s">"Ramsay"</span> <span class="p">]</span>
+        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">sortWith</span> <span class="n">evilometer</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na  <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, uvidíte:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">[</span><span class="s">"Joffrey"</span><span class="p">,</span><span class="s">"Ramsay"</span><span class="p">,</span><span class="s">"Night King"</span><span class="p">]</span></code></pre></figure>
+
+<p>Vše, co funkce <code class="highlighter-rouge">sortWith</code> očekává od porovnávací funkce, je jedna z těchto hodnot: <code class="highlighter-rouge">LT</code>, <code class="highlighter-rouge">GT</code> nebo <code class="highlighter-rouge">EQ</code>. Nezajímá se o to, jak byly určeny. Jak se ukazuje, funkce <code class="highlighter-rouge">sort</code> je specializovaná varianta funkce<code class="highlighter-rouge">sortWith</code>. Interně pro porovnávání hodnot volá přímo funkci <code class="highlighter-rouge">compare</code>. Takže když použijeme funkci <code class="highlighter-rouge">sortWith</code> jako zde, dostáváme chování funkce <code class="highlighter-rouge">sort</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">sortWith</span> <span class="n">compare</span> <span class="p">[</span> <span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">312</span><span class="p">,</span><span class="mi">314</span><span class="p">,</span><span class="mi">316</span><span class="p">,</span><span class="mi">318</span><span class="p">,</span><span class="mi">320</span><span class="p">,</span><span class="mi">337</span><span class="p">,</span><span class="mi">370</span><span class="p">]</span></code></pre></figure>
+
+<h3 id="filtering-a-list">Filtrování seznamu</h3>
+
+<p>Stejně jako <code class="highlighter-rouge">String.filter</code>, i funkce <code class="highlighter-rouge">List.filter</code> přijímá predikát a seznam položek. Poté vytvoří nový seznam, obsahující ty položky z původního seznamu, které projdou testem implementovaným predikátem. Zde je několik příkladů:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">isOdd</span> <span class="n">number</span> <span class="o">=</span> <span class="kr">if</span> <span class="n">number</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="kr">then</span> <span class="kt">False</span> <span class="kr">else</span> <span class="kt">True</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="n">isOdd</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">9</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">isHost</span> <span class="n">name</span> <span class="o">=</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">name</span> <span class="p">[</span> <span class="s">"Dolores"</span><span class="p">,</span> <span class="s">"Teddy"</span><span class="p">,</span> <span class="s">"Maeve"</span> <span class="p">]</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="n">isHost</span> <span class="p">[</span> <span class="s">"William"</span><span class="p">,</span> <span class="s">"Bernard"</span><span class="p">,</span> <span class="s">"Dolores"</span><span class="p">,</span> <span class="s">"Teddy"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Dolores"</span><span class="p">,</span><span class="s">"Teddy"</span><span class="p">]</span></code></pre></figure>
+
+<p>Predikátová funkce<code class="highlighter-rouge">isOdd</code> 
+určuje, zda je dané číslo liché. Posuzované číslo dělíme číslem <code class="highlighter-rouge">2</code> a zjišťujeme, zda je zbytek roven <code class="highlighter-rouge">0</code>. Jestliže ano, není to liché číslo.</p>
+
+<p class="info">Operátor modulo (<code class="highlighter-rouge">%</code>) dělí hodnotu jednoho výrazu hodnotou jiného a vrací zbytek. </p>
+
+<p>Funkce <code class="highlighter-rouge">isHost</code> je rovněž predikát, který určuje, zda posuzovaná osoba přichází ze stále fascinujícího Westworldu. Používá nám již známou funkci <code class="highlighter-rouge">List.member</code> k určení, zda je dané jméno na seznamu Westworldu.</p>
+
+<h3 id="mapping-a-list">Mapování seznamu</h3>
+
+<p>Veškeré programování je o mapování dat. Vezmeme vstupní data, postupně na ně aplikujeme funkce, až dospějeme ke kýženému výstupu. Mějme seznam řetězců:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">guardians</span> <span class="o">=</span> <span class="p">[</span> <span class="s">"Star-lord"</span><span class="p">,</span> <span class="s">"Groot"</span><span class="p">,</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Drax"</span><span class="p">,</span> <span class="s">"Rocket"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Star-lord"</span><span class="p">,</span><span class="s">"Groot"</span><span class="p">,</span><span class="s">"Gamora"</span><span class="p">,</span><span class="s">"Drax"</span><span class="p">,</span><span class="s">"Rocket"</span><span class="p">]</span></code></pre></figure>
+
+<p>Chceme zjistit, kolik řetězců má délku menší než šest. Jak to provedeme? Nuže, nejprve potřebujeme určit délku každého řetězce v seznamu. Vytvoříme další seznam, který obsahuje pouze délky řetězců. Provedeme to snadno funkcí  <code class="highlighter-rouge">map</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">lengths</span> <span class="o">=</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="n">guardians</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">map</code> vytváří nový seznam, obsahující výsledky aplikace dané funkce na každý element původního seznamu. Danou funkcí je zde <code class="highlighter-rouge">String.length</code>, která přijímá řetězec a vrací jeho délku. Dále potřebujeme odstranit délky větší nebo rovné 6. Již víme, jak to udělat: funkcí <code class="highlighter-rouge">filter</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span> <span class="n">lengths</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>A zde máme naši odpověď.</p>
+
+<p><img src="images/map-filter.png" alt="" /></p>
+
+<p>Projděme si dalším případem k upevnění našeho chápání funkce <code class="highlighter-rouge">map</code>. Řekněme, že chceme zjistit, zda některý ze strážců má ve svém jméně pomlčku. Můžeme použít funkci <code class="highlighter-rouge">String.contains</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">contains</span> <span class="s">"-"</span> <span class="n">x</span><span class="p">)</span> <span class="n">guardians</span>
+<span class="p">[</span><span class="kt">True</span><span class="p">,</span> <span class="kt">False</span><span class="p">,</span> <span class="kt">False</span><span class="p">,</span> <span class="kt">False</span><span class="p">,</span> <span class="kt">False</span><span class="p">]</span></code></pre></figure>
+
+<p>Použití anonymní funkce není bezpodmínečně nutné. Naši funkci map můžeme aplikovat také takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">contains</span> <span class="s">"-"</span><span class="p">)</span> <span class="n">guardians</span>
+<span class="p">[</span><span class="kt">True</span><span class="p">,</span> <span class="kt">False</span><span class="p">,</span> <span class="kt">False</span><span class="p">,</span> <span class="kt">False</span><span class="p">,</span> <span class="kt">False</span><span class="p">]</span></code></pre></figure>
+
+<p>Helemese, chodí to také. Původně jsme použili funkci <code class="highlighter-rouge">String.contains</code> pro oba argumenty (<code class="highlighter-rouge">"-"</code> a <code class="highlighter-rouge">x</code>). Když ji voláme bez druhého argumentu (<code class="highlighter-rouge">x</code>), dostáváme částečně aplikovanou funkci. Funkce <code class="highlighter-rouge">List.map</code> poté postupně zadává každý řetězec ze seznamu <code class="highlighter-rouge">guardians</code> této částečně aplikovavé funkci jako druhý argument. Výsledkem jsou booleovské hodnoty.</p>
+
+<p><img src="images/partial-function-application.png" alt="" /></p>
+
+<p>Anonymní funkci jako <code class="highlighter-rouge">(\param -&gt; someFunction x param)</code> lze vždy přepsat na <code class="highlighter-rouge">(someFunction x)</code>, pokud je <code class="highlighter-rouge">param</code> druhým argumentem. Zde je další příklad, který zjišťuje, zda jméno strážce začíná titulem <code class="highlighter-rouge">Dr</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">startsWith</span> <span class="s">"Dr"</span> <span class="n">x</span><span class="p">)</span> <span class="n">guardians</span>
+<span class="p">[</span><span class="kt">False</span><span class="p">,</span><span class="kt">False</span><span class="p">,</span><span class="kt">False</span><span class="p">,</span><span class="kt">True</span><span class="p">,</span><span class="kt">False</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">startsWith</span> <span class="s">"Dr"</span><span class="p">)</span> <span class="n">guardians</span>
+<span class="p">[</span><span class="kt">False</span><span class="p">,</span><span class="kt">False</span><span class="p">,</span><span class="kt">False</span><span class="p">,</span><span class="kt">True</span><span class="p">,</span><span class="kt">False</span><span class="p">]</span></code></pre></figure>
+
+<p>Parciální aplikační technika také pracuje s operátory. Přepišme jeden z našich dřívějších příkladů s použitím techniky parciální aplikace.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span> <span class="n">lengths</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">((</span><span class="o">&gt;</span><span class="p">)</span> <span class="mi">6</span><span class="p">)</span> <span class="n">lengths</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Všimněte si že k tomu, abychom dosáhli stejného výsledku, museli jsme přehodit smysl nerovnosti <code class="highlighter-rouge">&lt;</code>. Je to proto, že technika parciální aplikace vyžaduje, abychom použili operátor v prefixovém postavení (před operandy). Kdybychom nepřevrátili operátor <code class="highlighter-rouge">&lt;</code>, dostali bychom seznam čísel větších než <code class="highlighter-rouge">6</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">((</span><span class="o">&lt;</span><span class="p">)</span> <span class="mi">6</span><span class="p">)</span> <span class="n">lengths</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">]</span></code></pre></figure>
+
+<h3 id="folding-a-list">Redukce seznamu</h3>
+
+<p>Vytvořili jsme již četné seznamy čísel ale dosud jsme se nepokusili  sečíst je dohromady.
+</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span> <span class="mi">0</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">10</span></code></pre></figure>
+
+<p>Provedli jsme <em>redukci</em> seznamu procesem <em>fold</em> do jednoho čísla, které reprezentuje součet všech elementů seznamu. Funkce <code class="highlighter-rouge">foldl</code> přijímá tři argumenty: slučovací funkci, počáteční hodnotu a seznam. Slučovací funkce přijímá dva argumenty: element seznamu <em>x</em> a akumulátor <em>a</em>.</p>
+
+<p><img src="images/list-foldl-components.png" alt="" /></p>
+
+<p><img src="images/list-foldl-initial-value.png" alt="" /></p>
+
+<p>Akumulátor <em>a</em> přejímá při každém kroku výsledek z předchozího kroku (pozice původní počáteční hodnoty), načež se toto aktualizované <em>a</em> použije pro kombinaci s dalším členem seznamu. Obrázek dole ukazuje proces krok za krokem.</p>
+
+<p><img src="images/list-foldl-iterations.png" alt="" /></p>
+
+<p>Protože zde počítáme součet, použili jsme uvnitř kombinační funkce operátor <code class="highlighter-rouge">+</code>. Kdybychom počítal součin, použili bychom operátor <code class="highlighter-rouge">*</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">*</span> <span class="n">a</span><span class="p">)</span> <span class="mi">0</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">0</span></code></pre></figure>
+
+<p>Proč nám redukce vrací jako výsledek nulu? Uff. Zapomněli jsme změnit počáteční hodnotu. Funkce <code class="highlighter-rouge">foldl</code> předává počáteční hodnotu (v tomto případě nulu) jako první argument slučovací funkci. Výsledek násobení čísla nulou je nula. Změníme-li počáteční hodnotu na <code class="highlighter-rouge">1</code>, dostaneme očekávaný výsledek.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">*</span> <span class="n">a</span><span class="p">)</span> <span class="mi">1</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">24</span></code></pre></figure>
+
+<p>Vzpomeňte si, že operátory <code class="highlighter-rouge">+</code> a <code class="highlighter-rouge">*</code> jsou rovněž funkce. Vše, co <code class="highlighter-rouge">foldl</code> očekává, je funkce jako první argument. Nesejde na tom, zda to je anonymní funkce či normální funkce nebo operátor. Proto můžeme prováděné příklady zapsat mnohem stručněji:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="o">+</span><span class="p">)</span> <span class="mi">0</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">10</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="mi">1</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">24</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">foldl</code>je schopna redukovat seznam mnohými různými způsoby ale pokud vše, co chcete, je prostý součet nebo součin členů seznamu, využijete již hotových funkcí Elmu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">sum</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">10</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">product</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">24</span></code></pre></figure>
+
+<p>To by jednoho ani nenapadlo, že? Předváděl jsem podrobně použití funkce <code class="highlighter-rouge">foldl</code> k výpočtu součtu a součinu všech elementů seznamu abych později odhalil, že existují funkce, které ony úkony provádějí mnohem snadněji. Abych to odčinil, ukážu vám jeden další příklad, který je docela užitečný. Řekněme, že chceme spočítat celkový počet znaků v tomto seznamu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">guardians</span> <span class="o">=</span> <span class="p">[</span> <span class="s">"Star-lord"</span><span class="p">,</span> <span class="s">"Groot"</span><span class="p">,</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Drax"</span><span class="p">,</span> <span class="s">"Rocket"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Star-lord"</span><span class="p">,</span><span class="s">"Groot"</span><span class="p">,</span><span class="s">"Gamora"</span><span class="p">,</span><span class="s">"Drax"</span><span class="p">,</span><span class="s">"Rocket"</span><span class="p">]</span></code></pre></figure>
+
+<p>Použijeme funkci <code class="highlighter-rouge">foldl</code> ke snadné redukci celého seznamu řetězců na jediné číslo:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span> <span class="mi">0</span> <span class="n">guardians</span>
+<span class="mi">30</span></code></pre></figure>
+
+<h4 id="folding-from-right">Redukce zprava</h4>
+
+<p>Funkce <code class="highlighter-rouge">foldl</code> redukuje (folds) seznam zleva, jak její jméno naznačuje. Znamená to že začíná své vyhodnocování na začátku seznamu, postupujíc zleva doprava. Někdy je zapotřebí redukovat seznam od konce zprava doleva. Modul <code class="highlighter-rouge">List</code> obsahuje pro tento účel jinou funkci, zvanou <code class="highlighter-rouge">foldr</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldr</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">+</span> <span class="n">a</span><span class="p">)</span> <span class="mi">0</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">10</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldr</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">*</span> <span class="n">a</span><span class="p">)</span> <span class="mi">1</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="mi">24</span></code></pre></figure>
+
+<p>U součtu a součinu nezáleží na tom, zda začneme na začátku nebo na konci seznamu. Jsou ale operátory, které produkují rozdílné výsledky podle toho, kde začínají. Použijme jeden, který již známe: mocninový operátor  (<code class="highlighter-rouge">^</code>). V předchozím textu jsme se dozvěděli, že operátor <code class="highlighter-rouge">^</code> je asociativní zprava, zatímco <code class="highlighter-rouge">+</code> a <code class="highlighter-rouge">*</code> jsou asociativní zleva. Což znamená, že se následující výraz začne vyhodnocovat zprava.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">4</span> <span class="o">^</span> <span class="mi">2</span> <span class="o">^</span> <span class="mi">3</span>
+<span class="mi">65536</span>
+
+<span class="c1">-- (2 ^ 3) = 8</span>
+<span class="c1">-- (4 ^ 8) = 65536</span></code></pre></figure>
+
+<p>Jsou dva důvody, proč je operátor <code class="highlighter-rouge">^</code> v Elmu asociativní zprava:</p>
+
+<ul>
+  <li>
+    <p>Operátor <code class="highlighter-rouge">^</code> je asociativní zprava i v matematice a Elm se snaží její pravidla pokud možno dodržovat.</p>
+  </li>
+  <li>
+    <p>Kdyby byl operátor <code class="highlighter-rouge">^</code> asociativní zleva, potom by šlo určit výsledek přes  součin exponentů - což vede k nepřehlednému mísení operátorů.</p>
+  </li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span><span class="mi">4</span> <span class="o">^</span> <span class="mi">2</span><span class="p">)</span> <span class="o">^</span> <span class="mi">3</span>
+<span class="mi">4096</span>
+
+<span class="o">&gt;</span> <span class="mi">4</span> <span class="o">^</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span>
+<span class="mi">4096</span>
+
+<span class="o">&gt;</span> <span class="p">(((</span><span class="mi">2</span> <span class="o">^</span> <span class="mi">3</span><span class="p">)</span> <span class="o">^</span> <span class="mi">4</span><span class="p">)</span> <span class="o">^</span> <span class="mi">5</span><span class="p">)</span>
+<span class="mi">1152921504606847000</span>
+
+<span class="o">&gt;</span> <span class="mi">2</span> <span class="o">^</span> <span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+<span class="mi">1152921504606847000</span></code></pre></figure>
+
+<p>Použili jsme závorky abychom vynutili výpočet <code class="highlighter-rouge">^</code> zleva. Mohli jsme potom jednoduše vynásobit všechny exponenty vpravo a operaci <code class="highlighter-rouge">^</code> použít pouze jednou. Výraz je ovšem méně přehledný než při vyhodocení zprava. Nyní si ukažme, jak se funkce <code class="highlighter-rouge">foldr</code> chová při použití operátoru <code class="highlighter-rouge">^</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldr</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">^</span> <span class="n">a</span><span class="p">)</span> <span class="mi">1</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="mi">65536</span></code></pre></figure>
+
+<p>Je těžké pouhým pohledem určit, co se děje. Doufejme, že to následující obrázky objasní.</p>
+
+<p><img src="images/list-foldr-initial-value.png" alt="" /></p>
+
+<p><img src="images/list-foldr-iterations.png" alt="" /></p>
+
+<p>Funkce <code class="highlighter-rouge">foldl</code> i <code class="highlighter-rouge">foldr</code> provádějí prakticky totéž, akorát že začínají z jiného konce seznamu.  S operátorem <code class="highlighter-rouge">^</code> také dávají různé výsledky.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">^</span> <span class="n">a</span><span class="p">)</span> <span class="mi">1</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="mi">43046721</span></code></pre></figure>
+
+<dl>
+  <dt>Takto jsme dospěli k závěrečnému výsledku v posledním příkladě:</dt>
+  <dd><code class="highlighter-rouge">(4 ^ 1) = 4</code><br />
+<code class="highlighter-rouge">(2 ^ 4) = 16</code><br />
+<code class="highlighter-rouge">(3 ^ 16) = 43046721</code></dd>
+</dl>
+
+<p>Nakonec můžeme oba výrazy přepsat stručněji použitím operátoru jako funkce:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldr</span> <span class="p">(</span><span class="o">^</span><span class="p">)</span> <span class="mi">1</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="mi">65536</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">foldl</span> <span class="p">(</span><span class="o">^</span><span class="p">)</span> <span class="mi">1</span> <span class="p">[</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="mi">43046721</span></code></pre></figure>
+
+<h4 id="are-they-all-evil">Jsou všichni zlí?</h4>
+
+<p>V předchozím textu jsme rozdělovali seznam postav ze seriálu "Hra o trůny" do dvou seznamů. První byl zaplněn zlými lidmi, druhý byl plný laskavých duší.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">gotCharacters</span> <span class="o">=</span> <span class="p">[</span> <span class="s">"Samwell"</span><span class="p">,</span> <span class="s">"Cersei"</span><span class="p">,</span> <span class="s">"Hodor"</span><span class="p">,</span> <span class="s">"Joffrey"</span><span class="p">,</span> <span class="s">"Meera"</span><span class="p">,</span> <span class="s">"Ramsay"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Samwell"</span><span class="p">,</span><span class="s">"Cersei"</span><span class="p">,</span><span class="s">"Hodor"</span><span class="p">,</span><span class="s">"Joffrey"</span><span class="p">,</span><span class="s">"Meera"</span><span class="p">,</span><span class="s">"Ramsay"</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">isEvil</span> <span class="n">name</span> <span class="o">=</span> <span class="kt">List</span><span class="o">.</span><span class="n">member</span> <span class="n">name</span> <span class="p">[</span> <span class="s">"Joffrey"</span><span class="p">,</span> <span class="s">"Ramsay"</span><span class="p">,</span> <span class="s">"Cersei"</span> <span class="p">]</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">partition</span> <span class="n">isEvil</span> <span class="n">gotCharacters</span>
+<span class="p">([</span><span class="s">"Cersei"</span><span class="p">,</span><span class="s">"Joffrey"</span><span class="p">,</span><span class="s">"Ramsay"</span><span class="p">],[</span><span class="s">"Samwell"</span><span class="p">,</span><span class="s">"Hodor"</span><span class="p">,</span><span class="s">"Meera"</span><span class="p">])</span></code></pre></figure>
+
+<p>Co když chceme zjistit, zda je některá z postav zlá? Funkce <code class="highlighter-rouge">any</code> je navržena právě pro tento úkon.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">any</span> <span class="n">isEvil</span> <span class="n">gotCharacters</span>
+<span class="kt">True</span></code></pre></figure>
+
+<p>V tomto seznamu zlo zajisté číhá. Stejně jako funkce <code class="highlighter-rouge">partition</code>, funkce <code class="highlighter-rouge">any</code> přijímá predikát, zda je daná postava zlá či nikoliv. Můžeme rovněž zjistit, zda jsou všechny postavy zlé funkcí <code class="highlighter-rouge">all</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">all</span> <span class="n">isEvil</span> <span class="n">gotCharacters</span>
+<span class="kt">False</span></code></pre></figure>
+
+<p>Jak může být Hodor zlý? Když se nad tím zamyslíte, dojdete k závěru, že funkce <code class="highlighter-rouge">any</code> a <code class="highlighter-rouge">all</code> redukují seznam také. Redukují jej na jedinou booleovskou hodnotu. Existuje několik dalších funkcí, které provádějí specielní druh redukce (foldu). Více si o tom můžete přečíst <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/List" target="_blank">zde</a>.</p>
+
+<h3 id="take-it-or-drop-it">Ber nebo nech být</h3>
+
+<p>Vzpomínáte si na ony otravné vyhazovače ve vyhlášených nočních klubech, kteří měli tendenci vpouštět jenom dobře vyhlížející zájemce? Kdyby tito vyhazovači byli programátoři Elmu, měli by rádi funkci <code class="highlighter-rouge">drop</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">drop</span> <span class="mi">2</span> <span class="p">[</span> <span class="s">"Smeagol"</span><span class="p">,</span> <span class="s">"Edna"</span><span class="p">,</span> <span class="s">"Freddy"</span><span class="p">,</span> <span class="s">"Daenerys"</span><span class="p">,</span> <span class="s">"Jacob"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Freddy"</span><span class="p">,</span><span class="s">"Daenerys"</span><span class="p">,</span><span class="s">"Jacob"</span><span class="p">]</span></code></pre></figure>
+
+<p>The Funkce <code class="highlighter-rouge">drop</code> vypustí určený počet elementů ze začátku seznamu a vrátí nový seznam se zbývajícími prvky. Občas se vyskytne vyhazovač, který vpouští lidi na principu "první přijde, první mele". Takový by jistě upřednostňoval funkci <code class="highlighter-rouge">take</code> před funkcí <code class="highlighter-rouge">drop</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">take</span> <span class="mi">2</span> <span class="p">[</span> <span class="s">"Freddy"</span><span class="p">,</span> <span class="s">"Daenerys"</span><span class="p">,</span> <span class="s">"Driver"</span> <span class="p">]</span>
+<span class="p">[</span><span class="s">"Freddy"</span><span class="p">,</span><span class="s">"Daenerys"</span><span class="p">]</span></code></pre></figure>
+
+<p>Pozor! Vyhazovač právě vpustil do klubu Freddyho. Funkce <code class="highlighter-rouge">take</code> vrací nový seznam, obsahující určený počet elementů z počátku seznamu.</p>
+
+<h3 id="head-or-tail">Čelo nebo chvost?</h3>
+
+<p>Koncepčně je seznam rozdělen do dvou částí: head (čelo) a tail (chvost). Čelem je první element a chvost reprezentuje zbytek elementů.</p>
+
+<p><img src="images/list-head-tail.png" alt="" /></p>
+
+<p>Modul <code class="highlighter-rouge">List</code> přímo poskytuje funkce pro získání čela a chvostu seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">head</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">]</span>
+<span class="kt">Just</span> <span class="mi">1:</span> <span class="kt"> Maybe.Maybe number</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">tail</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">]</span>
+<span class="kt">Just</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">] :  </span> <span class="kt">Maybe.Maybe (List number)</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">head</span> <span class="kt">[]</span>
+<span class="kt">Nothing :</span> <span class="kt"> Maybe.Maybe a</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">tail</span> <span class="kt">[]</span>
+<span class="kt">Nothing :</span> <span class="kt"> Maybe.Maybe (List a)</span></code></pre></figure>
+
+<p class="info">Když Elm nemůže garantovat hodnotu, vrací datovou strukturu, zvanou <code class="highlighter-rouge">Maybe</code>. Je-li hodnota přítomna, je uvnitř struktury <code class="highlighter-rouge">Just</code>, jinak se vrací <code class="highlighter-rouge">Nothing</code>. Struktury <code class="highlighter-rouge">Just</code> a <code class="highlighter-rouge">Nothing</code> jsou členy typu <code class="highlighter-rouge">Maybe</code>. Tento jednoduchý koncept je jádrem psaní neuvěřitelně robustních aplikací v Elmu. Vynětí hodnoty z <code class="highlighter-rouge">Just</code> si ukážeme později. Prozatím to můžete ignorovat. Další kapitola pojedná o struktuře <code class="highlighter-rouge">Maybe</code> mnohem podrobněji. Do té doby si můžete představovat strukturu <code class="highlighter-rouge">Maybe</code> jako kolektor, jakým je <code class="highlighter-rouge">List</code> s maximálně jedním elementem.</p>
+
+<p>Ve výše uvedeném příkladu nemůže Elm garantovat, že může vrátit žádanou hodnotu pro head (nebo tail) seznamu. Je-li seznam prázdný, není co vracet. Proto vrací  <code class="highlighter-rouge">Nothing : Maybe.Maybe a nebo (List a)</code><br> :: Nutno vypustit nebo lépe vysvětlit.</p>
+
+<h3 id="how-list-is-implemented">Jak je seznam implementován</h3>
+
+<p>Seznam je někdy označován jako <em>propojený (linked) seznem</em>, protože to je lineární kolekce datových elementů, ukazujících na další element. Takto pojatý element seznamu se nazývá <em>Node</em>.</p>
+
+<p><img src="images/linked-list.png" alt="" /></p>
+
+<p>I když neobsahuje žádná data, poslední (prázdný) node existuje. Když mi nevěříte, vyzkoušejte si toto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">[]</span>
+<span class="kt">[]</span>
+
+<span class="o">&gt;</span> <span class="mi">9</span> <span class="o">::</span> <span class="kt">[]</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="mi">31</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">9</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">31</span><span class="p">,</span><span class="mi">9</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="mi">5</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">9</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">31</span><span class="p">,</span><span class="mi">9</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="mi">16</span> <span class="o">::</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">9</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">31</span><span class="p">,</span><span class="mi">9</span><span class="p">]</span></code></pre></figure>
+
+<p>Začali jsme prázdným seznamem a poté jsme k němu operátorem cons (<code class="highlighter-rouge">::</code>) přidali hodnotu <code class="highlighter-rouge">9</code>. Stejným způsobem jsme na začátek stávajícího seznamu přidávali další hodnoty. Takto vytvořený seznam připomíná rekurzivní datovou strukturu v tom, že se seznam skládá z nodů, které samy jsou seznamy. Protože node nemusí obsahovat hodnotu, je prázdný node rověž považován za seznam.</p>
+
+<p><img src="images/recursive-list-example.png" alt="" /></p>
+
+<p>Ve skutečnosti je <code class="highlighter-rouge">List</code> v Elmu za scénou definován jako rekurzivní datová struktura. V <a href="/easier-code-organization.html" target="_blank">kapitole 4</a> vytvoříme vlastní implementaci propojeného seznamu, který bude pracovat podobně jako <code class="highlighter-rouge">List</code> Elmu a to za účelem lepšího pochopení práce rekurzivní datové struktury.</p>
+
+<p>Prošli jsme si v této kapitole jenom několika málo funkcemi modulu <code class="highlighter-rouge">List</code>. O mnoha dalších si můžete číst  <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/List" target="_blank">zde</a>.</p>
+</article>
+
+<nav class="pagination">
+<a class="pagination-next" href="regular-expression.html">
+<em>&larr; Previous</em>
+<strong>Regulerní výrazy</strong>
+</a>
+<a class="pagination-next" href="array.html">
+<em>Next &rarr;</em><strong>Array</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

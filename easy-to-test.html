@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 4.5 </h1>
+<h2>Snadné testování</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="type-system.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="function-composition.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+
+
+<article class="content">
+<p>V sekci <a href="pure-functions.html" target="_blank">Čisté funkce</a> jsme zjistili, že je mnohem snadnější testovat správnost funkce v Elmu než v jazycích, postrádajících čistotu funkcí. V této sekci si vysvětlíme, proč tomu tak je. Také si několik testů napíšeme abychom se ujistili, že naše implementace různých funkcí v modulu <code class="highlighter-rouge">RippleCarryAdder</code> je správná. Nejprve se musíme naučit, jak testy v Elmu psát.</p>
+
+<h3 id="getting-familiar-with-elm-tests">Seznámení s testy v Elm</h3>
+
+<p>Vytvořte adresář <code class="highlighter-rouge">tests</code> v kořenovém adresáři projektu  (<code class="highlighter-rouge">beginning-elm</code>). Ukládat testy v separátním adresáři je výborná praxe. Uvnitř adresáře <code class="highlighter-rouge">tests</code> vytvořte soubor <code class="highlighter-rouge">elm-package.json</code>.</p>
+
+<p><img src="images/create-tests-directory.png" alt="" /></p>
+
+<p>Následující kód vložte do souboru <code class="highlighter-rouge">tests/elm-package.json</code>.</p>
+
+<figure class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span><span class="w">
+    </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"summary"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A sample app for learning web application development with Elm."</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"repository"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/user/project.git"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"license"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BSD3"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"source-directories"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"."</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"../elm-examples"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nt">"exposed-modules"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"elm-community/elm-test"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.1.0 &lt;= v &lt; 4.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"elm-lang/core"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5.0.0 &lt;= v &lt; 6.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"elm-lang/html"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0.0 &lt;= v &lt; 3.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"rtfeldman/html-test-runner"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0.0 &lt;= v &lt; 3.0.0"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nt">"elm-version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.18.0 &lt;= v &lt; 0.19.0"</span><span class="w">
+</span><span class="p">}</span></code></pre></figure>
+
+<p>Rovněž je výborné vytvořit uvnitř adresáře "test" samostatný  soubor <code class="highlighter-rouge">elm-package.json</code>. 
+To nám umožní odděleně udržovat závislosti (dependence) pro testy a aplikační kód. Soubor <code class="highlighter-rouge">elm-package.json</code>, umístěný v kořenovém adresáři (<code class="highlighter-rouge">beginning-elm</code>) by měl obsahovat pouze ty pakety, jenž jsou zamýšlené pro použití v produkčním prostředí. Soubor <code class="highlighter-rouge">tests/elm-package.json</code> obsahuje pakety, jako <code class="highlighter-rouge">elm-community/elm-test</code>, jež mají být použity jen v testovacím prostředí.
+<p>Soubor <code class="highlighter-rouge">tests/elm-package.json</code> je velmi podobný soouboru <code class="highlighter-rouge">beginning-elm/elm-package.json</code>. Zde je <code class="highlighter-rouge">beginning-elm/elm-package.json</code> ještě jednou pro srovnání:</p>
+
+<figure class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span><span class="w">
+    </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"summary"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A sample app for learning web application development with Elm."</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"repository"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://github.com/user/project.git"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"license"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BSD3"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"source-directories"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"."</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"elm-examples"</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nt">"exposed-modules"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+    </span><span class="nt">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"elm-lang/core"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5.0.0 &lt;= v &lt; 6.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"elm-lang/html"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0.0 &lt;= v &lt; 3.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"elm-lang/http"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0 &lt;= v &lt; 2.0.0"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="nt">"elm-version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.18.0 &lt;= v &lt; 0.19.0"</span><span class="w">
+</span><span class="p">}</span></code></pre></figure>
+
+<p>Testovací verze <code class="highlighter-rouge">test/elm-package.json</code> se od produkční verze liší ve třech aspektech:</p>
+
+<ul>
+  <li>
+    <p>Předsazuje <code class="highlighter-rouge">../</code> k <code class="highlighter-rouge">elm-examples</code> v sekci <code class="highlighter-rouge">source-directories</code>, protože je adresář <code class="highlighter-rouge">tests</code> uvnitř adresáře <code class="highlighter-rouge">beginning-elm</code>. To znamená, že abychom se dostali k adresáři <code class="highlighter-rouge">elm-examples</code>, který je také uvnitř adresáře <code class="highlighter-rouge">beginning-elm</code>, musíme vystoupit o jednu úroveň výše. Označení <code class="highlighter-rouge">..</code> označuje rodičovský adresář. Takže zápis <code class="highlighter-rouge">../elm-examples</code> vlastně znamená vystoupit do rodičovského adresáře a hledat adresář <code class="highlighter-rouge">elm-examples</code>.</p>
+  </li>
+  <li>
+    <p>Neuvádí paket <code class="highlighter-rouge">elm-lang/http</code> jako dependenci.</p>
+  </li>
+  <li>
+    <p>Přidává dva nové pakety:</p>
+  </li>
+</ul>
+
+<p><a href="http://package.elm-lang.org/packages/elm-community/elm-test/latest" target="_blank"><code class="highlighter-rouge">elm-community/elm-test</code></a> - Tento paket obsahuje moduly pro psaní testů a jejich spouštění v terminálu.</p>
+
+<p><a href="http://package.elm-lang.org/packages/rtfeldman/html-test-runner/latest" target="_blank"><code class="highlighter-rouge">rtfeldman/html-test-runner</code></a> - Tento paket obsahuje moduly pro spouštění testů v prohlížeči. Zpočátku budeme všechny naše testy spouštět v prohlížeči, protože poskytuje snadnější výstup. Později si povíme, jak je spouštět i v terminálu.</p>
+
+<p>Uváděné verze Elmu  musí být stejné v <code class="highlighter-rouge">beginning-elm/elm-package.json</code> i v <code class="highlighter-rouge">tests/elm-package.json</code>. Stejnojmenné pakety v obou souborech musí být také jedné verze. Jinak se nemusí shodovat chování ověřené v testech s chováním v produkci.</p>
+
+<p>Dále nainstalujeme pakety, uvedené v souboru <code class="highlighter-rouge">tests/elm-package.json</code>. Přejděte v terminálu do adresáře <code class="highlighter-rouge">tests</code> a zadejte v něm následující  příkaz.</p>
+
+<p class="info">Je důležité abyste spustili následující příkaz z adresáře <code class="highlighter-rouge">tests</code> a ne z adresáře <code class="highlighter-rouge">beginning-elm</code>. Spustíte-li jej z adresáře <code class="highlighter-rouge">beginning-elm</code>, pokusí se soubor <code class="highlighter-rouge">elm-package.json</code> instalovat pakety, uvedené v souboru <code class="highlighter-rouge">beginning-elm/elm-package.json</code>.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-package install</code></pre></figure>
+
+<p>Příkaz <code class="highlighter-rouge">elm-package</code> se vás zeptá na souhlas s instalací (nebo nezeptá). Odpovězte <code class="highlighter-rouge">y</code>. V sekci <a href="elm-package.html#installing-a-package" target="_blank">Instalace paketu</a> jsme instalovali určitý paket takto:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-package install elm-lang/http</code></pre></figure>
+
+<p>Neurčíme-li jméno paketu, vyhledá příkaz <code class="highlighter-rouge">elm-package</code> soubor <code class="highlighter-rouge">elm-package.json</code> v adresáři, z něhož je příkaz spuštěn a instaluje všechny pakety, uvedené v sekci <code class="highlighter-rouge">dependencies</code> tohoto souboru.</p>
+
+<p>I když produkční a testovací verze souboru <code class="highlighter-rouge">elm-package.json</code> uvádějí několik společných paketů, instaluje <code class="highlighter-rouge">elm-package</code> úplně nové verze těchto paketuů, pokud zadáme příkaz <code class="highlighter-rouge">elm-package install</code> z adresář <code class="highlighter-rouge">tests</code>.</p>
+
+<p><img src="images/separate-packages-for-test-and-production.png" alt="" /></p>
+
+<p>Nyní, kdy jsou všechny pakety pro psaní a spouštění testů instalované, jsme připraveni napsat nějaké testy. Vytvořte nový soubor <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> v adresáři <code class="highlighter-rouge">tests</code>.</p>
+
+<p><img src="/images/easy-to-test/create-ripple-carry-adder-tests-file.png" alt="" /></p>
+
+<p>Vložte následující kód do souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RippleCarryAdderTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">describe</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Expect</span>
+<span class="kr">import</span> <span class="nn">Test.Runner.Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">run</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">RippleCarryAdder</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Addition"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"1 + 1 = 2"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Z adresáře <code class="highlighter-rouge">tests</code> spusťte v konzole <code class="highlighter-rouge">elm-reactor</code>.</p>
+
+<p class="info">Je důležité abyste zadali příkaz <code class="highlighter-rouge">elm-reactor</code> z adresáře <code class="highlighter-rouge">tests</code> a nikoliv z <code class="highlighter-rouge">beginning-elm</code>. Pokud <code class="highlighter-rouge">elm-reactor</code> již běží, zastavte jej kombinací <code class="highlighter-rouge">Ctrl + c</code>.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-reactor
+
+elm-reactor 0.18.0
+Listening on http://localhost:8000</code></pre></figure>
+
+<p>V prohlížeči jděte na stránku <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>. Uvidíte výsledky vyprodukované aplikací <code class="highlighter-rouge">elm-reactor</code> poté, co proběhly naše testy.</p>
+
+<p><img src="images/test-run-passed.png" alt="" /></p>
+
+<p>V souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> se odehrává mnoho věcí, které si postupně rozebereme. Definovali jsme modul <code class="highlighter-rouge">RippleCarryAdderTests</code> a několik modulů importovali:</p>
+
+<ul>
+  <li>
+    <p><code class="highlighter-rouge">import Test exposing (describe, test)</code> importuje modul <a href="http://package.elm-lang.org/packages/elm-community/elm-test/latest/Test#" target="_blank">Test</a>, který obsahuje funkce pro vytváření a provádění testů.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">import Expect</code> importuje modul <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Expect" target="_blank">Expect</a>, který obsahuje funkce pro popis očekávaných výsledků v testu.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">import Test.Runner.Html exposing (run)</code> importuje modul <a href="http://package.elm-lang.org/packages/rtfeldman/html-test-runner/2.0.0/Test-Runner-Html" target="_blank">Test.Runner.Html</a>, který obsahuje funkce pro spouštění testů v prohlížeči.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">import RippleCarryAdder exposing (..)</code> importuje modul <code class="highlighter-rouge">RippleCarryAdder</code>, který jsme vytvořili <a href="/function-composition.html" target="_blank">v předchozí sekci</a>. Později v této sekci budeme testovat funkce z onoho modulu.</p>
+  </li>
+</ul>
+
+<p>Potom jsme definovali funkci <code class="highlighter-rouge">main</code>, která obsahuje test, jenž chceme spustit. Následující schema vysvětluje syntaxi testu.</p>
+
+<p><img id="elm-test-syntax" src="images/elm-test-syntax.png" /></p>
+
+<h4 id="unit-type">Unit type - jednotkový typ</h4>
+
+<p>Paket <code class="highlighter-rouge">elm-test</code> (s moduly pro psaní testů) vyžaduje abychom zabalili náš test do anonymní funkce.</p>
+
+<p><img src="images/test-wrapped-in-anonymous-function.png" alt="" /></p>
+
+<p>Proto nemůžeme psát náš test jenom takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">test</span> <span class="s">"1 + 1 = 2"</span> <span class="o">&lt;|</span>
+    <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span></code></pre></figure>
+
+<p>Parametr (), zadaný anonymní funkci jež obaluje náš test, není nikdy uvnitř testu použit. Paket <code class="highlighter-rouge">elm-test</code> se ani nestará o to, aby předal parametr, který může být použit smysluplným způsobem. Pouze předá prázdnou hodnotu, reprezentovanou prázdnou enticí <code class="highlighter-rouge">()</code>, známou také pod názvem <strong>unit type</strong>. Tento "jednotkový typ" se často používá pro prezentaci prázdné hodnoty. Zadáme-li označení <code class="highlighter-rouge">()</code> v replu, je jeho typ rovněž zobrazen jako <code class="highlighter-rouge">()</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="nb">()</span>
+<span class="nb">()</span> <span class="o">:</span> <span class="nb">()</span></code></pre></figure>
+
+<p><img src="images/empty-value-unit-type.png" alt="" /></p>
+
+<p class="info">O typech budeme podrobně hovořit v sekci <a href="/type-system.html" target="_blank">Typy</a>, pro tuto chvíli považujme typ za něco, co reprezentuje kolekci hodnot majících podobné vlastnosti. Například typ <code class="highlighter-rouge">Int</code> reprezentuje čísla bez desetinných částí: <code class="highlighter-rouge">-1</code>, <code class="highlighter-rouge">0</code>, <code class="highlighter-rouge">1</code>, <code class="highlighter-rouge">2</code>, etc. Typ <code class="highlighter-rouge">Bool</code> reprezentuje logické hodnoty <code class="highlighter-rouge">True</code> a <code class="highlighter-rouge">False</code>.</p>
+
+<p>Jednotkový typ <code class="highlighter-rouge">()</code> má jedinou hodnotu, jíž je "prázdná" entice (). Termín "prázdná entice" je však pouze pomocné označení v tomto textu, protože prázdná entice v Elmu ve skutečnosti neexistuje. Typ entice je dán počtem jejich prvků, jež musí být větší nebo roven jedné. Následující dvě entice jsou rozdílného typu i když obsahují stejný typ hodnot:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+<span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">:</span> <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number1</span> <span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">)</span>
+<span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="o">:</span> <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number1</span><span class="p">,</span> <span class="n">number2</span> <span class="p">)</span></code></pre></figure>
+
+<p>Mají-li dvě entice být stejného typu, musí obsahovat stejný počet prvků stejného typu . Naprotitomu dva <a href="list.html" target="_blank">seznamy</a> různé délky, obsahující stejný typ hodnot, jsou stejného typu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span></code></pre></figure>
+
+<h4 id="-vs-_"><code class="highlighter-rouge">()</code> versus <code class="highlighter-rouge">_</code></h4>
+
+<p>V Elmu je rovněž obvyklé použít podtržítko (<code class="highlighter-rouge">_</code>), chceme-li ignorovat parametr. Zde je jednoduchá anonymní funkce, která vždy vrací <code class="highlighter-rouge">0</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="kr">_</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="kr">_</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">[</span> <span class="sc">'a'</span><span class="p">,</span> <span class="sc">'b'</span><span class="p">,</span> <span class="sc">'c'</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span></code></pre></figure>
+
+<p>Pokud si již nepamatujete, jak funkce <code class="highlighter-rouge">List.map</code> pracuje, neváhejte a osvěžte si paměť nahlédnutím do sekce <a href="list.html#mapping-a-list" target="_blank">Mapování seznamu</a>. Anonymní funkce <code class="highlighter-rouge">(\_ -&gt; 0)</code> svůj parametr k výpočtu vratné hodnoty nepoužívá, respektive nezávisle na hodnotě parametru vrací nulu. Proto je vhodné místo ignorovaného jména používat znak <code class="highlighter-rouge">_</code>, protože nějaký parametr uvedená funkce formálně mít musí.</p>
+<p>Při zběžném pohledu se může zdát, že se znaky<code class="highlighter-rouge">_</code> a <code class="highlighter-rouge">()</code> používají ke stejnému účelu: ignorování parametru. Při bližším pohledu zjistíme jemný rozdíl. I když <code class="highlighter-rouge">(\_ -&gt; 0)</code> ignoruje svůj parametr, 
+dovoluje nám zadat jakýkoli typ hodnoty. Ve výše uvedeném příkladu jsme nejprve zadali čísla a potom znaky (characters).
+Budeme moci zadat jakýkoli typ hodnoty, přejdeme-li na  znak <code class="highlighter-rouge">()</code>? Zjistěmež to.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+
+<span class="c1">------------------ TYPE MISMATCH ------------------------</span>
+<span class="kt">The</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">function</span> <span class="p">`</span><span class="n">map</span><span class="p">`</span> <span class="n">is</span> <span class="n">causing</span> <span class="n">a</span> <span class="n">mismatch</span><span class="o">.</span>
+
+<span class="mi">3</span><span class="o">|</span>   <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span> <span class="p">]</span>
+                         <span class="o">^^^^^^^^^^^</span>
+<span class="kt">Function</span> <span class="p">`</span><span class="n">map</span><span class="p">`</span> <span class="n">is</span> <span class="n">expecting</span> <span class="n">the</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">be</span><span class="o">:</span>
+
+    <span class="kt">List</span> <span class="nb">()</span>
+
+<span class="kt">But</span> <span class="n">it</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="kt">List</span> <span class="n">number</span></code></pre></figure>
+
+<p>Nikoliv. Funkce <code class="highlighter-rouge">(\() -&gt; 0)</code> přijímá pouze hodnotu typu <code class="highlighter-rouge">()</code>, nic jiného.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">[</span> <span class="nb">()</span><span class="p">,</span> <span class="nb">()</span><span class="p">,</span> <span class="nb">()</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">:</span> <span class="kt">List</span> <span class="n">number</span></code></pre></figure>
+
+<p>Označení <code class="highlighter-rouge">_</code> znamená <em>jakákoli hodnota</em> ale <code class="highlighter-rouge">()</code> znamená <em> pouze hodnota jednotkového typu</em>. Náhradou <code class="highlighter-rouge">_</code> za <code class="highlighter-rouge">()</code> jsme silně omezili naše možnosti vstupů. Chcete-li pouze ignorovat parametr bez omezování typu vstupní hodnoty funkce, použijte znak <code class="highlighter-rouge">_</code>. Na druhou stranu, pokud žádný smysluplný parametr nebude kdy zadán vaší funkci, tak jako v případě anonymní funkce, která zabalovala náš test, potom použijte označení <code class="highlighter-rouge">()</code>.</p>
+
+<h4 id="using-the-forward-function-application-operator-">Operátor pro dopřednou aplikaci funkce (<code class="highlighter-rouge">|&gt;</code>)</h4>
+
+<p>Funkce <code class="highlighter-rouge">Expect.equal</code> očekává přijetí dvou argumentů, nejprve očekávanou hodnotu a potom aktuální hodnotu. V našem testu nahoře jsme použili operátor <code class="highlighter-rouge">|&gt;</code> k oddělení oněch dvou argumentů. Není-li vám jasné, jak <code class="highlighter-rouge">|&gt;</code> pracuje, vraťte se zpět a projděte si sekci <a href="function.html#forward-function-application" target="_blank">Dopředná aplikace funkce</a>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">test</span> <span class="s">"1 + 1 = 2"</span> <span class="o">&lt;|</span>
+    <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+        <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span></code></pre></figure>
+
+<p>Syntakticky vzato, nejsme povinni použít operátor <code class="highlighter-rouge">|&gt;</code>. Mohli jsme výše uvedený test napsat bez <code class="highlighter-rouge">|&gt;</code> a pracoval by stejně dobře.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">test</span> <span class="s">"1 + 1 = 2"</span> <span class="o">&lt;|</span>
+    <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+        <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></code></pre></figure>
+
+<p>Ovšem, použijeme-li <code class="highlighter-rouge">|&gt;</code>, bude snadnější říci, který argument je který, když test selže. Změňte očekávanou hodnotu ve funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> na <code class="highlighter-rouge">1</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">test</span> <span class="s">"1 + 1 = 2"</span> <span class="o">&lt;|</span>
+    <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+        <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">1</span></code></pre></figure>
+
+<p>Když obnovíte stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, uvidíte neúspěšný test.</p>
+
+<p><img src="images/test-run-failed.png" alt="" /></p>
+
+<p>Jak vidíte v horním obrázku, aktuální výsledek je uveden před očekávaným (expected) výsledkem. Výstup silně připomíná testovací případ, který jsme napsali:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">1</span></code></pre></figure>
+
+<p><img src="images/expect-equal-pipe-operator.png" alt="" /></p>
+
+<p>Kvůli této podobnosti je snadnější si všimnout, že náš očekávaný výsledek není správný. Kdybychom náš test napsali takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">1</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></code></pre></figure>
+
+<p>nebyl by náš testovací kód ve stejném pořadí jako výstup našeho testu a bylo by obtížnější je porovnat a nalézt zdroj chyby. Změňte očekávaný výsledek opět na <code class="highlighter-rouge">2</code> a ujistěte se, že test projde.</p>
+
+<p>Napišme jiný test abychom poznali, jak použití operátoru <code class="highlighter-rouge">|&gt;</code> činí naše testy mnohem čitelnější. Nahraďte funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> následujícím kódem.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Addition"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"1 + 1 = 2"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"only 2 guardians have names with less than 6 characters"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="kr">let</span>
+                        <span class="n">guardians</span> <span class="o">=</span>
+                            <span class="p">[</span> <span class="s">"Star-lord"</span><span class="p">,</span> <span class="s">"Groot"</span><span class="p">,</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Drax"</span><span class="p">,</span> <span class="s">"Rocket"</span> <span class="p">]</span>
+                    <span class="kr">in</span>
+                        <span class="n">guardians</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span>
+                            <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, uvidíte, že oba testy prošly.</p>
+
+<p>Anonymní funkce, zadaná jako argument funkci <code class="highlighter-rouge">test</code> je jako každá jiná funkce až nato, že nemá jméno. Můžeme v ní použít vše, co je dovoleno v normální funkci, včetně výrazu <code class="highlighter-rouge">let</code>.</p>
+
+<p>Nový test ověřuje, že jsou jenom dva hlídači, jejichž jména mají méně než šest písmen. Použili jsme tři různé transformace původního seznamu abychom získali výsledné číslo. Jak můžete vidět, operátor <code class="highlighter-rouge">|&gt;</code> výrazně zlepšuje čitelnost našeho testu. Obsahuje-li test složité počítání jako tento, má anonymní funkce tendenci nabývat následující tvar:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+    <span class="n">someComputation</span>
+        <span class="o">|&gt;</span> <span class="n">producing</span>
+        <span class="o">|&gt;</span> <span class="n">actualValue</span>
+        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="n">expectedValue</span></code></pre></figure>
+
+<p>Kdybychom nepoužili operátor <code class="highlighter-rouge">|&gt;</code>, byl by náš test těžko čitelný, protože normálně čteme zleva doprava, zatímco logika funkce v tomto případě začíná úplně vpravo. Navíc bychom museli být velmi opatrní abychom vyhodnotili závorky ve správném pořadí.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+    <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span> <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="n">guardians</span><span class="p">)))</span></code></pre></figure>
+
+<p>I s operátorem <code class="highlighter-rouge">&lt;|</code> je test stále obtížně čitelný, protože normálně čteme shora dolů ale logika funkce v tomto případě začíná dole.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span> <span class="o">&lt;|</span>
+    <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;|</span>
+        <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span> <span class="o">&lt;|</span>
+            <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="o">&lt;|</span>
+                <span class="n">guardians</span></code></pre></figure>
+
+<h4 id="using-the-backward-function-application-operator-">Operátor pro zpětnou aplikaci funkce (<code class="highlighter-rouge">&lt;|</code>)</h4>
+
+<p>Ve funkci <code class="highlighter-rouge">main</code>jsme použili operátor <code class="highlighter-rouge">&lt;|</code> pro zadání našeho testu funkci <code class="highlighter-rouge">run</code>. Mohli jsme místo toho použít operátor <code class="highlighter-rouge">|&gt;</code> ale v tom případě by bylo snadné přehlédnout funkci <code class="highlighter-rouge">run</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Addition"</span>
+        <span class="p">[</span> <span class="n">test</span> <span class="s">"1 + 1 = 2"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"only 2 guardians have names with less than 6 characters"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="kr">let</span>
+                    <span class="n">guardians</span> <span class="o">=</span>
+                        <span class="p">[</span> <span class="s">"Star-lord"</span><span class="p">,</span> <span class="s">"Groot"</span><span class="p">,</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Drax"</span><span class="p">,</span> <span class="s">"Rocket"</span> <span class="p">]</span>
+                <span class="kr">in</span>
+                    <span class="n">guardians</span>
+                        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span>
+                        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span>
+                        <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+        <span class="p">]</span>
+        <span class="o">|&gt;</span> <span class="n">run</span></code></pre></figure>
+
+<p>Všimněte si, jak se funkce <code class="highlighter-rouge">run</code> komíhá na úplném spodku . Operátor <code class="highlighter-rouge">&lt;|</code> potřebujeme použít také po každém popisu testu ale nepotřebujeme jej v řádku <code class="highlighter-rouge">describe</code>. To proto, že funkce <code class="highlighter-rouge">describe</code> nepotřebuje zabalit svůj druhý argument (seznam testů) do závorek. Zde je zjednodušená verze funkce <code class="highlighter-rouge">describe</code> bez testů:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Addition"</span>
+        <span class="kt">[]</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">test</code> na druhé straně, závorky kolem svého druhého argumentu, jímž je anonymní funkce, potřebuje. Bez těchto závorek nemůže kompilátor řádně kód parsovat. Takto vypadají testy se závorkami:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Addition"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"1 + 1 = 2"</span>
+                <span class="p">(</span><span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+                <span class="p">)</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"only 2 guardians have names with less than 6 characters"</span>
+                <span class="p">(</span><span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="kr">let</span>
+                        <span class="n">guardians</span> <span class="o">=</span>
+                            <span class="p">[</span> <span class="s">"Star-lord"</span><span class="p">,</span> <span class="s">"Groot"</span><span class="p">,</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Drax"</span><span class="p">,</span> <span class="s">"Rocket"</span> <span class="p">]</span>
+                    <span class="kr">in</span>
+                        <span class="n">guardians</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">)</span>
+                            <span class="o">|&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span>
+                            <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">2</span>
+                <span class="p">)</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Těžko se to čte. Můžeme to zlepšít náhradou závorek operátorem <code class="highlighter-rouge">&lt;|</code>, který předává výsledek výrazu své pravé straně jako poslední argument funkci na své levé straně.</p>
+
+<h3 id="failed-tests">Neúspěšné testy</h3>
+
+<p>Příklad neúspěšného testu jsme již viděli. Napišme jich více takových abychom si pozvičili mozek ve správném čtení výstupu. Nahraďte funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> následujícím kódem.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Less than comparison"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"an empty list's length is less than 1"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="kt">[]</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">lessThan</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Obnovte stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a> abyste viděli test, který selhal.</p>
+
+<p><img src="images/test-run-failed-2.png" alt="" /></p>
+
+<p>Opět, protože jsme použili operátor pro dopředné vyhodnocení funkce, připomíná pořadí našeho výstupu pořadí našeho testovacího případu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="kt">[]</span>
+    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">lessThan</span> <span class="o">-</span><span class="mi">1</span></code></pre></figure>
+
+<p>Když test selže, může to znamenat dvě věci: buď jsme se dopustili chyby při psaní testu nebo je logika testované funkce či výrazu nesprávná. Je-li nesprávná logika, musíme ji samozřejmě opravit. Je-li test samotný nesprávný, musíme jej rovněž upravit. V našem příkladu výše, výraz <code class="highlighter-rouge">List.length []</code> nikdy nevyprodukuje hodnotu menší než <code class="highlighter-rouge">-1</code>. Náš test je tudíž nesprávný.</p>
+
+<p>Sestava dobře napsaných testů hraje kritickou roli v refaktoraci existujícího kódu. Dodává nám důvěru při přepisování kódu za účelem lepší čitelnosti a snadnějšího udržování. Dopustíme-li se chyby, test ji odchytí. Proto je důležité udržovat naše testovací sestavy v čistém stavu odebráním všech nesprávně napsaných selhávajících testů.</p>
+
+<dl>
+  <dt>Refaktorace</dt>
+  <dd><em>
+  Refaktorace je taková změna programu, která nemění vnější chování kódu ale zlepšuje jeho vnitřní strukturu. - <a href="https://www.amazon.com/Refactoring-Improving-Existing-Addison-Wesley-Technology-ebook/dp/B007WTFWJ6/" target="_blank">Martin Fowler</a></em></dd>
+</dl>
+
+<h3 id="more-expectations">Více očekávání</h3>
+
+<p>Modul <code class="highlighter-rouge">Expect</code> poskytuje několik dalších funkcí, která nám umožňují vyjádřit různá očekávání (expectations) a nikoliv pouze rovnost. Nahraďte funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> následujícím kódem.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Comparison"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"2 is not equal to 3"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="mi">2</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">notEqual</span> <span class="mi">3</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"4 is less than 5"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="mi">4</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">lessThan</span> <span class="mi">5</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"6 is less than or equal to 7"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="mi">6</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">atMost</span> <span class="mi">7</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"9 is greater than 8"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="mi">9</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">greaterThan</span> <span class="mi">8</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"11 is greater than or equal to 10"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="mi">11</span> <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">atLeast</span> <span class="mi">10</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"a list with zero elements is empty"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">isEmpty</span> <span class="kt">[]</span><span class="p">)</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">true</span> <span class="s">"expected the list to be empty"</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"a list with some elements is not empty"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">isEmpty</span> <span class="p">[</span> <span class="s">"Jyn"</span><span class="p">,</span> <span class="s">"Cassian"</span><span class="p">,</span> <span class="s">"K-2SO"</span> <span class="p">])</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">false</span> <span class="s">"expected the list not to be empty"</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Obnovte stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, měli byste se dozvědět, že všechy testy prošly.</p>
+
+<p>Výše uvedené testy jsou samovysvětlující kromě posledních dvou.
+Funkce <code class="highlighter-rouge">Expect.true</code> a <code class="highlighter-rouge">Expect.false</code> vyžadují abychom zadali řetězec jako první argument. To proto, že když test selže, je řetězec použit jako vysvětlení selhání. Vytvořte test, který selže zadáním neprázdného řetězce funkci <code class="highlighter-rouge">Expect.true</code>takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"Comparison"</span>
+            <span class="o">.</span>
+            <span class="o">.</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"a list with zero elements is empty"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="p">(</span><span class="kt">List</span><span class="o">.</span><span class="n">isEmpty</span> <span class="p">[</span> <span class="s">"The Ancient One"</span> <span class="p">])</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">true</span> <span class="s">"expected the list to be empty"</span>
+            <span class="p">]</span>
+            <span class="o">.</span>
+            <span class="o">.</span></code></pre></figure>
+
+<p>Po obnovení stránky na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, byste měli vidět vysvětlení proč tento test selhal
+you should see the explanation for why it failed.</p>
+
+<p><img src="images/expect-true-test-failed.png" alt="" /></p>
+
+<p>Modul <code class="highlighter-rouge">Expect</code> poskytuje dokonce více způsobů vyjádření "expectations". Můžete si o nich přečíst více <a href="http://package.elm-lang.org/packages/elm-community/elm-test/3.1.0/Expect#notEqual" target="_blank">zde</a>. Nyní, když jsme obeznámeni se psaním testů v Elmu, obraťme naší pozornost k testování různých funkcí v souboru <code class="highlighter-rouge">RippleCarryAdder.elm</code>.</p>
+
+<h3 id="testing-the-inverter-function">Testování funkce <code class="highlighter-rouge">inverter</code></h3>
+
+<p>Začněme funkcí <code class="highlighter-rouge">inverter</code>, která je pro testování nejsnadnější. Pro osvěžení naší paměti si tuto funkci znovu uvedeme:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">inverter</span> <span class="n">a</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">a</span> <span class="kr">of</span>
+        <span class="mi">0</span> <span class="o">-&gt;</span>
+            <span class="mi">1</span>
+
+        <span class="mi">1</span> <span class="o">-&gt;</span>
+            <span class="mi">0</span>
+
+        <span class="kr">_</span> <span class="o">-&gt;</span>
+            <span class="o">-</span><span class="mi">1</span></code></pre></figure>
+
+<p>Přidejte následující testy na konec kódu v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">inverterTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Inverter"</span>
+        <span class="p">[</span> <span class="n">test</span> <span class="s">"output is 0 when the input is 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">inverter</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">1</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"output is 1 when the input is 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">inverter</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">0</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>I když funkce <code class="highlighter-rouge">inverterTests</code> vypadá odlišně od těch, které jsme psali dříve, není na ní nic speciálního. Chová se úplně stejně jako normální funkce. Rověž respektuje všechna <a href="indentation.html" target="_blank">formátovací pravidla</a> aplikovaná na normální funkci.</p>
+
+<p>Každý testovací případ ve funkci <code class="highlighter-rouge">inverterTests</code> reprezentuje řádek z pravdivostní tabulky invertoru, kterou jsme viděli v předchozí sekci.</p>
+
+<p><img src="images/inverter-truth-table.png" alt="" /></p>
+
+<p>Nyní nahraďte funkci <code class="highlighter-rouge">main</code> function in <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> tímto zápisem:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+            <span class="p">[</span> <span class="n">inverterTests</span> <span class="p">]</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, uvidíte, že všechny testy prošly.</p>
+
+<p>Až dosud jsme vypisovali všechny naše testy uvnitř funkce <code class="highlighter-rouge">main</code> ale pro testování invertoru jsme vytvořili samostatnou funkci. Přenesení souvisejících testů do samostatné funkce usnadňuje organizaci naší testovací sestavy.</p>
+
+<h3 id="testing-the-andgate-function">Testování funkce <code class="highlighter-rouge">andGate</code></h3>
+
+<p>Testování funkce <code class="highlighter-rouge">andGate</code> je velmi podobné testování funkce <code class="highlighter-rouge">inverter</code>. Potřebujeme ošetřit všechny možné výstupy. Funkce <code class="highlighter-rouge">andGate</code> vypadá takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">andGate</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">and</span> <span class="n">a</span> <span class="n">b</span></code></pre></figure>
+
+<p>Přidejte následující testy do souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">andGateTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"AND gate"</span>
+        <span class="p">[</span> <span class="n">test</span> <span class="s">"output is 0 when both inputs are 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">andGate</span> <span class="mi">0</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">0</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"output is 0 when the first input is 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">andGate</span> <span class="mi">0</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">0</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"output is 0 when the second input is 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">andGate</span> <span class="mi">1</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">0</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"output is 1 when both inputs are 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">andGate</span> <span class="mi">1</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">1</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Podobně jako u funkce <code class="highlighter-rouge">inverterTests</code>, reprezentuje každý test funkce <code class="highlighter-rouge">andGateTests</code> řádek z její pravdivostní tabulky.</p>
+
+<p><img src="images/and-gate-truth-table.png" alt="" /></p>
+
+<p>Přidejte <code class="highlighter-rouge">andGateTests</code> do seznamu testů ve funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+            <span class="p">[</span> <span class="n">inverterTests</span>
+            <span class="p">,</span> <span class="n">andGateTests</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, uvidíte, že všechny testy prošly.</p>
+
+<h3 id="exercise-451">Cvičení 4.5.1</h3>
+
+<p>S použitím funkce <code class="highlighter-rouge">andGateTests</code> jako doporučení, napište testy pro funkci <code class="highlighter-rouge">orGate</code>, jejíž definice vypadá takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">orGate</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kt">Bitwise</span><span class="o">.</span><span class="n">or</span> <span class="n">a</span> <span class="n">b</span></code></pre></figure>
+
+<p>Zde je pravdivostní tabulka pro ORgate:</p>
+
+<p><img src="images/or-gate-truth-table.png" alt="" /></p>
+
+<p>Po vypsání svých testů a doplnění jejich funkce do <code class="highlighter-rouge">main</code>, nezapomeňte obnovit stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a> abyste se mohli ujistit, že všechny testy prošly.</p>
+
+<h3 id="testing-the-halfadder-function">Testování funkce <code class="highlighter-rouge">halfAdder</code></h3>
+
+<p>Funkce halfAdder je lehce složitější, protože produkuje dva výstupy: sum a carry-out.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">halfAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">d</span> <span class="o">=</span>
+            <span class="n">orGate</span> <span class="n">a</span> <span class="n">b</span>
+
+        <span class="n">e</span> <span class="o">=</span>
+            <span class="n">andGate</span> <span class="n">a</span> <span class="n">b</span>
+                <span class="o">|&gt;</span> <span class="n">inverter</span>
+
+        <span class="n">sumDigit</span> <span class="o">=</span>
+            <span class="n">andGate</span> <span class="n">d</span> <span class="n">e</span>
+
+        <span class="n">carryOut</span> <span class="o">=</span>
+            <span class="n">andGate</span> <span class="n">a</span> <span class="n">b</span>
+    <span class="kr">in</span>
+        <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">carryOut</span>
+        <span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">sumDigit</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Přes víceré výstupy, jsou testy funkce <code class="highlighter-rouge">halfAdder</code> velmi podobné testům funkce <code class="highlighter-rouge">andGate</code>. Přidejte následující testy na spodek souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">halfAdderTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Half adder"</span>
+        <span class="p">[</span> <span class="n">test</span> <span class="s">"sum and carry-out are 0 when both inputs are 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">halfAdder</span> <span class="mi">0</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0 when the 1st input is 0 and the 2nd input is 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">halfAdder</span> <span class="mi">0</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0 when the 1st input is 1 and the 2nd input is 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">halfAdder</span> <span class="mi">1</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 0 and carry-out is 1 when both inputs are 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">halfAdder</span> <span class="mi">1</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Každý testovací případ funkce <code class="highlighter-rouge">halfAdderTests</code> reprezentuje jeden řádek její pravdivostní tabulky.</p>
+
+<p><img src="images/half-adder-truth-table.png" alt="" /></p>
+
+<p>Přidejte funkci <code class="highlighter-rouge">halfAdderTests</code> k výpisu testů ve funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+            <span class="p">[</span> <span class="n">inverterTests</span>
+            <span class="p">,</span> <span class="n">andGateTests</span>
+            <span class="p">,</span> <span class="n">orGateTests</span>
+            <span class="p">,</span> <span class="n">halfAdderTests</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Občerstvíte-li stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, uvidíte že všechny testy prošly.</p>
+
+<p class="info">Pokud jste nedokončili <a href="easy-to-test.html#exercise-451" target="_blank">Cvičení 4.5.1</a>, dostanete chybu. Je to místo, kde je definována funkce <code class="highlighter-rouge">orGateTests</code>.</p>
+
+<h3 id="testing-the-fulladder-function">Testování funkce<code class="highlighter-rouge">fullAdder</code></h3>
+
+<p>Funkce <code class="highlighter-rouge">fullAdder</code> vypadá takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fullAdder</span> <span class="n">a</span> <span class="n">b</span> <span class="n">carryIn</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">firstResult</span> <span class="o">=</span>
+            <span class="n">halfAdder</span> <span class="n">b</span> <span class="n">carryIn</span>
+
+        <span class="n">secondResult</span> <span class="o">=</span>
+            <span class="n">halfAdder</span> <span class="n">a</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">sum</span>
+
+        <span class="n">finalCarry</span> <span class="o">=</span>
+            <span class="n">orGate</span> <span class="n">firstResult</span><span class="o">.</span><span class="n">carry</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">carry</span>
+    <span class="kr">in</span>
+        <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="n">finalCarry</span>
+        <span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">secondResult</span><span class="o">.</span><span class="n">sum</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Přijímá o vstup (<code class="highlighter-rouge">carryIn</code>) více než funkce <code class="highlighter-rouge">halfAdder</code>. Musíme se proto postarat o všech osm kombinací vstupů, jak zobrazeno v pravdivostní tabulce níže.</p>
+
+<p><img src="images/full-adder-truth-table.png" alt="" /></p>
+
+<p>Přidejte následující testy do souboru  <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fullAdderTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Full adder"</span>
+        <span class="p">[</span> <span class="n">test</span> <span class="s">"sum and carry-out are 0 when both inputs and carry-in are 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0 when both inputs are 0, but carry-in is 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0 when the 1st input is 0, the 2nd input is 1, and carry-in is 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 0 and carry-out is 1 when the 1st input is 0, the 2nd input is 1, and the carry-in is 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0 when the 1st input is 1, the 2nd input is 0, and the carry-in is 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 0 and carry-out is 1 when the 1st input is 1, the 2nd input is 0, and the carry-in is 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 0 and carry-out is 1 when the 1st input is 1, the 2nd input is 1, and the carry-in is 0"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+        <span class="p">,</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 1 when the 1st input is 1, the 2nd input is 1, and the carry-in is 1"</span> <span class="o">&lt;|</span>
+            <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+                    <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Stejně jako u všech dosud napsaných testů, reprezentují testy uvnitř funkce  <code class="highlighter-rouge">fullAdderTests</code> řádky z pravdivostní tabulky funkce <code class="highlighter-rouge">fullAdder</code>. Přidejte <code class="highlighter-rouge">fullAdderTests</code> do funkce <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+            <span class="p">[</span> <span class="n">inverterTests</span>
+            <span class="p">,</span> <span class="n">andGateTests</span>
+            <span class="p">,</span> <span class="n">orGateTests</span>
+            <span class="p">,</span> <span class="n">halfAdderTests</span>
+            <span class="p">,</span> <span class="n">fullAdderTests</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Po obnovení stránky na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, se ujistíte, že všechny testy prošly.</p>
+
+<p>Popisy testů ve funkci <code class="highlighter-rouge">fullAdderTests</code> jsou příliš dlouhé a tudíž nepřehedné. Čitelnost můžeme zlepšit seskupením podobných testů do bloků <code class="highlighter-rouge">describe</code>. Nahraďte funkci <code class="highlighter-rouge">fullAdderTests</code> následujícím kódem.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fullAdderTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Full adder"</span>
+        <span class="p">[</span> <span class="n">describe</span> <span class="s">"when both inputs are 0"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0 too, then both sum and carry-out are 0"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"but carry-in is 1, then sum is 1 and carry-out is 0"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 0, and the 2nd input is 1"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0, then sum is 1 and carry-out is 0"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"and carry-in is 1, then sum is 0 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 1, and the 2nd input is 0"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0, then sum is 1 and carry-out is 0"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"and carry-in is 1, then sum is 0 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 1, and the 2nd input is 1"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0, then sum is 0 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"and carry-in is 1, then sum is 1 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Nyní jsou mnohem přehlednější. Seskupování podobných testů do bloků <code class="highlighter-rouge">describe</code> se vřele doporučuje. Vždycky bychom měli hledat cesty ke zlepšení přehlednosti našich testů. Kromě verifikace chování našeho kódu, slouží testy také jako popis očekávaného chování. Zpřehlednění našich testů je stejně důležité, jako zpřehlednění našeho kódu.</p>
+
+<p>Bloky <code class="highlighter-rouge">describe</code> můžeme zanořovat do sebe podle potřeby. Zde je přepsaná funkce <code class="highlighter-rouge">fullAdderTests</code> s vícerými bloky  <code class="highlighter-rouge">describe</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">fullAdderTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"Full adder"</span>
+        <span class="p">[</span> <span class="n">describe</span> <span class="s">"when both inputs are 0"</span>
+            <span class="p">[</span> <span class="n">describe</span> <span class="s">"and carry-in is 0"</span>
+                <span class="p">[</span> <span class="n">test</span> <span class="s">"both sum and carry-out are 0"</span> <span class="o">&lt;|</span>
+                    <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                        <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+                            <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">describe</span> <span class="s">"but carry-out is 1"</span>
+                <span class="p">[</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0"</span> <span class="o">&lt;|</span>
+                    <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                        <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span>
+                            <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 0"</span>
+            <span class="p">[</span> <span class="n">describe</span> <span class="s">"and the 2nd input is 1"</span>
+                <span class="p">[</span> <span class="n">describe</span> <span class="s">"and carry-in is 0"</span>
+                    <span class="p">[</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0"</span> <span class="o">&lt;|</span>
+                        <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                            <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span>
+                                <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">,</span> <span class="n">describe</span> <span class="s">"and carry-in is 1"</span>
+                    <span class="p">[</span> <span class="n">test</span> <span class="s">"sum is 0 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                        <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                            <span class="n">fullAdder</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">1</span>
+                                <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 1"</span>
+            <span class="p">[</span> <span class="n">describe</span> <span class="s">"and the 2nd input is 0"</span>
+                <span class="p">[</span> <span class="n">describe</span> <span class="s">"and carry-in is 0"</span>
+                    <span class="p">[</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 0"</span> <span class="o">&lt;|</span>
+                        <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                            <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span>
+                                <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">,</span> <span class="n">describe</span> <span class="s">"and carry-in is 1"</span>
+                    <span class="p">[</span> <span class="n">test</span> <span class="s">"sum is 0 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                        <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                            <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span>
+                                <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 1"</span>
+            <span class="p">[</span> <span class="n">describe</span> <span class="s">"and the 2nd input is 1"</span>
+                <span class="p">[</span> <span class="n">describe</span> <span class="s">"and carry-in is 0"</span>
+                    <span class="p">[</span> <span class="n">test</span> <span class="s">"sum is 0 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                        <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                            <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span>
+                                <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">,</span> <span class="n">describe</span> <span class="s">"and carry-in is 1"</span>
+                    <span class="p">[</span> <span class="n">test</span> <span class="s">"sum is 1 and carry-out is 1"</span> <span class="o">&lt;|</span>
+                        <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                            <span class="n">fullAdder</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
+                                <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="p">{</span> <span class="n">carry</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Se zanořováním bloků <code class="highlighter-rouge">describe</code> bychom to však neměli přehánět. Psaní opakovaně vnořovaných bloků <code class="highlighter-rouge">describe</code> může být únavné. Nicméně, zanořené bloky usnadňují čtení při selhání testu. 
+nesting does make the output read a little bit better when a test fails. Pokusíte-li se o neúspěšný test horního příkladu s méně bloky <code class="highlighter-rouge">describe</code>, bude výstup takovýto:</p>
+
+<p><img src="images/nested-describe-test-failed.png" alt="" /></p>
+
+<p>Porovnejte tento výstup s výstupem následujícím, který ukazuje neúspěšný test z příkladu opakovaně zanořovanéhoo.</p>
+
+<p><img src="images/deeply-nested-describe-test-failed.png" alt="" /></p>
+
+<p>Pro hloubku zanořování nejsou v Elmu žádná pevná pravidla, používejte tedy takovou úroveň zanořování, která vám bude nejvíce vyhovovat.</p>
+
+<h3 id="exercise-452">Cvičení 4.5.2</h3>
+
+<p>Zkuste zlepšit čitelnost testů funkce <a href="easy-to-test.html#testing-the-halfadder-function" target="_blank"><code class="highlighter-rouge">halfAdderTests</code></a> přidáním dalších bloků <code class="highlighter-rouge">describe</code>.</p>
+
+<h3 id="testing-the-ripplecarryadder-function">Testování funkce <code class="highlighter-rouge">rippleCarryAdder</code></h3>
+
+<p>4-bitová ripple-carry sčítačka má osm vstupů a pět výstupů.</p>
+
+<p><img src="images/ripple-carry-adder-truth-table.png" alt="" /></p>
+
+<p>To znamená, že je <code class="highlighter-rouge">512</code> (<code class="highlighter-rouge">2 ^ 9</code>) různých permutací, jež můžeme ověřit. To je hromada testů. Vyvstává tedy otázka, zda musíme psát test pro každý člen vstupu. Odpověď závisí na tom, jak hodně důvěřujeme naší funkci. Víme-li, co naše funkce přesně dělá, je nasnadě, že toliké testování nepotřebujeme. Je-li však funkce složitá, s mnoha okrajovými připady, může být velmi důležité, všechny tyto případy prověřit.</p>
+
+<p class="info"><em>Jsem placen za kód, který pracuje a ne za testy, takže moje filozofie je testovat tak málo, jak možno, k dosažení požadované úrovně důvěry. - <a href="http://stackoverflow.com/a/153565" target="_blank">Kent Beck</a></em></p>
+
+<p>Dobrou věcí ohledně testování v Elmu je to, že můžeme kombinovat různé typy testů k dosažení správné úrovně důvěry ve svůj kód. Doposud jsme psali jenom jednotkové testy. Elm také nabízí další typ testování, zvaný <em>fuzz testing</em>, neboli "neostré" testování. Je to způsob testování, při kterém  tentýž test je opakovaně spouštěn s náhodně generovanými vstupy.</p>
+
+<p>Funkce <code class="highlighter-rouge">rippleCarryAdder</code> 
+je dobrým kandidátem pro "fuzzy" testování ale počkejme si na sekci <a href="fuzz-testing.html" target="_blank">Fuzzy testování</a>, kde si toto testování popíšeme. Prozatím si napišme několik jednotkových testů, jimiž nahradíme fuzzy testy, které napíšeme později. Přidejte následujcíí testy na spodek souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">rippleCarryAdderTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"4-bit ripple carry adder"</span>
+        <span class="p">[</span> <span class="n">describe</span> <span class="s">"given two binary numbers and a carry-in digit"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"returns the sum of those numbers and a carry-out digit"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">1001</span> <span class="mi">1101</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">10111</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 1111, and the 2nd input is 1111"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0, the output is 11110"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">1111</span> <span class="mi">1111</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">11110</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"and carry-in is 1, the output is 11111"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">1111</span> <span class="mi">1111</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">11111</span>
+            <span class="p">]</span>
+        <span class="p">,</span> <span class="n">describe</span> <span class="s">"when the 1st input is 0000, and the 2nd input is 0000"</span>
+            <span class="p">[</span> <span class="n">test</span> <span class="s">"and carry-in is 0, the output is 0000"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">0</span>
+            <span class="p">,</span> <span class="n">test</span> <span class="s">"and carry-in is 1, the output is 0001"</span> <span class="o">&lt;|</span>
+                <span class="nf">\</span><span class="nb">()</span> <span class="o">-&gt;</span>
+                    <span class="n">rippleCarryAdder</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span>
+                        <span class="o">|&gt;</span> <span class="kt">Expect</span><span class="o">.</span><span class="n">equal</span> <span class="mi">1</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Nyní doplňte <code class="highlighter-rouge">rippleCarryAdderTests</code> do funkce <code class="highlighter-rouge">main</code> abychom mohli výše uvedený test spustit.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="o">&lt;|</span>
+        <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+            <span class="p">[</span> <span class="n">inverterTests</span>
+            <span class="p">,</span> <span class="n">andGateTests</span>
+            <span class="p">,</span> <span class="n">orGateTests</span>
+            <span class="p">,</span> <span class="n">halfAdderTests</span>
+            <span class="p">,</span> <span class="n">fullAdderTests</span>
+            <span class="p">,</span> <span class="n">rippleCarryAdderTests</span>
+            <span class="p">]</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/RippleCarryAdderTests.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RippleCarryAdderTests.elm</code></a>, měli byste vidět, že všechny testy prošly.</p>
+
+<p>Napsali jsme jeden test abychom zjistili, co funkce vlastně dělá a další dva testy k ověření mezních případů. Jednotkové testy jsou obecně vhodné k otestování určitých možností, které buď reprezentují mezní případ nebo mez vstupu. První test ověřuje, že funkce <code class="highlighter-rouge">rippleCarryAdder</code> generuje očekávaný výstup při sčítání dvou náhodně zvolených čísel. Zbylé čtyři testy ověřují, že je generován správný výstup při sčítání samých jedniček a nul.</p>
+
+<p>V posledních dvou testech jsme museli k reprezentaci binárních čísel začínajících nulou použít jednotlivé číslice, protože se <code class="highlighter-rouge">elm-format</code> zbavuje počátečních nul při ukládání souboru. Test přesto chodí, protože funkce </code> vkládá nuly do čela, nemá-li číslo čtyři číslice.</p>
+
+<p>Jak jsme mohli vidět v uvedených příkladech, je psaní testů pro čisté funkce přímočará záležitost. Vše, co musíme udělat, je řádně identifikovat hodnoty v množině vstupů, opakovaně tyto hodnoty zadat funkci a ověřit, že generované hodnoty patří do množiny výstupů. Nemusíme se starat o ověření, zda funkce modifikovala svůj stav či nezpůsobila nějaké jiné vedlejší účinky.</p>
+
+<h3 id="running-tests-from-terminal">Spouštění testů z terminálu</h3>
+
+<p>Spouštění testů v prohlížeči je výhodné ale jsou situace, kdy je chceme spouštět i z konzoly. Předtím, než tak budeme moci učinit, musíme zapsat nějaký kód a instalovat několik paketů.</p>
+
+<p><strong>Krok 1:</strong> Vytvořte nový soubor <code class="highlighter-rouge">RunTestsInBrowser.elm</code> v adresáři <code class="highlighter-rouge">beginning-elm/tests</code> a vložte do něho následující kód.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RunTestsInBrowser</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test.Runner.Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">run</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">RippleCarryAdderTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="n">allTests</span></code></pre></figure>
+
+<p>Nadále budeme testování funkcí ze souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> spouštět ze souboru <code class="highlighter-rouge">RunTestsInBrowser.elm</code>, místo z <code class="highlighter-rouge">RunTestsInBrowser.elm</code>. Vše, co soubor  <code class="highlighter-rouge">RunTestsInBrowser.elm</code> zajišťuje, je to, že si z modulu <code class="highlighter-rouge">RippleCarryAdderTests</code> přivolá seznam testů a spustí je v prohlížeči. Funkce <code class="highlighter-rouge">allTests</code> bude vysvětlena ve kroku 3 níže.</p>
+
+<p><strong>Krok 2:</strong> Vytvořte další soubor s názvem <code class="highlighter-rouge">RunTestsInTerminal.elm</code> v adresáři <code class="highlighter-rouge">beginning-elm/tests</code> a vložte do něho následující kód.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">port</span> <span class="kr">module</span> <span class="nn">RunTestsInTerminal</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Test.Runner.Node</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">run</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Json.Encode</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Value</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">RippleCarryAdderTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">run</span> <span class="n">emit</span> <span class="n">allTests</span>
+
+
+<span class="n">port</span> <span class="n">emit</span> <span class="o">:</span> <span class="p">(</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">Value</span> <span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Cmd</span> <span class="n">msg</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">run</code> z modulu <code class="highlighter-rouge">Test.Runner.Node</code> emituje testy do terminálu přes port. Bez porozumění toho jak porty pracují, je obtížné si představit, jak pracuje kód v souboru <code class="highlighter-rouge">RunTestsInTerminal.elm</code>. O portech budeme podrobně hovořit v sekci <a href="ports.html" target="_blank">Ports</a>. Potom se budete moci vrátit a prostudovat si tento kód znova. Paket, který obsahuje modul <code class="highlighter-rouge">Test.Runner.Node</code> si nainstalujeme v kroku 6 níže.</p>
+
+<p><strong>Krok 3:</strong> Přejmenujte funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> na <code class="highlighter-rouge">allTests</code> a odeberte řádek, který aplikoval funkci <code class="highlighter-rouge">run</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">allTests</span> <span class="o">=</span>
+    <span class="n">describe</span> <span class="s">"4-bit Ripple Carry Adder Components"</span>
+        <span class="p">[</span> <span class="n">inverterTests</span>
+        <span class="p">,</span> <span class="n">andGateTests</span>
+        <span class="p">,</span> <span class="n">orGateTests</span>
+        <span class="p">,</span> <span class="n">halfAdderTests</span>
+        <span class="p">,</span> <span class="n">fullAdderTests</span>
+        <span class="p">,</span> <span class="n">rippleCarryAdderTests</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p><strong>Krok 4:</strong> Odeberte následující řádek ze souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">Test.Runner.Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">run</span><span class="p">)</span></code></pre></figure>
+
+<p>Protože už funkci <code class="highlighter-rouge">run</code> nebudeme používat, nepotřebujeme importovat modul <code class="highlighter-rouge">Test.Runner.Html</code>.</p>
+
+<p><strong>Krok 5:</strong> Exponujte funkci <code class="highlighter-rouge">allTests</code> v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> záměnou funkce  <code class="highlighter-rouge">main</code> za <code class="highlighter-rouge">allTests</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">RippleCarryAdderTests</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">allTests</span><span class="p">)</span></code></pre></figure>
+
+<p>Jak modul <code class="highlighter-rouge">RunTestsInBrowser</code>, tak modul <code class="highlighter-rouge">RunTestsInTerminal</code> získají přístup k testům v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code>prostřednictvím funkce <code class="highlighter-rouge">allTests</code>. Proto musí být exponována (exposed).</p>
+
+<p><strong>Krok 6:</strong> Přejděte v terminálu do adresáře  <code class="highlighter-rouge">beginning-elm/tests</code> a zadejte následující příkaz pro instalaci paketů Elmu, které nám umožní spouštět naše testy v terminálu.</p>
+
+<p class="info">Je důležité, abyste následující příkaz spustili z adresáře <code class="highlighter-rouge">tests</code>. Kdybyste jej spustii z adresáře <code class="highlighter-rouge">beginning-elm</code>, byl by paket přidán jako dependence k produkční verzi souboru <code class="highlighter-rouge">elm-package.json</code>, což není to, co si přejeme.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-package install rtfeldman/node-test-runner</code></pre></figure>
+
+<p>Instalace <code class="highlighter-rouge">elm-package</code> od vás bude vyžadovat souhlas. Odpovídejte <code class="highlighter-rouge">y</code> a schvalte nabízený plán aktualizace.</p>
+
+<p><strong>Krok 7:</strong> Potřebujeme instalovat ještě jeden nástroj, abychom mohli spouštět naše testy. V terminálu přejděte do adresáře <code class="highlighter-rouge">beginning-elm</code> a zadejte následující příkaz.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">npm install -g elm-test</code></pre></figure>
+
+<p>V sekci <a href="installation.html#installing-nodejs" target="_blank">Instalace Node.js</a> jsme se dozvěděli, že jedním z důvodů, proč musíme instalovat Node.js je to abychom mohli používat NPM (<strong>N</strong>ode.js <strong>P</strong>ackage <strong>M</strong>anager) k instalaci nástrojů a knihoven, potřebných pro vytváření čelních webových aplikací. Mnoho nástrojů, určených pro urychlení vývojových a testovacích procesů v Elmu je rovněž distribuováno jako pakety NPM; <a href="https://www.npmjs.com/package/elm-test" target="_blank">elm-test</a> je jedním z oněch paketů. Umožňuje nám spouštět testy Elmu z terminálu nebo z <a href="http://www.martinfowler.com/articles/continuousIntegration.html" target="_blank">kontinuálního integračního serveru</a>.</p>
+
+<p>Opce <code class="highlighter-rouge">-g</code> v příkazu nahoře způsobuje globální instalaci paketu, takže můžeme používat příkaz <code class="highlighter-rouge">elm-test</code> odkudkoli v terminálu.</p>
+
+<p><strong>Krok 8:</strong> Nyní jsme připraveni spouštět naše testy z terminálu. Přejděte do adresáře <code class="highlighter-rouge">beginning-elm</code> a zadejte následující příkaz:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-test tests/RunTestsInTerminal.elm</code></pre></figure>
+
+<p>Měl by se zobrazit následující výstup, informující že všechny testy prošly.
+</p>
+
+<figure class="highlight"><pre><code class="language-code" data-lang="code">Success! Compiled 11 modules.
+Successfully generated /var/folders/w9/lhzr92wx6hnd44s39dqf5hsh0000gn/T/elm_test_11703-71443-4nkwak.jresotuik9.js
+
+elm-test
+--------
+
+Running 28 tests. To reproduce these results, run: elm-test --seed 521208900
+
+TEST RUN PASSED
+
+Duration: 47 ms
+Passed:   28
+Failed:   0</code></pre></figure>
+
+<p>Nyní již víme jak spouštět testy z terminálu. Ujistěme se, že stále můžeme spouštět naše testy v prohlížeči. Přejděte do adresáře <code class="highlighter-rouge">beginning-elm/tests</code> a spusťte <code class="highlighter-rouge">elm-reactor</code>. Poté navštivte stránku na <a href="http://localhost:8000/RunTestsInBrowser.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/RunTestsInBrowser.elm</code></a>, měl byste rovněž vidět, že všechny testy prošly.</p>
+
+<h3 id="exercise-453">Cvičení 4.5.3</h3>
+
+<p>Změňte test v souboru <code class="highlighter-rouge">RippleCarryAdderTests.elm</code> tak aby zaručeně neprošel. Potom tuto testovací sestavu spusťte z terminálu aby se ukázalo jak vypadá výstup při selhání testu.</p>
+
+<h3 id="exercise-454">Cvičení 4.5.4</h3>
+
+<p>Naše současná sestava nám nedovoluje spouštět individuální testy (např. <code class="highlighter-rouge">inverterTests</code>, <code class="highlighter-rouge">orGateTests</code>, etc.). Zkuste přijít na to, jak to zařídit.</p>
+</article>
+
+<nav class="pagination">
+<a class="pagination-next" href="function-composition.html">
+<em>&larr; Previous</em>
+<strong>Ripple-Carry Adder</strong>
+</a>
+<a class="pagination-next" href="type-system.html">
+<em>Next &rarr;</em><strong>Typový systém</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+</body>
+</html>
+
+   
+
+
+
+

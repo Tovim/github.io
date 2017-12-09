@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.18 </h1>
+<h2>Tuple - entice</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="record.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="array.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>
+Entice se stejně jako seznamy a arraye používají k ukládání vícerých hodnot. Zapisují se do závorek a jejich elementy jsou odděleny čárkami.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+<span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="p">(</span> <span class="s">"Mia"</span><span class="p">,</span> <span class="s">"Vincent"</span> <span class="p">)</span>
+<span class="p">(</span><span class="s">"Mia"</span><span class="p">,</span><span class="s">"Vincent"</span><span class="p">)</span></code></pre></figure>
+
+<p class="info">Podobně jako u seznamů, doporučuje  Elm používat mezery kolem závorek.
+
+<p>Na rozdíl od seznamů a arrayů, mohou entice obsahovat hodnoty různého druhu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="sc">'a'</span><span class="p">,</span> <span class="s">"Butch"</span> <span class="p">)</span>
+<span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mf">2.5</span><span class="p">,</span><span class="sc">'a'</span><span class="p">,</span><span class="s">"Butch"</span><span class="p">)</span></code></pre></figure>
+
+<p>Mohou dokonce obsahovat jiné kolekce jako seznamy a arraye nebo entice samotné.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">],</span> <span class="p">[</span> <span class="s">"Jules"</span><span class="p">,</span> <span class="s">"Wolf"</span> <span class="p">]</span> <span class="p">)</span>
+<span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="s">"Jules"</span><span class="p">,</span><span class="s">"Wolf"</span><span class="p">])</span>
+
+<span class="o">&gt;</span> <span class="n">array</span> <span class="o">=</span> <span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">],</span> <span class="p">(</span> <span class="s">"Jules"</span><span class="p">,</span> <span class="s">"Wolf"</span> <span class="p">)</span> <span class="p">)</span>
+<span class="p">(</span><span class="kt">Array</span><span class="o">.</span><span class="n">fromList</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],(</span><span class="s">"Jules"</span><span class="p">,</span><span class="s">"Wolf"</span><span class="p">))</span></code></pre></figure>
+
+<p>A co seznamy? Mohou obsahovat entice? Odpověď je "yes".</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">),</span> <span class="p">(</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">),</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span> <span class="p">)</span> <span class="p">]</span>
+<span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">),(</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">)]</span></code></pre></figure>
+
+<p>Vzpomeňte si, že seznamy mohou obsahovat hodoty stejného typu. V příkladu nahoře mají všechny tři entice dva elementy. Co se stane, budou-li entice různých velikostí?.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">),</span> <span class="p">(</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span> <span class="p">]</span>
+
+<span class="c1">-------------------------- TYPE MISMATCH --------------------------</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">and</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">entries</span> <span class="kr">in</span> <span class="n">this</span> <span class="n">list</span> <span class="n">are</span> <span class="n">different</span> <span class="n">types</span> <span class="kr">of</span> <span class="n">values</span><span class="o">.</span>
+
+<span class="mi">7</span><span class="o">|</span>   <span class="p">[</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">),</span> <span class="p">(</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span> <span class="p">)</span> <span class="p">]</span>
+                 <span class="o">^^^^^^^^^^^</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">entry</span> <span class="n">has</span> <span class="n">this</span> <span class="kr">type</span><span class="o">:</span>
+
+    <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number1</span> <span class="p">)</span>
+
+<span class="kt">But</span> <span class="n">the</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number1</span><span class="p">,</span> <span class="n">number2</span> <span class="p">)</span></code></pre></figure>
+
+<p>Jak Elm poukazuje, entice <code class="highlighter-rouge">( 1, 2 )</code> a <code class="highlighter-rouge">( 3, 4, 5 )</code> jsou různého typu hodnot, protože mají různou velikost. Aby byly entice stejného typu, musejí obsahovat stejný počet a typ hodnot. Takže toto nebude chodit také:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">[</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Sansa"</span><span class="p">,</span> <span class="s">"Ygritte"</span> <span class="p">)</span> <span class="p">]</span>
+
+<span class="c1">-------------------------- TYPE MISMATCH --------------------------</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">and</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">entries</span> <span class="kr">in</span> <span class="n">this</span> <span class="n">list</span> <span class="n">are</span> <span class="n">different</span> <span class="n">types</span> <span class="kr">of</span> <span class="n">values</span><span class="o">.</span>
+
+<span class="mi">7</span><span class="o">|</span>   <span class="p">[</span> <span class="p">(</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="p">),</span> <span class="p">(</span> <span class="s">"Sansa"</span><span class="p">,</span> <span class="s">"Ygritte"</span> <span class="p">)</span> <span class="p">]</span>
+                 <span class="o">^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">entry</span> <span class="n">has</span> <span class="n">this</span> <span class="kr">type</span><span class="o">:</span>
+
+    <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number1</span> <span class="p">)</span>
+
+<span class="kt">But</span> <span class="n">the</span> <span class="mi">2</span><span class="n">nd</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="p">(</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">String</span> <span class="p">)</span></code></pre></figure>
+
+<p>První entici tvoří dvojice čísel, zatímco druhou tvoří dvojice řetězců, tudíž nejsou stejného typu. A senznam nemůže mít hodnoty různého typu.</p>
+
+<h3 id="modifying-tuples">Úprava entic</h3>
+
+<p>V předchozích sekcích jsme si říkali, že seznamy a arraye jsou neměnitelné (immutable). Jednou vytvořeny, nejdou změnit. Ovšem, přesto že jsou neměnitelné, můžeme k nim přidávat a z nich odebírat hodnoty.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myList</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">myList</span> <span class="o">++</span> <span class="p">[</span> <span class="mi">5</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">drop</span> <span class="mi">1</span> <span class="n">myList</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Jak je to možné? Je to možné proto, že Elm vytváří zdání, že přidává (nebo odebírá) hodnoty ze seznamu, když ve skutečnosti za scénou vytváří úplně nový seznam. Když vytiskneme <code class="highlighter-rouge">myList</code>, zjistíme, že se jeho hodnoty nezměnily.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">myList</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span></code></pre></figure>
+
+<p>Z praktického hlediska vše co nás zajímá, je možnost přidávat a odebírat hodnoty z kolekce. Jak to Elm dělá, nás zajímat příliš nemusí.</p>
+
+<p class="info">Nicméně, v  <a href="immutability.html" target="_blank">kapitole 4</a> se dozvíme, že neměnnost má dalekosáhlé důsledky a že je jádrem některých vpravdě úžasných vlastností.</p>
+
+<p>Entice jsou neměnitelné stejně jako seznamy a arraye. Avšak zde jde Elm o krok dále pro udržení a zachování neměnitelnosti. 
+Pro entice nejsou definovány žádné funkce či operátory pro připojení nebo vypuštění hodnoty.</p>
+
+<p>Když o tom zapřemýšlíte, dojdete k závěru, že tyto restrikce mají smysl. Dříve jsme objevili, že aby byly entice stejného typu, musí obsahovat stejný počet hodnot. Kdybychom přidali nebo odebrali hodnotu z entice, měnili bychom jejich typ, což není případ u seznamů a arrayů. Dále, kdybychom mohli přidat nebo odebrat hodnoty z entice, začaly by vypadat stejně jako seznamy a arraye, pouze s jedním rozdílem, že mohou obsahovat hodnoty různého typu. V příští kapitole uvidíme, že existuje datová struktura zvaná <a href=" record.html" target="_blank">record</a>, která může obsahovat různé typy hodnot. Bez této rigidity by byly entice snadno nahraditelné jinými datovými strukturami.</p>
+
+<p>Protože nemůžeme přidávat nebo odebírat hodnoty z entic, měli bychom je používat jenom když víme předem, kolik elementů budeme potřebovat.</p>
+
+<h3 id="using-tuples">Používání entic</h3>
+
+<p>Přes svoji rigiditu mohou být entice docela užitečné. Dále je uvedeno několik situací, v nichž nám entice usnadňují žití.</p>
+
+<h4 id="representing-complex-data">Representing Complex Data</h4>
+
+<p>Entice mohou být použity k prezentaci široké škály dat. Na příklad, chceme-li prezentovat něčí jméno, věk a seznam sourozenců, můžeme to snadno udělat s enticí:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span> <span class="s">"Jon Snow"</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="p">[</span> <span class="s">"Sansa"</span><span class="p">,</span> <span class="s">"Arya"</span><span class="p">,</span> <span class="s">"Bran"</span><span class="p">,</span> <span class="s">"Rob"</span><span class="p">,</span> <span class="s">"Rickon"</span> <span class="p">]</span> <span class="p">)</span>
+<span class="p">(</span><span class="s">"Jon Snow"</span><span class="p">,</span><span class="mi">14</span><span class="p">,[</span><span class="s">"Sansa"</span><span class="p">,</span><span class="s">"Arya"</span><span class="p">,</span><span class="s">"Bran"</span><span class="p">,</span><span class="s">"Rob"</span><span class="p">,</span><span class="s">"Rickon"</span><span class="p">])</span></code></pre></figure>
+
+<h4 id="returning-multiple-values-from-a-function">Returning Multiple Values From a Function</h4>
+
+<p>Obvyklý způsob v Elmu je použití entic pro víceré vratné hodnoty funkce. Abychom poznali jak to chodí, napišme funkci, která rozhodne platnost určitého e-mailu. Přidejte následující definici funkce hned nad <code class="highlighter-rouge">main</code> v <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">validateEmail</span> <span class="n">email</span> <span class="o">=</span>
+    <span class="kr">let</span>
+        <span class="n">emailPattern</span> <span class="o">=</span>
+            <span class="kt">Regex</span><span class="o">.</span><span class="n">regex</span> <span class="s">"</span><span class="se">\\</span><span class="s">b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+</span><span class="se">\\</span><span class="s">.[A-Za-z]{2,}</span><span class="se">\\</span><span class="s">b"</span>
+
+        <span class="n">isValid</span> <span class="o">=</span>
+            <span class="kt">Regex</span><span class="o">.</span><span class="n">contains</span> <span class="n">emailPattern</span> <span class="n">email</span>
+    <span class="kr">in</span>
+        <span class="kr">if</span> <span class="n">isValid</span> <span class="kr">then</span>
+            <span class="p">(</span> <span class="s">"Valid email"</span><span class="p">,</span> <span class="s">"green"</span> <span class="p">)</span>
+        <span class="kr">else</span>
+            <span class="p">(</span> <span class="s">"Invalid email"</span><span class="p">,</span> <span class="s">"red"</span> <span class="p">)</span>
+
+
+<span class="n">main</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní změňte funkci <code class="highlighter-rouge">main</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">validateEmail</span> <span class="s">"thedude@rubix.com"</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Nakonec importujte modul <code class="highlighter-rouge">Regex</code> hned pod importem modulu <code class="highlighter-rouge">Html</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">import</span> <span class="nn">Html</span>
+<span class="kr">import</span> <span class="nn">Regex</span></code></pre></figure>
+
+<p>Spusťte <code class="highlighter-rouge">elm-reactor</code> v terminálu z adresáře <code class="highlighter-rouge">beginning-elm</code>, pokud již neběží a běžte na stránku <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a> ve vašem prohlížeči. Mělo by se ukázat <code class="highlighter-rouge">("Valid email","green")</code>. Funkce <code class="highlighter-rouge">validateEmail</code> používá regular expression ke zjištění, zda je daný e-mail platný či není. Vrací entici, obsahující dvě hodnoty:</p>
+
+<ul>
+  <li>
+    <p>Je-li e-mail platný, vrací se řetězec "Valid email", jinak se vrací "Invalid email".</p>
+  </li>
+  <li>
+    <p>
+	Použitou barvu při zobrazení stavu platnosti.</p>
+  </li>
+</ul>
+
+<p>Jak vidíte, použití entice nám velmi usnadnilo návrat vícerých hodnot.
+As you can see, using a tuple made it very easy for us to return multiple values.</p>
+
+<h4 id="being-explicit-about-the-structure-of-data">Being Explicit About the Structure of Data</h4>
+
+<p>Řekněme, že chceme spočítat obvod trojůhelníka s pomocí vzorce, uvedeného v obrázku.</p>
+
+<p><img src="images/triangle-perimeter.png" alt="" /></p>
+
+<p>Jeden způsob prezentace stran trojúhelníka je s použitím seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">sides</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span> <span class="p">]</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">]</span></code></pre></figure>
+
+<p>Nyní napišme funkci, která v replu spočítá obvod:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="n">sides</span> <span class="o">=</span> <span class="kt">List</span><span class="o">.</span><span class="n">sum</span> <span class="n">sides</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span></code></pre></figure>
+
+<p>K sečtení všech stran trojúhelníka jsme použili funkci <code class="highlighter-rouge">List.sum</code>. Aplikujeme-li tuto funkci na seznam <code class="highlighter-rouge">sides</code>, dostaneme obvod.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="n">sides</span>
+<span class="mi">15</span></code></pre></figure>
+
+<p>Co se stane, když tutéž funkci <code class="highlighter-rouge">trianglePerimeter</code> použijeme pro seznam čtyř stran?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span> <span class="p">]</span>
+<span class="mi">23</span></code></pre></figure>
+
+<p>Spokojeně si spočítá obvod, i když jsme zadali čtyři strany. Chceme-li se ujistit, že byly funkci zadány jenom tři strany, musíme přidat ještě nějaký kód pro ověření, že vstupní seznam má tři elementy. Když ale místo seznamu použijeme entici, udělá to Elm za nás. Zkusme si to.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="p">)</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span> <span class="p">)</span>
+<span class="mi">15</span></code></pre></figure>
+
+<p>Zatím dobrý až výborný. Nyní zkusme aplikovat <code class="highlighter-rouge">trianglePerimeter</code> na entici se čtyřmi elementy.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span> <span class="p">)</span>
+
+<span class="c1">------------------------ TYPE MISMATCH ----------------------------</span>
+<span class="kt">The</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">function</span> <span class="p">`</span><span class="n">trianglePerimeter</span><span class="p">`</span> <span class="n">is</span> <span class="n">causing</span> <span class="n">a</span> <span class="n">mismatch</span><span class="o">.</span>
+
+<span class="mi">7</span><span class="o">|</span>   <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span> <span class="p">)</span>
+                       <span class="o">^^^^^^^^^^^^^^</span>
+<span class="kt">Function</span> <span class="p">`</span><span class="n">trianglePerimeter</span><span class="p">`</span> <span class="n">is</span> <span class="n">expecting</span> <span class="n">the</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">be</span><span class="o">:</span>
+
+    <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">number</span> <span class="p">)</span>
+
+<span class="kt">But</span> <span class="n">it</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="p">(</span> <span class="n">number</span><span class="p">,</span> <span class="n">number1</span><span class="p">,</span> <span class="n">number2</span><span class="p">,</span> <span class="n">number3</span> <span class="p">)</span></code></pre></figure>
+
+<p>Tady to máme. Elm poukazuje na to, že potřebujeme zadat entici s pouze třemi elementy. Výběr správné datové struktury pro určitý problém často eliminuje jemné potíže.</p>
+
+<h3 id="retrieving-values">Získání hodnot</h3>
+
+<p>Elm poskytuje dvě funkce (<code class="highlighter-rouge">first</code> a <code class="highlighter-rouge">second</code>) pro vyzvednutí hodnot z entice se dvěma elementy rovněž známými jako <em>pár</em>. Ukládání dat v párech je v Elmu zcela obvyké. Funkce <code class="highlighter-rouge">first</code> vrací první hodnotu páru a <code class="highlighter-rouge">second</code> hodnotu druhého elementu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">first</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span> <span class="p">)</span>
+<span class="mi">5</span>
+
+<span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">second</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span> <span class="p">)</span>
+<span class="mi">10</span>
+
+<span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">first</span> <span class="p">(</span> <span class="s">"Pam"</span><span class="p">,</span> <span class="s">"Jim"</span> <span class="p">)</span>
+<span class="s">"Pam"</span>
+
+<span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">second</span> <span class="p">(</span> <span class="s">"Pam"</span><span class="p">,</span> <span class="s">"Jim"</span> <span class="p">)</span>
+<span class="s">"Jim"</span></code></pre></figure>
+
+<p class="info">Modul <code class="highlighter-rouge">Tuple</code> je automaticky do replu načítán. Proto jej nemusíme explicitně importovat.</p>
+
+<p>Nemůžeme-li použít funkce <code class="highlighter-rouge">first</code> a <code class="highlighter-rouge">second</code> u entic s více než dvěma elementy, jak jinak můžeme číst jejich hodnoty? V tomto případě musíme použít "pattern matching", se kterým jsme se seznámili již dříve. Zde jej máme zas.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="p">)</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="n">trianglePerimeter</span> <span class="p">(</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span> <span class="p">)</span>
+<span class="mi">15</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">trianglePerimeter</code> používá pattern matching pro rozbor (deconstruction) zadané entice a přiřazuje její první, druhou a třetí hodnotu konstantám <code class="highlighter-rouge">a</code>, <code class="highlighter-rouge">b</code> a <code class="highlighter-rouge">c</code>.</p>
+
+<dl>
+  <dt>Pattern Matching</dt>
+  <dd>Jak již bylo zmíněno v odstavci <a href="case-expression.html#case-expression-syntax" target="_blank">Case Expression</a>, pattern matching je akt porovnávání jedné či více hodnot s předdefinovaným vzorem a hledání případné shody. Vzor, který porovnáváme výše, je entice se třemi a pouze třemi čísly. Seznámíme se s několika dalšími příklady na pattern matching u entic v <a href="pattern-matching.html" target="_blank">kapitole 4</a>.</dd>
+</dl>
+
+<p>Pro uložení více než dvou hodnot je ve většině případů nejlepší použití kolektoru <a href="/record.html" target="_blank">record</a> místo entice. Přístup k hodnotám v "záznamu" je mnohem snadnější než u entice. Potřebujeme-li ovšem zajistit aby datová struktura obsahovala jen určený počet hodnot jako v případě funkce <code class="highlighter-rouge">trianglePerimeter</code>, je entice naše nejlepší volba.</p>
+
+<h3 id="mapping-pairs">Mapování párů</h3>
+
+<p>Modul <code class="highlighter-rouge">Tuple</code> také poskytuje dvě další funce pro transformaci hodnot v páru. Funkce <code class="highlighter-rouge">mapFirst</code> upravuje (mapuje) první element a <code class="highlighter-rouge">mapSecond</code> mapuje druhý element:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">mapFirst</span> <span class="p">(</span><span class="nf">\</span><span class="kr">_</span> <span class="o">-&gt;</span> <span class="s">"Jim"</span><span class="p">)</span> <span class="p">(</span> <span class="s">"Roy"</span><span class="p">,</span> <span class="s">"Pam"</span> <span class="p">)</span>
+<span class="p">(</span><span class="s">"Jim"</span><span class="p">,</span><span class="s">"Pam"</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">mapFirst</span> <span class="kt">String</span><span class="o">.</span><span class="n">reverse</span> <span class="p">(</span> <span class="s">"live"</span><span class="p">,</span> <span class="s">"life"</span> <span class="p">)</span>
+<span class="p">(</span><span class="s">"evil"</span><span class="p">,</span><span class="s">"life"</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">mapSecond</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span> <span class="s">"fringe"</span><span class="p">,</span> <span class="mi">100</span> <span class="p">)</span>
+<span class="p">(</span><span class="s">"fringe"</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="kt">Tuple</span><span class="o">.</span><span class="n">mapSecond</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">contains</span> <span class="s">"-"</span><span class="p">)</span> <span class="p">(</span> <span class="s">"Gamora"</span><span class="p">,</span> <span class="s">"Star-Lord"</span> <span class="p">)</span>
+<span class="p">(</span><span class="s">"Gamora"</span><span class="p">,</span><span class="kt">True</span><span class="p">)</span></code></pre></figure>
+
+<p>Pro mapování hodnot v entici s více než dvěma elementy není k disposici žádná funkce. Entice jsou vskutku rigidní, že?</p>
+</article>
+
+<nav class="pagination">
+<a class="pagination-next" href="array.html">
+<em>&larr; Previous</em>
+<strong>Array</strong>
+</a>
+<a class="pagination-next" href="record.html">
+<em>Next &rarr;</em><strong>Záznamy</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

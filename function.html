@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.10 </h1>
+<h2>Funkce</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="let-expression.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="if-expression.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Staré dobré závody v kosmickém výzkumu jsou zpět. Nebylo by vynikající, kdybychom mohli některým z těchto ambiciózních společností vypomoci nabídkou našeho kódu pro zjišťování, zda jejich kosmická loď může opustit Zemi? Pro předání našeho know-how by byl nejlepší formát funkce, která zapouzdří naši logiku. Než tak učiníme, podívejme se, jak funkci definuje matematika.</p>
+
+<p class="info">Může vám být divné, proč se vracím k nádhernému světu matematiky pokaždé, když se pokouším vysvětlit nějaký koncept v Elmu. Je to proto, že Elm je funkcionální programovací jazyk, kladoucí velký důraz na matematické koncepce. Elm využívá matematické koncepty bez jejich překroucení. Takže pochopení jejich fungování v matematice usnadňuje jejich chápání v Elmu. To neznamená, že musíte mít silné zázemí v matematice abyste se mohli učit Elm. Vše, co potřebujete, je popsáno v této knize, včetně matematických konceptů.</p>
+
+<p>Funkce v matematice je průmět množiny vstupů na množinu možných výstupů, kde každému vstupu odpovídá právě jeden výstup. Funkce v Elmu pracují stejným způsobem.</p>
+
+<p><img src="images/function.png" alt="" /></p>
+
+<p>Napišme funkci, nazvanou <code class="highlighter-rouge">escapeEarth</code>, která přijímá hodnotu ze vstupní množiny rychlostí a mapuje ji na hodnotu z výstupní množiny instrukcí.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">escapeEarth</span> <span class="n">velocity</span> <span class="o">=</span> <span class="nf">\</span>
+<span class="o">|</span>   <span class="kr">if</span> <span class="n">velocity</span> <span class="o">&gt;</span> <span class="mf">11.186</span> <span class="kr">then</span> <span class="nf">\</span>
+<span class="o">|</span>     <span class="s">"Godspeed"</span> <span class="nf">\</span>
+<span class="o">|</span>   <span class="kr">else</span> <span class="nf">\</span>
+<span class="o">|</span>     <span class="s">"Come back"</span>
+<span class="o">&lt;</span><span class="n">function : Float -> String</span>
+<span class="o">&gt;</span></code></pre></figure>
+
+<p>Můžeme nyní tuto funkci volat pro různé rychlosti abychom zjistili, zda může vesmírná loď opustit Zemi.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">escapeEarth</span> <span class="mf">11.2</span>
+<span class="s">"Godspeed" : String</span>
+
+<span class="o">&gt;</span> <span class="n">escapeEarth</span> <span class="mi">11</span>
+<span class="s">"Come back" : String</span></code></pre></figure>
+
+<p>Stejně jako u výrazu <code class="highlighter-rouge">if</code>, můžeme hodnotu vrácenou funkcí přiřadit konstantě.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">whatToDo</span> <span class="o">=</span> <span class="n">escapeEarth</span> <span class="mf">11.2</span>
+<span class="s">"Godspeed" : String</span>
+
+<span class="o">&gt;</span> <span class="n">whatToDo</span>
+<span class="s">"Godspeed" : String</span></code></pre></figure>
+
+<h3 id="function-syntax">Skladba funkcí</h3>
+
+<p><img src="/images/elm-intro/function-syntax.png" alt="" /></p>
+
+<p>Funkce jsou tak zásadní pro aplikace Elmu, že Elm disponuje neuvěřitelně přímočarou syntaxí pro jejich vytváření. Žádná ceremonie, jako speciální klíčové slovo nebo složené závorky, není zapotřebí.
+</p>
+
+<h3 id="function-application">Volání funkce</h3>
+
+<p>Při volání neboli aplikaci (neboli evokaci) funkce dosadíme konkretní hodnoty (neboli argumenty) za deklarované parametry. Příklad volání funkce jsme již viděli: <code class="highlighter-rouge">escapeEarth 11</code>. Při evokaci funkce oddělujeme název funkce od argumentů mezerou. Víceré argumenty se rovněž oddělují mezerou.</p>
+
+<dl>
+<dt>Parametr vs Argument</dt>
+<dd>Termíny <em>parameter</em> a <em>argument</em> se často zaměňují, i když nejsou stejné a jejich záměnou se nezpůsobí škoda. Argument je označení pro konkretní hodnotu, kterou nahrazujeme deklarovaný parametr (např. escapeEarth <code class="highlighter-rouge">11</code>), zatímco parametr je obecné označení očekávaného argumentu (např. escapeEarth <code class="highlighter-rouge">velocity</code>).</dd>
+</dl>
+
+<p>V předchozím textu jsme se dověděli, že všechny aplikace Elmu jsou vytvořeny skloubením různých výrazů (expressions). Jak se do této organizační struktury řadí funkce? Funkce jsou hodnoty, stejně jako čísla a řetězce. Protože všechny hodnoty jsou výrazy, jsou i funkce výrazy. Z toho důvodu mohou být funkce vráceny jako výsledek výpočtu. Mohou být použity jako jako každá jiná hodnota. Můžeme je například zadat jiné funkci jako argument. Funkce, které přijímají jiné funkce jako argumenty nebo vracejí funkci, se nazývají <em>funkce vyššího řádu</em>. S mnoha příklady těchto funkcí se vbrzku seznámíme.</p>
+
+<h3 id="functions-with-multiple-parameters">Funkce s více parametry</h3>
+
+<p>Výše uvedená funkce <code class="highlighter-rouge">escapeEarth</code> přijímá pouze jeden argument: <code class="highlighter-rouge">velocity</code>. Můžeme ji však vybavit tolika argumenty, kolik potřebujeme. Přidejme další parametr, aby nám funkce mohla odpovědět na otázku, zda naše horizontální rychlost je dostatečně velká abychom se udrželi na oběžné dráze.</p>
+
+<p>Další kód, který si napíšeme, se obtížně zapisuje do replu bez toho, že se dopustíme chyb. Napíšeme si jej tedy do souboru. V kořenovém adresáři (<code class="highlighter-rouge">beginning-elm</code>) si vytvořte nový adresář <code class="highlighter-rouge">elm-examples</code>. Uvnitř tohoto adresáře vytvořte soubor s názvem <code class="highlighter-rouge">Playground.elm</code>. Tento soubor budeme používat pro experimentování s různými koncepty v Elmu. Dosud vytvářená adresářová struktura by mohla vypadat nějak takto:</p>
+
+<p><img src="images/elm-playground-directory.png" alt="" /></p>
+
+<dl>
+<dt>Název souboru</dt>
+<dd>Stylizační konvence Elmu přikazuje, aby byly názvy souborů psány rovněž stylem Camel Case. Na rozdíl od konstant má být první písmeno názvu souboru psáno velkým písmenem. První písmeno každého připojeného slova by rovněž mělo být psáno kapitálkou ale nebere se za chybu, pokud se tak neučiní.</dd>
+</dl>
+
+<p>Vložte následující kód do souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Playground</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span>
+
+
+<span class="n">escapeEarth</span> <span class="n">velocity</span> <span class="n">speed</span> <span class="o">=</span>
+    <span class="kr">if</span> <span class="n">velocity</span> <span class="o">&gt;</span> <span class="mf">11.186</span> <span class="kr">then</span>
+        <span class="s">"Godspeed"</span>
+    <span class="kr">else</span> <span class="kr">if</span> <span class="n">speed</span> <span class="o">==</span> <span class="mf">7.67</span> <span class="kr">then</span>
+        <span class="s">"Stay in orbit"</span>
+    <span class="kr">else</span>
+        <span class="s">"Come back"</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="p">(</span><span class="n">escapeEarth</span> <span class="mf">11.2</span> <span class="mf">7.2</span><span class="p">)</span></code></pre></figure>
+
+<p>První řádek definuje nový modul zvaný <code class="highlighter-rouge">Playground</code> a druhý řádek importuje paket <code class="highlighter-rouge">Html</code>. Neznepokojujte se termíny <code class="highlighter-rouge">module</code> a <code class="highlighter-rouge">import</code>, popíšeme si je později. Dále je naše funkce <code class="highlighter-rouge">escapeEarth</code>. Přidáme ji další parametr zvaný <code class="highlighter-rouge">speed</code>. Není-li <code class="highlighter-rouge">velocity</code> větší než <code class="highlighter-rouge">11.186</code>, použije se větev <code class="highlighter-rouge">else if</code> pro porovnání, zda <code class="highlighter-rouge">speed</code> je roven <code class="highlighter-rouge">7.67</code>. Jestliže ano, vrací “Stay in orbit”. Jinak spadne do větve <code class="highlighter-rouge">else</code>.</p>
+
+<p>Poslední funkcí je funkce <code class="highlighter-rouge">main</code>. Touto funkcí začíná provádění všech aplikací Elmu. Je to obyčejná funkce jako každá jiná. Výjimečná je tím, že je vstupním bodem aplikace. Volání funkce <code class="highlighter-rouge">escapeEarth 11.2 7.2</code> dosadíme jako argument do importované funkce <code class="highlighter-rouge">Html.text</code>, která vracený řetězec zobrazí v prohlížeči.<br> Je důležité uzavřít <code class="highlighter-rouge">escapeEarth</code> a její argumenty do závorek. Jinak by si Elm mohl myslet, že zadáváme tři argumenty funkci <code class="highlighter-rouge">Html.text</code>, která však příjímá pouze jeden argument. Můžeme řetězit tolik funkcí, kolik potřebujeme.</p>
+
+<p>Přejděte ve svém terminálu do adresáře <code class="highlighter-rouge">beginning-elm</code> a spusťte <code class="highlighter-rouge">elm-reactor</code>. Poté otevřete toto URL v prohlížeči: <a href="http://localhost:8000/" target="_blank"><code class="highlighter-rouge">http://localhost:8000/</code></a>. Měli byste uvidět <code class="highlighter-rouge">elm-examples</code> jako jeden z adresářů v sekci <em>File Navigation</em>. Klikněte na něj. Měl by se objevit soubor <code class="highlighter-rouge">Playground.elm</code>. Klikněte-li na něj také, <code class="highlighter-rouge">elm-reactor</code> jej zkompiluje a zobrazí výsledek v prohlížeči: "Godspeed".</p>
+
+<h3 id="partial-function-application">Částečná aplikace funkce</h3>
+
+<p>Když jsme v předchozím textu aplikovali funkci <code class="highlighter-rouge">escapeEarth</code>, vycucali jsme si hodnotu rychlosti z prstu. Což kdyby byla také počítána nějakou další funkcí? Přidejte následující deklarace funkcí hned nad funkci <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">speed</span> <span class="n">distance</span> <span class="n">time</span> <span class="o">=</span>
+    <span class="n">distance</span> <span class="o">/</span> <span class="n">time</span>
+
+
+<span class="n">time</span> <span class="n">startTime</span> <span class="n">endTime</span> <span class="o">=</span>
+    <span class="n">endTime</span> <span class="o">-</span> <span class="n">startTime</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">speed</code> má dva parametry: vzdálenost, překonanou kosmickou lodí a čas, potřebný pro překonání vzdálenosti. Tento čas je spočítán jinou funkcí, zvanou <code class="highlighter-rouge">time</code>. Pohleďte na pozměněný tvar funkce main poté, co jsme delegovali výpočet rychlosti na nově vytvořené funkce:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+   <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="p">(</span><span class="n">escapeEarth</span> <span class="mi">11</span> <span class="p">(</span><span class="n">speed</span> <span class="mf">7.67</span> <span class="p">(</span><span class="n">time</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)))</span></code></pre></figure>
+
+<p>Ajaj! Řetězení evokací je docela nevzhledné a obtížně čitelné. Což kdybychom přepsali funkci main do tohoto tvaru:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">time</span> <span class="mi">2</span> <span class="mi">3</span>
+        <span class="o">|&gt;</span> <span class="n">speed</span> <span class="mf">7.67</span>
+        <span class="o">|&gt;</span> <span class="n">escapeEarth</span> <span class="mi">11</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>Mnohem lepší! Pro kompilaci tohoto nového kódu znovunačtěte (refresh) stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>. Měli by se zobrazit "Stay in orbit".</p>
+
+<p>Úhledně formátovaný kód nahoře je možný, protože Elm podporuje <em>částečnou</em> aplikaci funkcí. Pohrejme si s několika příklady v replu pro poznání, jak se částečně aplikované funkce chovají. Vytvořte funkci zvanou "multiply" se dvěma parametry.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">multiply</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span></code></pre></figure>
+
+<p>Když funkci použijeme pro dva parametry, dostaneme očekávaný výsledek.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">multiply</span> <span class="mi">3</span> <span class="mi">4</span>
+<span class="mi">12</span></code></pre></figure>
+
+<p>Co když ale zadáme jenom první argument?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">multiply</span> <span class="mi">3</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span></code></pre></figure>
+
+<p>Hmm… Vrací funkci místo chybového hlášení. Uzavřemež tuto funkci do konstanty:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">multiplyByThree</span> <span class="o">=</span> <span class="n">multiply</span> <span class="mi">3</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span></code></pre></figure>
+
+<p>Pohleďme co se stane, když aplikujeme tuto mezilehlou funkci na druhý (finální) argument:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">multiplyByThree</span> <span class="mi">4</span>
+<span class="mi">12</span>
+
+<span class="o">&gt;</span> <span class="n">multiplyByThree</span> <span class="mi">5</span>
+<span class="mi">15</span></code></pre></figure>
+
+<p><code class="highlighter-rouge">MultiplyByThree</code> je částečná (parciální) funkce. Když Elm vidí, že jsme nedodali funkci dost argumentů, tak místo naříkání aplikuje poskytnuté argumenty a vrací novou funkci, která může být volána později pro zbytek argumentů. To může mít praktické výhody. V dalších textech se setkáme s mnohými příklady volání parciální funkce.</p>
+
+<h3 id="forward-function-application">Dopředná aplikace funkce</h3>
+
+<p>Vraťme se k onomu šikovnému operátoru <code class="highlighter-rouge">|&gt;</code>, který naši funkci tak pěkně zpřehlednil. Nazývá se <em>operátor dopředné aplikace funkce</em>. 
+Je velmi užitečný pro eliminaci závorek. Napojuje (pipes) výsledek z předchozího výrazu na následující.</p>
+
+<p><img src="images/pipe-operator.png" alt="" /></p>
+
+<p>Operátor dopředné aplikace funkce vezme výsledek z předcházejícího výrazu a předá jej jako poslední argument následné evokace funkce. Na příklad, první výraz v řetězu nahoře (<code class="highlighter-rouge">time 2 3</code>) generuje číslo <code class="highlighter-rouge">1</code>, které je jako výsledek zadáno funkci <code class="highlighter-rouge">speed</code> jako poslední argument.</p>
+
+<h3 id="backward-function-application">Zpětná aplikace funkce</h3>
+
+<p>Existuje jiný operátor, který pracuje podobně jako <code class="highlighter-rouge">|&gt;</code> ale v obráceném pořadí. Nazývá se <em>operátor zpětné aplikace funkce</em> a je reprezentován symbolem: <code class="highlighter-rouge">&lt;|</code>. Odkloňme se trochu od naší ságy o kosmické lodi a vytvořme několik triviálních funkcí pro vyzkoušení tohoto operátoru. Zapište následující deklarace funkcí hned nad funkci <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">add</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+
+
+<span class="n">multiply</span> <span class="n">c</span> <span class="n">d</span> <span class="o">=</span>
+    <span class="n">c</span> <span class="o">*</span> <span class="n">d</span>
+
+
+<span class="n">divide</span> <span class="n">e</span> <span class="n">f</span> <span class="o">=</span>
+    <span class="n">e</span> <span class="o">/</span> <span class="n">f</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">add</code>, <code class="highlighter-rouge">multiply</code>a <code class="highlighter-rouge">divide</code> provádějí přesně to, co jejich názvy naznačují. Vytvořme výraz, který tyto funkce použije. Upravte funkci <code class="highlighter-rouge">main</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="p">(</span><span class="n">add</span> <span class="mi">5</span> <span class="p">(</span><span class="n">multiply</span> <span class="mi">10</span> <span class="p">(</span><span class="n">divide</span> <span class="mi">30</span> <span class="mi">10</span><span class="p">))))</span></code></pre></figure>
+
+<p>Uff. Ještě více závorek. Obnovte (refresh) stránku <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a> a měli byste vidět <code class="highlighter-rouge">35</code>. Funkce <code class="highlighter-rouge">add</code> vrací číslo avšak <code class="highlighter-rouge">Html.text</code> očekává string. Proto potřebujeme použít funkci <code class="highlighter-rouge">toString</code> abychom převedli číslo na řetězec. Tato funkce převede na řetězec jakýkoliv druh hodnoty.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">toString</span> <span class="mi">42</span>
+<span class="s">"42"</span>
+
+<span class="o">&gt;</span> <span class="n">toString</span> <span class="mf">7.8</span>
+<span class="s">"7.8"</span>
+
+<span class="o">&gt;</span> <span class="n">toString</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+<span class="s">"[5,10]"</span>
+
+<span class="o">&gt;</span> <span class="n">toString</span> <span class="p">{</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">}</span>
+<span class="s">"{ a = 3, b = 6 }"</span></code></pre></figure>
+
+<p>Použijme naši znalost operátoru <code class="highlighter-rouge">|&gt;</code> pro transformaci zřetězeného výrazu ve funkci <code class="highlighter-rouge">main</code> na úhledný řetěz.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="n">divide</span> <span class="mi">30</span> <span class="mi">10</span>
+        <span class="o">|&gt;</span> <span class="n">multiply</span> <span class="mi">10</span>
+        <span class="o">|&gt;</span> <span class="n">add</span> <span class="mi">5</span>
+        <span class="o">|&gt;</span> <span class="n">toString</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="n">text</span></code></pre></figure>
+
+<p>K transformaci můžeme také použít operátor <code class="highlighter-rouge">&lt;|</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="o">&lt;|</span> <span class="n">toString</span> <span class="o">&lt;|</span> <span class="n">add</span> <span class="mi">5</span> <span class="o">&lt;|</span> <span class="n">multiply</span> <span class="mi">10</span> <span class="o">&lt;|</span> <span class="n">divide</span> <span class="mi">30</span> <span class="mi">10</span></code></pre></figure>
+
+<p>Tento zápis zachovává původní řetězení funkcí bez závorek. Jeho bloková verze je rovněž přehledná:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+     <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="o">&lt;|</span>
+      <span class="n">toString</span> <span class="o">&lt;|</span>
+         <span class="n">add</span> <span class="mi">5</span> <span class="o">&lt;|</span>
+   <span class="n">multiply</span> <span class="mi">10</span> <span class="o">&lt;|</span>
+  <span class="n">divide</span> <span class="mi">30</span> <span class="mi">10</span></code></pre></figure>
+
+<p>Začali jsme dopřednou evokací funkcí a skončili jsme zpětnou evokací, která je zřejmě výhodnější než dopředná. Protože v Elmu něco můžete, neznamená to, že byst měl. Pokud se cítíte jako v Bizarro World, kde dole je nahoře a nahoře je dole, užívejte si dopředné aplikace se znakem <code class="highlighter-rouge">|&gt;</code>.<br> 
+Elm používá další pomocné operátory pro funkce vyššího řádu, jako jsou tyto. Dozvíte se o nich více <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Basics" target="_blank">zde</a>.</p>
+
+<h3 id="operators-are-functions-too">Operátory jsou také funkce</h3>
+
+<p>V Elmu se všechny výpočty uskutečňují prostřednictvím funkcí. Jak se věci mají, všechny operátory v Elm jsou rovněž funkce. Od normálních funkcí se liší třemi způsoby:</p>
+
+<h4 id="naming">Pojmenování</h4>
+
+<p>Operátory nemohou mít ve svém označení písmena nebo číslice, zatímco normální funkce mohou. Označení <code class="highlighter-rouge">+++</code> je v Elmu neplatným operátorem ale můžeme jej legitimizovat vlastní deklarací. Zapište následující deklaraci hned nad funkci <code class="highlighter-rouge">main</code> v souboru  <code class="highlighter-rouge">Playground.elm</code></p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">(</span><span class="o">+++</span><span class="p">)</span> <span class="n">first</span> <span class="n">second</span> <span class="o">=</span>
+    <span class="n">first</span> <span class="o">++</span> <span class="n">second</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Přisoudili jsme znaku <code class="highlighter-rouge">+++</code> chování operátoru <code class="highlighter-rouge">++</code>, který je již v Elmu definován. Operátor <code class="highlighter-rouge">++</code> se používá ke spojení dvou stringů. Všimněte si závorek v deklaraci nového operátoru. Musíme je použít při každé deklaraci uživatelského operátoru s použitím skladby funkce. Uživatelské operátory mají nejvyšší precedenci (<code class="highlighter-rouge">9</code>) a jsou asociativní zleva. Nový operátor <code class="highlighter-rouge">+++</code> můžeme používat jako každý jiný operátor.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="p">(</span><span class="s">"Peanut butter "</span> <span class="o">+++</span> <span class="s">"and jelly"</span><span class="p">)</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>, měli byste vidět "Peanut butter and jelly". Vyzkoušejme co se stane, když k uživatelskému operátoru přidáme písmeno.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">(</span><span class="o">+</span><span class="n">a</span><span class="o">+</span><span class="p">)</span> <span class="n">first</span> <span class="n">second</span> <span class="o">=</span>
+    <span class="n">first</span> <span class="o">++</span> <span class="n">second</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Elm to nemá rád.</p>
+
+<p><img src="/images/elm-intro/operator-error.png" alt="" /></p>
+
+<p>A co normální funkce? Můžeme k jejich jménu připojit speciální znak?</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">ad</span><span class="o">+</span><span class="n">d</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+    <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p><img src="/images/elm-intro/function-name-error.png" alt="" /></p>
+
+<p>Nope. Elm to rovněž nemá rád. Než se posuneme dál, měli byste odstranit neplatné deklarace operátorů a funkcí ze souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<h4 id="number-of-arguments">Počet argumentů</h4>
+
+<p>Operátory přijímají pouze dva argumenty, zatímco počet argumentů normální funkce není omezen.</p>
+
+<h4 id="application-style">Způsob aplikace</h4>
+
+<p>Operátory se normálně píší mezi své argumenty. Tento způsob aplikace se nazývá <em>infix-style</em>.</p>
+ 
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">5</span>
+<span class="mi">7</span></code></pre></figure>
+<!--
+<p>Kromě toho existuje takzvaný <em>prefix-style</em>, při kterém se operátor v závorkách píše před své argumenty.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span><span class="p">(</span><span class="o">+</span><span class="p">)</span> <span class="mi">2</span> <span class="mi">5</span>
+<span class="mi">7</span></code></pre></figure>-->
+
+<p>Normální funkce se volají zápisem názvu před argumenty. Tento způsob aplikace se nazývá <em>prefix-style</em>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">add</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="n">add</span> <span class="mi">2</span> <span class="mi">5</span>
+<span class="mi">7</span></code></pre></figure>
+
+<p>Operátory lze rovněž použit prefixovým stylem, uzavřeme-li je do závorek:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span><span class="o">+</span><span class="p">)</span> <span class="mi">2</span> <span class="mi">5</span>
+<span class="mi">7</span></code></pre></figure>
+
+<p>Normální funkci infixovým stylem volat nelze ale můžeme vytvořit něco, co inficový styl připomíná, použitím  <code class="highlighter-rouge">|&gt;</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">2</span> <span class="o">|&gt;</span> <span class="n">add</span> <span class="mi">5</span>
+<span class="mi">7</span></code></pre></figure>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="if-expression.html">
+<em>&larr; Previous</em>
+<strong>Výraz IF</strong>
+</a>
+<a class="pagination-next" href="let-expression.html">
+<em>Next &rarr;</em><strong>Výraz LET</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

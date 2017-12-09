@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.14 </h1>
+<h2>String - řetězec</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="regular-expression.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="indentation.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Stringy (řetězce) jsou v Elmu reprezentovány dvojitými uvozovkami:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="s">"Pretzels"</span>
+<span class="s">"Pretzels"</span> <span class="o">:</span> <span class="kt">String</span></code></pre></figure>
+
+<p>Znaky (characters) jsou reprezentovány jednoduchými uvozovkami:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="sc">'p'</span>
+<span class="sc">'p'</span> <span class="o">:</span> <span class="kt">Char</span></code></pre></figure>
+
+<p>Literály znaků mohou obsahovat pouze jeden znak. Tyto výrazy jsou proto v Elmu neplatné: <code class="highlighter-rouge">'abc'</code>, <code class="highlighter-rouge">''</code>. Řetězce mohou mít libovolný počet znaků.</p>
+
+<h3 id="multiline-strings">Víceřádkové řetězce</h3>
+
+<p>Víceřádkové řetězce se tvoří označením <code class="highlighter-rouge">"""</code>. Což je trojnásobný dvojitý apostrof. Takto vložíme víceřádkový řetězec v replu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="s">""" </span><span class="se">\</span><span class="err">
+| I</span><span class="se">t</span><span class="s"> became very clear to me sitting out there today </span><span class="se">\</span><span class="err">
+| </span><span class="se">t</span><span class="s">hat every decision I've made in my entire life has </span><span class="se">\</span><span class="err">
+| </span><span class="se">b</span><span class="s">een wrong. My life is the complete "</span><span class="n">opposite</span><span class="s">" of </span><span class="se">\</span><span class="err">
+| e</span><span class="se">v</span><span class="s">erything I want it to be. Every instinct I have, </span><span class="se">\</span><span class="err">
+| i</span><span class="se">n</span><span class="s"> every aspect of life, be it something to wear, </span><span class="se">\</span><span class="err">
+| some</span><span class="se">t</span><span class="s">hing to eat - it's all been wrong. </span><span class="se">\</span><span class="err">
+| </span><span class="se">"</span><span class="s">""</span></code></pre></figure>
+
+<p>Při zápisu do souboru nemusíme vkládat znak <code class="highlighter-rouge">\</code> na konce víceřádkového řetězce. Definujte konstantu zvanou <code class="highlighter-rouge">revelation</code> hned nad <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Playground.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">revelation</span> <span class="o">=</span>
+    <span class="s">"""
+    It became very clear to me sitting out there today
+    that every decision I've made in my entire life has
+    been wrong. My life is the complete "</span><span class="n">opposite</span><span class="s">" of
+    everything I want it to be. Every instinct I have,
+    in every aspect of life, be it something to wear,
+    something to eat - it's all been wrong.
+    """</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Nyní zadejte konstantu <code class="highlighter-rouge">revelation</code> funkci <code class="highlighter-rouge">Html.text</code> ve funkci <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">text</span> <span class="n">revelation</span></code></pre></figure>
+
+<p>Obnovte stránku na <a href="http://localhost:8000/elm-examples/Playground.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Playground.elm</code></a>. Měli byste mít možnost poznat hluboké prozření George Costanzy, jež se mu dostalo za chmurného dne při pohledu na oceán.</p>
+
+<p>Uvnitř víceřádkového řetězce můžeme používat jak jednoduché, tak dvojité apostrofy. Použití jednoduchých apostrofů uvnitř jednořádkového řetězce je prosté ale před dvojité apostrofy musíme vytknout znak <code class="highlighter-rouge">\</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="s">"Michael Scott's Rabies Awareness </span><span class="se">\"</span><span class="s">Fun Run</span><span class="se">\"</span><span class="s"> Race for the Cure"</span>
+<span class="s">"Michael Scott's Rabies Awareness </span><span class="se">\"</span><span class="s">Fun Run</span><span class="se">\"</span><span class="s"> Race for the Cure"</span></code></pre></figure>
+
+<p>Zpětné lomítko <code class="highlighter-rouge">\</code> říká Elmu, že následný dvojitý apostrof nemá končit řetězec. Podobně musí být předznamenán jednoduchý apostrof uvnitř znakového literálu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="sc">'</span><span class="se">\'</span><span class="sc">'</span><span class="err">
+</span><span class="sc">'</span><span class="err">\</span><span class="sc">''</span></code></pre></figure>
+
+<p>Jak vytkneme (escape) zpětné lomítko samotné? Dalším zpětným lomítkem.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="sc">'</span><span class="se">\\</span><span class="sc">'</span><span class="err">
+</span><span class="sc">'</span><span class="err">\</span><span class="nf">\</span><span class="sc">'</span></code></pre></figure>
+
+<h3 id="calculating-length">Určení délky</h3>
+
+<p>Pro určení délky řetězce můžeme použít funkci <code class="highlighter-rouge">length</code> z modulu  <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/String" target="_blank">String</a>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="s">"Creed Bratton"</span>
+<span class="mi">13</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="s">""</span>
+<span class="mi">0</span></code></pre></figure>
+
+<p>Až dosud jsme vytvářeli uživatelské funkce explicitní deklarací. Dále budeme často používat vestavěné funkce, jako je <code class="highlighter-rouge">String.length</code>, jež je součástí standardní knihovny Elmu.</p>
+
+<dl>
+  <dt>Standardní knihovna</dt>
+  <dd>Většina programovacích jazyků používá standardní knihovny, což jsou kolekce funkcí a hodnot, povětšině psané v témže jazyku. Elm má rovněž svoji standardní knihovnu. Všechny funkce a hodnoty v této knihovně jsou seskupeny do tematických modulů podle typu dat, s nimiž operují. Například modul <code class="highlighter-rouge">String</code> obsahuje funkce pro manipulaci s řetězci. Podobně modul <code class="highlighter-rouge">List</code> poskytuje funkce pro manipulaci se seznamy. V knihovně je mnoho dalších modulů pro práci s téměř všemi typy dat, například <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Dict" target="_blank">Dict</a>, <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Set" target="_blank">Set</a> a <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Date" target="_blank">Date</a>, abychom jmenovali aspoň některé. Některé funkce, například <code class="highlighter-rouge">toString</code> pracují s vícerými typy dat. Tyto generické funkce jsou v modulu <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/Basics" target="_blank">Basics</a>.</dd>
+  <dd>
+    <p>Moduly jsou dále seskupeny do paketů (packages). <code class="highlighter-rouge">String</code>, <code class="highlighter-rouge">List</code>a <code class="highlighter-rouge">Basics</code> patří všechny do paketu <a href="http://package.elm-lang.org/packages/elm-lang/core/latest" target="_blank">Core</a>, jež je součástí kolekce Elm Platform. Do této platformy jsou zahrnuty jenom nejpodstatnější pakety. Další jsou dostupné v online <a href="http://package.elm-lang.org/" target="_blank">katalogu</a>.</p>
+  </dd>
+</dl>
+
+<p>Při spuštění seance v <code class="highlighter-rouge">elm-repl</code>, importuje se automaticky modul <code class="highlighter-rouge">String</code>. Jinak bychom jej museli explicitně importovat příkazem:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">String</span></code></pre></figure>
+
+<p>Prostředí <code class="highlighter-rouge">elm-repl</code> automaticky načítá moduly, které jsou v Elmu nejvíce používané. Aplikovanou funkci je vhodné uvést za názvem modulu (zde prefixem) a to ze dvou důvodů:</p>
+
+<ul>
+  <li>
+    <p>prefix (název modulu) nám říká odkud funkce pochází.
+	</p>
+  </li>
+  <li>
+    <p>prefix zabrání kolizím mezi funkcemi z různých modulů.</p>
+  </li>
+</ul>
+
+<p>Chceme-li, můžeme explicitně jmenovat (expose) funkci v příkazu "import" (např. funkci <code class="highlighter-rouge">length</code>) abychom při jejím použití nemuseli prefix uvádět.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">String</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">length</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="n">length</span> <span class="s">"Angela Martin"</span>
+<span class="mi">13</span></code></pre></figure>
+
+<p><!--We used a slightly different syntax to import the <code class="highlighter-rouge">String</code> module here. The <code class="highlighter-rouge">exposing (length)</code> part tells Elm to expose the <code class="highlighter-rouge">length</code> function so that we don’t have to prefix it with <code class="highlighter-rouge">String</code>. -->Čirou náhodou obsahuje modul <code class="highlighter-rouge">List</code> rovněž funkci <code class="highlighter-rouge">length</code>. Co se stane, když tuto funkci exponujeme (expose) také? Ověřte si to.</p>
+
+<p class="info">Seznam (list) je v Elmu datová struktura pro ukládání vícerých hodnot. Vytvoříme jej jejich výpisem do hranatých závorek, např. ["Titan", "Encaladus"]. O seznamech budeme hovořit podrobně později.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kr">import</span> <span class="nn">List</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">length</span><span class="p">)</span>
+
+<span class="o">&gt;</span> <span class="n">length</span> <span class="s">"Stanley Hudson"</span>
+
+<span class="c1">------------- NAMING ERROR ------------------</span>
+<span class="kt">This</span> <span class="n">usage</span> <span class="kr">of</span> <span class="n">variable</span> <span class="p">`</span><span class="n">length</span><span class="p">`</span> <span class="n">is</span> <span class="n">ambiguous</span><span class="o">.</span>
+
+<span class="mi">5</span><span class="o">|</span>   <span class="n">length</span> <span class="s">"Stanley Hudson"</span>
+     <span class="o">^^^^^^</span>
+<span class="kt">Maybe</span> <span class="n">you</span> <span class="n">want</span> <span class="n">one</span> <span class="kr">of</span> <span class="n">the</span> <span class="n">following</span><span class="o">?</span>
+
+    <span class="kt">List</span><span class="o">.</span><span class="n">length</span>
+    <span class="kt">String</span><span class="o">.</span><span class="n">length</span></code></pre></figure>
+
+<p>Elm je zmaten. Neví, kterou funkci <code class="highlighter-rouge">length</code> jsme chtěli použít. Přidáme-li prefix, bude vše OK.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="s">"Stanley Hudson"</span>
+<span class="mi">14</span>
+
+<span class="o">&gt;</span> <span class="kt">List</span><span class="o">.</span><span class="n">length</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="mi">5</span></code></pre></figure>
+
+<h4 id="checking-emptiness">Ověřování prázdnoty</h4>
+
+<p>Modul <code class="highlighter-rouge">String</code> obsahuje funkci <code class="highlighter-rouge">isEmpty</code>, která nám řekne, zda je daný řetězec prázdný či nikoliv.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"> <span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">isEmpty</span> <span class="s">""</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">isEmpty</span> <span class="s">"Kevin Malone"</span>
+<span class="kt">False</span></code></pre></figure>
+
+<p>Tuto i následující funkci výhodně použijeme v podmínkách, vyžadujících booleovu hodnotu True či False.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="s">"Kevin Malone"</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="kt">False</span></code></pre></figure>
+
+<h3 id="combining-strings">Spojování stringů</h3>
+
+<p>Ke spojení (concatenation) dvou řetězců se používá operátor <code class="highlighter-rouge">++</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="s">"These pretzels are "</span> <span class="o">++</span> <span class="s">"makin' me thirsty!"</span>
+<span class="s">"These pretzels are makin' me thirsty!"</span></code></pre></figure>
+
+<p class="info">Operátory neuvádíme se jménem modulu.</p>
+
+<p>Operátor <code class="highlighter-rouge">++</code> nelze použít ke spojení znaků nebo čísel. Obě ukázky generují chybu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="sc">'p'</span> <span class="o">++</span> <span class="sc">'r'</span> <span class="c1">-- Error</span>
+<span class="o">&gt;</span> <span class="mi">42</span> <span class="o">++</span> <span class="mi">10</span> <span class="c1">-- Error</span></code></pre></figure>
+
+<p>Spojované znaky musíme nejprve konvertovat na řetězce. Můžeme k tomu použít funkci <code class="highlighter-rouge">fromChar</code></p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">fromChar</span> <span class="sc">'p'</span><span class="p">)</span> <span class="o">++</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">fromChar</span> <span class="sc">'r'</span><span class="p">)</span>
+<span class="s">"pr"</span></code></pre></figure>
+
+<p>Dva řetězce můžeme také spojit pomocí funkce <code class="highlighter-rouge">append</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">append</span> <span class="s">"These pretzels are "</span> <span class="s">"makin' me thirsty!"</span>
+<span class="s">"These pretzels are makin' me thirsty!"</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">String.append</code> je specielní případ operátoru <code class="highlighter-rouge">++</code>, který spojuje dvě <em>připojitelné</em> entity dohromady, jako jsou řetězce a seznamy.
+
+<h4 id="concatenating-multiple-strings">Spojení více řetězců </h4>
+
+<p>Operátorem <code class="highlighter-rouge">++</code> můžeme spojovat více než dva řetězce.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="s">"Bears. "</span> <span class="o">++</span> <span class="s">"Beats. "</span> <span class="o">++</span> <span class="s">"Battlestar Gallactica."</span>
+<span class="s">"Bears. Beats. Battlestar Gallactica."</span></code></pre></figure>
+
+<p>Technicky vzato, operátor <code class="highlighter-rouge">++</code> spojuje pouze dva řetězce. V naší ukázce nahoře aplikuje operátor <code class="highlighter-rouge">++</code> nejprve na "Bears. " a "Beats. ", což resultuje v "Bears. Beats. ". Potom aplikuje operátor <code class="highlighter-rouge">++</code> na  "Battlestar Gallactica." coby druhý argument, což resultuje ve finální řetězec. Ke spojení více než dvou řetězců můžeme také použít funkci <code class="highlighter-rouge">append</code>, byť tento způsob je méně přehledný.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">append</span> <span class="p">(</span><span class="kt">String</span><span class="o">.</span><span class="n">append</span> <span class="s">"Butter shave, "</span> <span class="s">"Voice, "</span><span class="p">)</span> <span class="s">"Serenity now"</span>
+<span class="s">"Butter shave, Voice, Serenity now"</span></code></pre></figure>
+
+<p>Dalším způsobem spojení více řetězců je použití funkce <code class="highlighter-rouge">concat</code>, což vyžaduje vložení jednotlivých stringů do seznamu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">concat</span> <span class="p">[</span><span class="s">"Bears. "</span><span class="p">,</span> <span class="s">"Beats. "</span><span class="p">,</span> <span class="s">"Battlestar Gallactica."</span><span class="p">]</span>
+<span class="s">"Bears. Beats. Battlestar Gallactica."</span></code></pre></figure>
+
+<p>Povšimněte si vkládaných mezer mezi slova a konce stringů. Působí to poněkud neohrabaně. Použijeme-li funkci <code class="highlighter-rouge">join</code> nemusíme to dělat.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">join</span> <span class="s">" "</span> <span class="p">[</span><span class="s">"Bears."</span><span class="p">,</span> <span class="s">"Beats."</span><span class="p">,</span> <span class="s">"Battlestar Gallactica."</span><span class="p">]</span>
+<span class="s">"Bears. Beats. Battlestar Gallactica."</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">join</code> má dva parametry :</p>
+
+<ul>
+  <li>
+    <p>separátor, který odděluje spojované řetězce,</p>
+  </li>
+  <li>
+    <p>seznam řetězců.</p>
+  </li>
+</ul>
+
+<p>Separátorem může být cokoli.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">join</span> <span class="s">"/"</span> <span class="p">[</span><span class="s">"Bears."</span><span class="p">,</span> <span class="s">"Beats."</span><span class="p">,</span> <span class="s">"Battlestar Gallactica."</span><span class="p">]</span>
+<span class="s">"Bears./Beats./Battlestar Gallactica."</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">join</span> <span class="s">" thatswhatshesaid "</span> <span class="p">[</span><span class="s">"Bears."</span><span class="p">,</span> <span class="s">"Beats."</span><span class="p">,</span> <span class="s">"Battlestar Gallactica."</span><span class="p">]</span>
+<span class="s">"Bears. thatswhatshesaid Beats. thatswhatshesaid Battlestar Gallactica."</span></code></pre></figure>
+
+<h3 id="splitting-a-string">Dělení řetězce</h3>
+
+<p>K rozdělení řetězce na více části můžeme použít funkci <code class="highlighter-rouge">split</code>. Je to přesný opak funkce <code class="highlighter-rouge">join</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">" "</span> <span class="s">"Bears. Beats. Battlestar Gallactica."</span>
+<span class="p">[</span><span class="s">"Bears."</span><span class="p">,</span><span class="s">"Beats."</span><span class="p">,</span><span class="s">"Battlestar"</span><span class="p">,</span><span class="s">"Gallactica."</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">"/"</span> <span class="s">"Bears./Beats./Battlestar Gallactica."</span>
+<span class="p">[</span><span class="s">"Bears."</span><span class="p">,</span><span class="s">"Beats."</span><span class="p">,</span><span class="s">"Battlestar Gallactica."</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">" thatswhatshesaid "</span> <span class="s">"Bears. thatswhatshesaid Beats. thatswhatshesaid Battlestar Gallactica."</span>
+<span class="p">[</span><span class="s">"Bears."</span><span class="p">,</span><span class="s">"Beats."</span><span class="p">,</span><span class="s">"Battlestar Gallactica."</span><span class="p">]</span></code></pre></figure>
+
+<p>Všimli jste si, že když jsme dělili podle oddělovače <code class="highlighter-rouge">" "</code>, dostali jsme čtyři stringy, zatímco v dalších příkladech tři? Je to kvůli mezeře mezi slovy "Battlestar" a "Gallactica". Tři řetězce můžeme dostat při jiné volbě oddělovače, jak ukázáno zde:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">split</span> <span class="s">". "</span> <span class="s">"Bears. Beats. Battlestar Gallactica."</span>
+<span class="p">[</span><span class="s">"Bears"</span><span class="p">,</span><span class="s">"Beats"</span><span class="p">,</span><span class="s">"Battlestar Gallactica."</span><span class="p">]</span></code></pre></figure>
+
+<h3 id="reversing-a-string">Obrácení řetězce</h3>
+
+<p>Napišme funkci, která nám řekne zda je zadané slovo palindromem. Palindrom je slovo či skupina slov, která mají stejný význam při čtení zepředu i zezadu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">palindrome</span> <span class="n">word</span> <span class="o">=</span> <span class="n">word</span> <span class="o">==</span> <span class="kt">String</span><span class="o">.</span><span class="n">reverse</span> <span class="n">word</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span></code></pre></figure>
+
+<p>Obracíme slovo funkcí <code class="highlighter-rouge">reverse</code> a porovnáváme jej s originálem. Jsou-li obě hodnoty totožné, obdržíme <code class="highlighter-rouge">True</code>. Pohrejme si s touto funkcí:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">palindrome</span> <span class="s">"tacocat"</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="n">palindrome</span> <span class="s">"hannah"</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="n">palindrome</span> <span class="s">"palindrome"</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="n">palindrome</span> <span class="s">"As I pee, sir, I see Pisa"</span>
+<span class="kt">False</span></code></pre></figure>
+
+<p>Naše funkce je žel, příliš jednoduchá aby poznala, že poslední případ je také palindrom. Zkuste ji vylepšit tak aby v tomto případě také vracela <code class="highlighter-rouge">True</code>. Apropos, proč není slovo "palindrom" rovněž palindromem?</p>
+
+<h3 id="filtering-a-string">Filtrování řetězce</h3>
+
+<p>Dejme tomu, že potřebujeme ověřit pozadí každého kandidáta, který se chce připojit k programu Enceladus pro průzkum jednoho ze Saturových měsíců. Požádali jsme kandidáty aby nám poskytli svá čísla pojištění. Omylem byl požadován následující formát čísla (například): 222-11-5555. Náš systém však pomlčky v čísle neakceptuje. Můžeme se jich zbavit funkcí <code class="highlighter-rouge">filter</code> ale nemůžeme ji jednoduše aplikovat takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">filter</span> <span class="sc">'-'</span> <span class="s">"222-11-5555"</span>
+
+<span class="c1">--------------- TYPE MISMATCH ------------------------------</span>
+<span class="kt">The</span> <span class="mi">1</span><span class="n">st</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">function</span> <span class="p">`</span><span class="n">filter</span><span class="p">`</span> <span class="n">is</span> <span class="n">causing</span> <span class="n">a</span> <span class="n">mismatch</span><span class="o">.</span>
+
+<span class="mi">5</span><span class="o">|</span>   <span class="kt">String</span><span class="o">.</span><span class="n">filter</span> <span class="sc">'-'</span> <span class="s">"222-11-5555"</span>
+                   <span class="o">^^^</span>
+<span class="kt">Function</span> <span class="p">`</span><span class="n">filter</span><span class="p">`</span> <span class="n">is</span> <span class="n">expecting</span> <span class="n">the</span> <span class="mi">1</span><span class="n">st</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">be</span><span class="o">:</span>
+
+    <span class="kt">Char</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+
+<span class="kt">But</span> <span class="n">it</span> <span class="n">is</span><span class="o">:</span>
+
+    <span class="kt">Char</span></code></pre></figure>
+
+<p>První argument působí zmatek. Vytvořme funkci, která přijme Char a vrací Bool.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">isValid</span> <span class="n">char</span> <span class="o">=</span> <span class="n">char</span> <span class="o">/=</span> <span class="sc">'-'</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="n">isValid</span> <span class="sc">'-'</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="n">isValid</span> <span class="sc">'2'</span>
+<span class="kt">True</span></code></pre></figure>
+
+<p class="info">V matematice se funkce, která přijímá hodnotu a vrací boolean, nazývá <em>predikátní funkce</em>. Často se setkáme s označením <em>predikát</em> (např. funkce <code class="highlighter-rouge">isValid</code>).</p>
+
+<p>Je-li znakem (character) <code class="highlighter-rouge">-</code>, vrátí se <code class="highlighter-rouge">False</code>, jinak <code class="highlighter-rouge">True</code>. Přidejme funkci <code class="highlighter-rouge">isValid</code> k funkci <code class="highlighter-rouge">filter</code> a uvidíme.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">filter</span> <span class="n">isValid</span> <span class="s">"222-11-5555"</span>
+<span class="s">"222115555"</span></code></pre></figure>
+
+<p>Vida, pomlčky jsou pryč.</p>
+
+<p><img src="images/filter-string.png" alt="" /></p>
+
+<p>Funkce <code class="highlighter-rouge">filter</code> předává každý znak zadaného řetězce funkci <code class="highlighter-rouge">isValid</code>. Vrátí-li se <code class="highlighter-rouge">True</code>, znak zůstane, jinak je zavržen. Funkce <code class="highlighter-rouge">filter</code> je funkce vyššího řádu, protože přijímá jinou funkci jako argument. Modul String disponuje mnoha dalšími funkcemi vyššího řádu, např. <code class="highlighter-rouge">map</code>. Nebudeme je zde probírat ale měli byste si je vyhledat v oficiální <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/String" target="_blank">dokumentaci</a>.</p>
+
+<h3 id="anonymous-function">Anonymní funkce</h3>
+
+<p>Někdy je žádoucí vložit do kódu funkci, která na místě určuje, zda má být hodnota filtrována či nikoli, místo aby byla deklarována separátně.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">filter</span> <span class="p">(</span><span class="nf">\</span><span class="n">char</span> <span class="o">-&gt;</span> <span class="n">char</span> <span class="o">/=</span> <span class="sc">'-'</span><span class="p">)</span> <span class="s">"222-11-5555"</span>
+<span class="s">"222115555"</span></code></pre></figure>
+
+<p>Tentokrát doplníme <code class="highlighter-rouge">filter</code> funkcí beze jména. Říká se jí <em>anonymní funkce</em>.</p>
+
+<p><img src="images/anonymous-function.png" alt="" /></p>
+
+<p>Anonymní funkce jsou docela užitečné pro psaní krátkých jednořádkových funkcí. Více příkladů uvidíme později. Funkci <code class="highlighter-rouge">isValid</code> můžeme přepsat takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">isValid</span> <span class="o">=</span> <span class="nf">\</span><span class="n">char</span> <span class="o">-&gt;</span> <span class="n">char</span> <span class="o">/=</span> <span class="sc">'-'</span>
+<span class="o">&lt;</span><span class="n">function</span><span class="o">&gt;</span>
+
+<span class="o">&gt;</span> <span class="n">isValid</span> <span class="sc">'-'</span>
+<span class="kt">False</span></code></pre></figure>
+
+<p>Jak se ukazuje, jméno funkce je vlastně konstanta, ukazující na definici anonymní funkce.</p>
+
+<h3 id="formatting-a-string">Formátování řetězce</h3>
+
+<p>Často potřebujeme přeměnit písmena řetězce na všechna velká nebo malá. Modul String obsahuje přesně tu funkci, kterou potřebujeme.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">toUpper</span> <span class="s">"I declare bankruptcy!"</span>
+<span class="s">"I DECLARE BANKRUPTCY!"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">toLower</span> <span class="s">"Shhh. Be quiet."</span>
+<span class="s">"shhh. be quiet."</span></code></pre></figure>
+
+<p>Můžeme také z řetězce odstranit všechny nadbytečné mezery.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">trim</span> <span class="s">"    A band of backwoods mail-hating survivalists   </span><span class="se">\n</span><span class="s">"</span>
+<span class="s">"A band of backwoods mail-hating survivalists"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">trimLeft</span> <span class="s">"    A band of backwoods mail-hating survivalists   </span><span class="se">\n</span><span class="s">"</span>
+<span class="s">"A band of backwoods mail-hating survivalists   </span><span class="se">\n</span><span class="s">"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">trimRight</span> <span class="s">"   A band of backwoods mail-hating survivalists   </span><span class="se">\n</span><span class="s">"</span>
+<span class="s">"   A band of backwoods mail-hating survivalists"</span></code></pre></figure>
+
+<p>Chceme-li řetězec doplnit dalšími znaky, má proto modul String také funkci.
+</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">pad</span> <span class="mi">10</span> <span class="sc">' '</span> <span class="s">"5"</span>
+<span class="s">"     5    "</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">pad</span> <span class="mi">10</span> <span class="sc">'*'</span> <span class="s">"5"</span>
+<span class="s">"*****5****"</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">pad</code> vyplní obě strany zvolenými znaky do dané délky: <code class="highlighter-rouge">10</code>. Můžeme také doplnit pouze jednu stranu.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">padLeft</span> <span class="mi">10</span> <span class="sc">' '</span> <span class="s">"5"</span>
+<span class="s">"         5"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">padRight</span> <span class="mi">10</span> <span class="sc">' '</span> <span class="s">"5"</span>
+<span class="s">"5         "</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">padLeft</span> <span class="mi">10</span> <span class="sc">'*'</span> <span class="s">"5"</span>
+<span class="s">"*********5"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">padRight</span> <span class="mi">10</span> <span class="sc">'*'</span> <span class="s">"5"</span>
+<span class="s">"5*********"</span></code></pre></figure>
+
+<h3 id="substrings">Substringy</h3>
+
+<h4 id="finding-substrings">Vyhledání substringu</h4>
+
+<p>Přítomnost substringu v řetězci můžeme ověřit funkcí <code class="highlighter-rouge">contains</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">contains</span> <span class="s">"believe"</span> <span class="s">"It’s not a lie if you believe it."</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">contains</span> <span class="s">"George"</span> <span class="s">"Fires people like it's a bodily function!"</span>
+<span class="kt">False</span></code></pre></figure>
+
+<p>Můžeme také zjistit, zda nějaký string začíná nebo končí určitým substringem.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">startsWith</span> <span class="s">"Kruger"</span> <span class="s">"Kruger Industrial Smoothing"</span>
+<span class="kt">True</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">endsWith</span> <span class="s">"LeBaron"</span> <span class="s">"1989 LeBaron"</span>
+<span class="kt">True</span></code></pre></figure>
+
+<p>Můžeme dokonce určit polohu substringu funkcí <code class="highlighter-rouge">indexes</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">indexes</span> <span class="s">"on"</span> <span class="s">"They just write it off."</span>
+<span class="kt">[]</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">indexes</span> <span class="s">"write"</span> <span class="s">"They just write it off."</span>
+<span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">indexes</span> <span class="s">"write"</span> <span class="s">"How is it a write-off? They just write it off."</span>
+<span class="p">[</span><span class="mi">12</span><span class="p">,</span><span class="mi">33</span><span class="p">]</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">indexes</code> vrací prázdný seznam, nemůže-li nalézt určený substring. Jinak vrací index místa, kde substring začíná. Připomínám, že indexy se v Elmu počítají od <code class="highlighter-rouge">0</code>. Pro 
+víceřádkové řetězce můžeme použít funkci <code class="highlighter-rouge">indexes</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">indexes</span> <span class="s">"quitter"</span> <span class="s">""" </span><span class="se">\</span><span class="err">
+| I</span><span class="se">'</span><span class="s">m a great quitter. It's one of the few things </span><span class="se">\</span><span class="err">
+| I do well. I come </span><span class="se">f</span><span class="s">rom a long line of quitters. </span><span class="se">\</span><span class="err">
+| My </span><span class="se">f</span><span class="s">ather was a quitter, my grandfather was a </span><span class="se">\</span><span class="err">
+| qui</span><span class="se">t</span><span class="s">ter... I was raised to give up. </span><span class="se">\</span><span class="err">
+| </span><span class="se">"</span><span class="s">""
+[16,93,122,155]</span></code></pre></figure>
+
+<p>Většina funkcí v modulu <code class="highlighter-rouge">String</code>, které nám pomáhají lokalizovat substringy, jsou "case-sensitive".</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">contains</span> <span class="s">"Believe"</span> <span class="s">"It’s not a lie if you believe it."</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">endsWith</span> <span class="s">"Lebaron"</span> <span class="s">"1989 LeBaron"</span>
+<span class="kt">False</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">indexes</span> <span class="s">"Write"</span> <span class="s">"They just write it off."</span>
+<span class="kt">[]</span></code></pre></figure>
+
+<h4 id="extracting-substrings">Vyjímání substringů</h4>
+
+<p>Nyní, když víme jak nalézt substringy, pojďme dál a vyjměme je s použitím funkce <code class="highlighter-rouge">slice</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="mi">0</span> <span class="mi">5</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Bears"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="mi">7</span> <span class="mi">12</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Beets"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">length</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="mi">35</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="mi">14</span> <span class="mi">35</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Battlestar Galactica."</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">slice</code> přijímá indexy počátku a konce substringu. Je tu ale háček. Skrytý mechanizmus funkce se zastaví na znaku před koncovým indexem. Když vyjímáme "Bears", musíme zadat 5 jako koncový index, i když má jeho poslední písmeno index <code class="highlighter-rouge">4</code>. Můžeme také počítat pozpátku:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="o">-</span><span class="mi">21</span> <span class="o">-</span><span class="mi">1</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Battlestar Galactica"</span> <span class="o">:</span> <span class="kt">String</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="o">-</span><span class="mi">28</span> <span class="o">-</span><span class="mi">23</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Beets"</span>
+
+<span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="o">-</span><span class="mi">35</span> <span class="o">-</span><span class="mi">30</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">"Bears"</span></code></pre></figure>
+
+<p>Počítání pozpátku může být matoucí. Vzhledem k tomu, jak se indexy počítají, nemůžeme při zpětném počítání extrahovat poslední tečku.<code class="highlighter-rouge">-1</code> je index poslední tečky, před níž nutně končí každý vyjmutelný substring funkcí <code class="highlighter-rouge">slice</code>. Označíme-li konec indexem <code class="highlighter-rouge">0</code>, dostaneme prázdný řetězec. Držme se tedy pozitivních indexů.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">String</span><span class="o">.</span><span class="n">slice</span> <span class="o">-</span><span class="mi">21</span> <span class="mi">0</span> <span class="s">"Bears. Beets. Battlestar Galactica."</span>
+<span class="s">""</span></code></pre></figure>
+
+<h4 id="replacing-substrings">Nahrazování substringů</h4>
+
+<p>Modul <code class="highlighter-rouge">String</code> zatím 
+nenabízí snadný způsob výměny substringů. Pro tuto úlohu musíme použít regulární výrazy, o nichž pojednává celá další kapitola.</p>
+
+<p>Úplnou informaci o všech funkcích modulu  <code class="highlighter-rouge">String</code> lze získat  <a href="http://package.elm-lang.org/packages/elm-lang/core/latest/String" target="_blank">zde</a>.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="indentation.html">
+<em>&larr; Previous</em>
+<strong>Odsazení</strong>
+</a>
+<a class="pagination-next" href="regular-expression.html">
+<em>Next &rarr;</em><strong>Regulerní výraz</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

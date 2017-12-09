@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 2.2 </h1>
+<h2>Instalace</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="simple-page-in-elm.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="getting-started-intro.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Než začneme, potřebujeme si instalovat a konfigurovat několik nástrojů, nezbytných pro práci s jazykem Elm.</p>
+
+<h3 id="installing-nodejs">Instalace Node.js</h3>
+
+<p>
+Node.js je běhové (runtime) prostření JavaScriptu pro vytváření většinou serverových webových aplikací.</p>
+
+<dl>
+  <dt>Proč Node.js?</dt>
+  <dd>Tato celá kniha popisuje jazyk pro vytváření klientských webových aplikací. Proč potřebujeme instalovat Node.js? Potřebujeme to ze dvou důvodů:</dd>
+  <dd>
+<ul>
+<li><a href="elm-repl.html" target="_blank">elm-repl</a> - nástroj, který budeme používat k experimentování a jazykem Elm - kompiluje kód Elmu do JavaScriptu. Node.js poskytuje prostředí pro běh tohoto JS kódu.</li>
+    </ul>
+  </dd>
+  <dd>
+    <ul>
+<li>Součástí Node.js je správce paketů, zvaný NPM (<strong>N</strong>ode.js <strong>P</strong>ackage <strong>M</strong>anager). Většína nástrojů a knihoven pro vytváření "front-end" aplikací je distribuována jako pakety NPM. V této knize nebudeme NPM používat příliš často ale jako produktivní programátor jej potřebujete mít ve svém arzenálu.</li>
+    </ul>
+  </dd>
+</dl>
+
+<p>Při instalaci Node.js ve svém počítači se řiďte  <a href="https://nodejs.org/en/download/" target="_blank">instrukcemi</a>
+oficiálního sajtu. Protože je NPM součástí Node.js, nepotřebujete jej zvlášť instalovat. Pro ověření, že máte Node.js 4.0 či vyšší nainstalovaný, zadejte odkudkoli tento příkaz v terminálu:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">node --version</code></pre></figure>
+
+<h3 id="installing-elm-platform">Instalace Elm Platform</h3>
+
+<p>Elm Platform zahrnuje všechny nástroje, potřebné pro práci s Elm. Při instalaci Elm Platform následujte <a href="https://guide.elm-lang.org/install.html" target="_blank">instrukce</a>,
+uvedené na oficiálním sajtu. Potom si ověřte správnost instalace příkazem v terminálu:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm --version</code></pre></figure>
+
+<p>Mělo by se ukázat číslo instalované verze, což je aktuálně <code class="highlighter-rouge">0.18.0</code>.</p>
+
+<h3 id="source-code-editor">Editor zdrojového kódu</h3>
+
+<p>Při studiu této knihy budete psát mnoho zdrojového kódu. Některý z těchto kódů bude realizován uvnitř terminálu v aplikaci <a href="elm-repl.html" target="_blank">elm-repl</a>. Některé kódy budou uloženy do souboru a kompilovány. Elm nemá vlastní editor zdrojového kódu. Je tedy na vás, který editor si zvolíte. Většina editorů nepodporuje užitečné vlastnosti jako je zvýraznění syntaxe a automatické dokončování zápisů.<br>
+Pokud se spokojíte zvýrazňováním párových závorek, je Notepad++ vaše správná volba. Jinak si můžete pro osm vybraných editorů nainstalovat pluginy podle odkazů v oficiální dokumentaci Elmu <a href="https://guide.elm-lang.org/install.html" target="_blank">Configure Your Editor</a>.</p>
+
+<p>Protože znaky tabulátoru generují v Elmu syntaktické chyby, nezapomeňte nastavit editor tak, aby při stisku tabulátoru vkládal mezery.</p>
+
+<h3>Aplikace elm-format</h3>
+
+<p>Kompilátor akceptuje jakýkoli platný program ale rozsáhlá komunita Elmu preferuje programy, psané určitým stylem. U většiny jakyků si můsíme stylové požadavky pamatovat a přičinlivě je následovat. Nejen že to zabírá určité místo v naší paměti ale také nás to rozptyluje při řešení problémů.<br>
+Aplikace <a href="https://github.com/avh4/elm-format" target="_blank">elm-format</a> se snaží tento problém řešit automatickým formátovaním našeho kódu podle souboru pravidel, standardizovaných komunitou. I když nemusíte, vřele vám instalaci <code class="highlighter-rouge">elm-format</code> doporučuji.</p>
+
+<dl>
+<dt>elm-format Release Status</dt>
+<dd>As of this writing, <code style="font-size: 14px;">elm-format</code> is still in <a href="https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha" target="_blank">alpha</a>. Don’t be surprised if the current format of your program looks different from the one 1.0.0 version of <code class="highlighter-rouge">elm-format</code> produces in the future. Despite its alpha status, most community members are already using it. So you should be fine using it too. All code in the book that is meant to be saved in a file has been formatted using <code class="highlighter-rouge">elm-format</code>.</dd>
+</dl>
+
+<p>Na rozdíl od Elm Platformy, není <code class="highlighter-rouge">elm-format</code> expedován s instalátorem. Tým jeho vývojářů naznačil, že jednoduchá možnost instalace bude k disposici u stabilní verze. Do té doby musíme zprovoznění aplikace věnovat trochu více pozornosti.</p>
+
+<p><strong>Krok 1:</strong> V sekci <a href="https://github.com/avh4/elm-format#installation-" target="_blank">installation</a> si stáhněte vhodnou verzi pro váš operační systém a rozbalte ji. Potřebujete aby byla kompatibilní s Elm 0.18.</p>
+
+<p><strong>Krok 2:</strong> Abyste mohli <code class="highlighter-rouge">elm-format</code> spouštět v teminálu z kteréhokoli diskového oddílu, přidejte jeho lokaci do proměnné <code class="highlighter-rouge">PATH</code>.</p>
+
+<dl>
+<dt>Proměnná PATH</dt>
+<dd><a href="http://superuser.com/a/284351" target="_blank">PATH</a> je proměnná prostředí, která uvádí cestu k adresáři, v němž je spustitelný program umístěn. Takovýto program lze v terminálu spouštět bez zadávání cesty k souboru.</dd>
+</dl>
+
+<p>Nejlepší způsob přidání  aplikace <code class="highlighter-rouge">elm-format</code> do proměnné <code class="highlighter-rouge">PATH</code> je nakopírovat ji do adresáře, který obsahuje program <code class="highlighter-rouge">elm</code>. Instalátor Elm Platformy vloží programový soubor <code class="highlighter-rouge">elm</code> do adresáře, který je již vložen do proměnné <code class="highlighter-rouge">PATH</code>. Takže kopírování <code class="highlighter-rouge">elm-format</code> do stejného adresáře umožní jeho spuštění odkudkoli v terminálu. V Unixu si můžete vytisknout úplnou cestu k programu <code class="highlighter-rouge">elm</code> spuštěním následujcího příkazu v terminálu:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">which elm
+/usr/local/bin/elm</code></pre></figure>
+
+<!--<figure class="highlight"><pre><code class="language-bash" data-lang="bash">which elm
+/usr/local/bin/elm</code></pre></figure>-->
+
+<p>Ve Windows dosáhnete téhož spuštěním následujcího příkazu: <code class="highlighter-rouge">where elm</code>.</p>
+
+<p><strong>Krok 3:</strong> Pohleďme na <code>elm-format</code> v akci. Vytvořte nový adresář s názvem <code>beginning-elm</code>. Kde tento adresář vytvoříte není důležité. V adresáři vytvořte rovněž soubor <code>TestElmFormat.elm</code>
+ a vložte do něho následující kód:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Main</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">beginnerProgram</span><span class="p">,</span> <span class="n">div</span><span class="p">,</span> <span class="n">button</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Events</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">onClick</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+  <span class="n">beginnerProgram</span> <span class="p">{</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">view</span> <span class="o">=</span> <span class="n">view</span><span class="p">,</span> <span class="n">update</span> <span class="o">=</span> <span class="n">update</span>
+  <span class="p">}</span>
+
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+  <span class="n">div</span> <span class="kt">[]</span>
+    <span class="p">[</span> <span class="n">button</span> <span class="p">[</span><span class="n">onClick</span> <span class="kt">Decrement</span><span class="p">]</span> <span class="p">[</span><span class="n">text</span> <span class="s">"-"</span><span class="p">]</span>
+    <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span> <span class="p">[</span><span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="n">model</span><span class="p">)]</span>
+    <span class="p">,</span> <span class="n">button</span> <span class="p">[</span><span class="n">onClick</span> <span class="kt">Increment</span><span class="p">]</span> <span class="p">[</span><span class="n">text</span> <span class="s">"+"</span><span class="p">]</span>
+    <span class="p">]</span>
+
+<span class="kr">type</span> <span class="kt">Msg</span> <span class="o">=</span> <span class="kt">Increment</span> <span class="o">|</span> <span class="kt">Decrement</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+  <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+    <span class="kt">Increment</span> <span class="o">-&gt;</span> <span class="n">model</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="kt">Decrement</span> <span class="o">-&gt;</span> <span class="n">model</span> <span class="o">-</span> <span class="mi">1</span></code></pre></figure>
+
+<p class="info">Neznepokojujte se, pokud výše uvedenému kódu rozumíte málo nebo vůbec ne. Na konci knihy budete schopen porozumět mnohem složitějšímu kódu.</p>
+
+<p>I když je uvedený kód platný pro Elm, není příliš konformní se zavedeným souborem doporučení pro úpravu kódu, zvaným <a href="http://elm-lang.org/docs/style-guide" target="_blank">style guide</a>. K nápravě použijme aplikaci <code class="highlighter-rouge">elm-format</code>. Přejděte do adresáře <code class="highlighter-rouge">beginning-elm</code> a v terminálu realizujte tento příkaz:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-format TestElmFormat.elm</code></pre></figure>
+
+<p>Uvidíte následující varování:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">This will overwrite the following files to use Elm<span class="s1">'s preferred style:
+
+    TestElmFormat.elm
+
+This cannot be undone! Make sure to back up these files before proceeding.
+
+Are you sure you want to overwrite these files with formatted versions? (y/n)</span></code></pre></figure>
+
+<p>Odpovězte <strong>y</strong>. Když se nyní podíváte do souboru <code class="highlighter-rouge">TestElmFormat.elm</code>, uvidíte že <code class="highlighter-rouge">elm-format</code> náš kód pěkně zformátovál:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Main</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">beginnerProgram</span><span class="p">,</span> <span class="n">div</span><span class="p">,</span> <span class="n">button</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Events</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">onClick</span><span class="p">)</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">beginnerProgram</span>
+        <span class="p">{</span> <span class="n">model</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="p">,</span> <span class="n">view</span> <span class="o">=</span> <span class="n">view</span>
+        <span class="p">,</span> <span class="n">update</span> <span class="o">=</span> <span class="n">update</span>
+        <span class="p">}</span>
+
+
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Decrement</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"-"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="n">model</span><span class="p">)</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Increment</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"+"</span> <span class="p">]</span>
+        <span class="p">]</span>
+
+
+<span class="kr">type</span> <span class="kt">Msg</span>
+    <span class="o">=</span> <span class="kt">Increment</span>
+    <span class="o">|</span> <span class="kt">Decrement</span>
+
+
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">msg</span> <span class="kr">of</span>
+        <span class="kt">Increment</span> <span class="o">-&gt;</span>
+            <span class="n">model</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="kt">Decrement</span> <span class="o">-&gt;</span>
+            <span class="n">model</span> <span class="o">-</span> <span class="mi">1</span></code></pre></figure>
+
+<p>Chcete-li obejít varování, spusťte <code class="highlighter-rouge">elm-format</code> s návěstím <code class="highlighter-rouge">--yes</code>.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-format TestElmFormat.elm --yes</code></pre></figure>
+
+<p>Soubor <code class="highlighter-rouge">TestElmFormat.elm</code> již nebudeme potřebovat, takže jej můžete smazat.</p>
+
+<p><strong>Krok 4:</strong> Spouštění aplikace <code class="highlighter-rouge">elm-format</code> při každé změně zdrojového souboru může být únavné. Z toho důvodů většina editorů kódu disponuje pluginem, aktivovaným při každém uložení souboru s příponou .elm. Instalujte si plugin pro svůj editor ze specializovaného <a href="https://github.com/avh4/elm-format#editor-integration" target="_blank">sajtu</a>. Některé pluginy vyžadují aktivaci volby  <em>format on save</em>. Nezapomeňte si přečíst příslušné instrukce.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="getting-started-intro.html">
+<em>&larr; Previous</em>
+<strong>Začínáme</strong>
+</a>
+<a class="pagination-next" href="simple-page-in-elm.html">
+<em>Next &rarr;</em><strong>Jednoduchá webová stránka</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+  </body>
+</html>

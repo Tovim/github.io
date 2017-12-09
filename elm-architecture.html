@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 5.1 </h1>
+<h2>Architektura Elmu</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a  href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="model-view-update-part-1.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="benefits-conclusion.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<br>
+<p>V této kapitole prozkoumáme souhrn návodů a opatření pro snadnou správu datových toků v našich webových aplikacích - zvaný Elm Architecture. Elm Architecture poskytuje solidní základ pro modularitu a opakované použití kódu a jeho testování.</p>
+<p>Při vytváření webových aplikací v Elmu používáme vzorový koncept, který se skládá ze tří hlavních částí: Model, Update, View: </p>
+
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell">
+ <span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+ <span class="c1"> -- MODEL</span>
+
+ <span class="kr">type alias</span> <span class="kr">Model</span> <span class="o"> = </span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+
+ <span class="c1"> -- UPDATE</span>
+
+ <span class="kr">type</span> <span class="kr">Msg</span> <span class="o"> = </span> <span class="kr">Reset</span> <span class="o"> | </span> <span class="o">...</span>
+
+ <span class="kr">update</span> <span class="o">:</span> <span class="kr">Msg</span> <span class="o">-></span> <span class="kr">Model</span> <span class="o">-></span> <span class="kr">Model</span>
+ <span class="kr">update msg model</span> <span class="o">=</span> 
+       <span class="kr">case msg of</span> 
+       <span class="kr">Reset</span> <span class="o">-></span> <span class="o">...</span> 
+       <span class="o">...</span>
+
+ <span class="c1"> -- VIEW</span>
+
+ <span class="kr">view</span> <span class="o">:</span> <span class="kr">Model</span> <span class="o">-></span> <span class="kr">Html Msg</span> <span class="o">-></span>
+ <span class="kr">view model</span> <span class="o">=</span> 
+       <span class="o">...</span>
+	
+</code></pre></figure>
+</article>
+<br>
+<br>
+
+<nav class="pagination">
+<a class="pagination-next" href="benefits-conclusion.html">
+<em>&larr; Previous</em>
+<strong>Výhody - shrnutí</strong>
+</a>
+<a class="pagination-next" href="model-view-update-part-1.html">
+<em>Next &rarr;</em><strong>Aktualizace modelu 1</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

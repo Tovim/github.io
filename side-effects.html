@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 5.5 </h1>
+<h2>Vedlejší účinky</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="commands.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="model-view-update-part-2.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Jedním z důvodů spolehlivosti Elmu je to, že můžeme psát aplikace s použitím <em>čistých</em> funkcí. Čisté funkce přijmou vstup, provedou výpočet a vrátí výstup. To je celá jejich práce. Nevykonávají žádné operace, které vytvářejí vedlejší účinky, jako je vyslání HTTP požadavku ke vzdálenému serveru nebo ukládání dat do lokálního uložiště.</p>
+
+<p class="info">V odstavci <a href="pure-functions.html#side-effect" target="_blank">Vedlejší účinky</a> sekce "Čisté funkce", jsme se dozvěděli, co to vedlejší účinky v souvislosti funkcemi jsou. V této sekci si povíme více o tom, jak ovlivňují celou aplikaci.</p>
+
+<p>Jedním ze základních pravidel, které musí všechny čisté funkce dodržovat je to, že <em>výraz je vyhodnocen na stejný výsledek bez ohledu na souvislosti</em>. To znamená, že máme zaručený stejný výstup pro stejný vstup libovolně krát opakovaný. </p>
+
+<p>Nebyl by náš úděl programátora mnohem jednodušší, kdyby každý řádek kódu byl částí čisté funkce? Usnadnilo by se uvažování o výstupech z našeho programu. Snadněji bychom nalézali příčiny chyb. Testování by bylo rovněž jednodušší. Vytvořili bychom si testovací sestavu vstupů, jež bychom aplikovali na testovanou funkci. Kdyby funkce vrátila očekávaný výsledek, mohli bychom si být jisti že se chová podle předpokladů.</p>
+
+<h3 id="real-world-is-messy">Skutečný svět je chaotický</h3>
+
+<p>Skutečný svět je ve skutečnosti velmi nepřehledný. Kdybychom měli psát pouze čisté funkce, pravděpodobně bychom skončili u nepotřebných programů. Ty by nebyly schopny přijmout žádný vstup od uživatele nebo prezentovat výstup na obrazovce nebo vyzvednout data ze vzdáleného serveru. Kdybychom měli funkci, která přijme něčí jméno jako vstup a pokouší se jej zobrazit na obrazovce, mohli bychom takovou funkci označit jako <em>čistou</em>? Odpověď je, že nikoliv. <!--
+The answer is no. That function cannot guarantee that the name can be displayed on a screen every time we apply it. That’s because we cannot rely on a screen to be working <em>all</em> the time. Perhaps the driver for a graphics card is not working or the graphics memory is full. There could be any number of other reasons that might cause a screen to not work.--></p>
+
+<p>Nejobvyklejším způsobem interakce programu s okolním světem je prostřednictvím <em>vedlejších účinků</em>. Následující definice vedlejších účinků z Wikipedie vysvětluje, proč jsou jejich důsledkem složité a nepřesné aplikace.</p>
+
+<p class="info">"O funkci nebo výrazu se řekne, že má vedlejší účinek, pokud mění nějaký stav nebo má pozorovatelnou interakci s voláním funkce nebo s okolním světem. Určitá funkce například,  může měnit globální nebo statickou proměnnou, měnit některý z jejich argumentů, vyvolávat výjimku, zapisovat data do obrazovky nebo souboru, číst data nebo volat jinou funkci s vedlejším účinkem. Při existenci vedlejších účinků může být chování programu závislé na historii, to jest na pořadí výpočtu. Porozumění a odladění funkce s vedlejšími účinky vyžaduje znalost souvislostí a případně jejich historie." - <a href="https://en.wikipedia.org/wiki/Side_effect_(computer_science)" target="_blank">Wikipedia</a>.</p>
+
+<h3 id="elm-runtime-to-the-rescue">Spásou je Elm runtime</h3>
+
+<p>Jak tedy zachází Elm s takovouto hádankou? Používá poměrně chytrou techniku k ošetření vedlejších účinků, pramenících z interakce s okolním světem. Abychom tuto techniku pochopili, vraťme se zpět k registračnímu formuláři, který jsme vytvářeli v sekci <a href="model-view-update-part-2.html" target="_blank">Skladba EA - část 2</a>. Funkce <code class="highlighter-rouge">view</code> tam přijímá model <code class="highlighter-rouge">User</code> a vrací nějaký kód Elmu, reprezentujícího HTML, schopného generovat sdělení.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Je zásadní pochopit, že se nemusíme starat o renderování kódu HTML nebo jak nasměrovat sdělení, vycházející z textových polí a tlačítek do naší funkce <code class="highlighter-rouge">update</code>. O všechno se postará samotný runtime Elmu.</p>
+
+<p>Jedním způsobem náhledu je představa, že je náš kód umístěn v ochraném zámotku, kde je všechno deterministicky určeno. Vždy můžeme říci, jaký bude výstup pro daný vstup. Mimo zámotek toto říci nemůžeme. Obrázek dole ukazuje, jak runtime Elmu chrání náš kód před vnějším světem, který je protkán vedlejšími účinky.</p>
+
+<p><img src="images/elm-runtime.png" alt="" /></p>
+
+<p>Uživatelské rozhraní není jediný aspekt vnějšího světa, který produkuje vedlejší účinky. Jsou také jiné. Většinu situací, při kterých potřebuje Elm komunikovat s vnějším světem, lze rozdělit do dvou kategorií:</p>
+
+<p><strong>1. Požádat runtime aby něco udělal.</strong></p>
+
+<p>Zde je několik příkladů:</p>
+
+<ul>
+  <li>Poslat a přijmout data ze vzdáleného serveru HTTP.</li>
+  <li>Uložit data do lokálního uložiště.</li>
+  <li>Generovat náhodná čísla.</li>
+  <li>Požádat knihovnu JavaScriptu aby provedla nějakou operaci.</li>
+</ul>
+
+<p><strong>2. Být uvědoměn, že se něco děje.</strong></p>
+
+<p>Zde je několik příkladů:</p>
+
+<ul>
+  <li>Naslouchat a čekat na sdělení webového soketu.</li>
+  <li>Naslouchat a čekat na změny lokace.</li>
+  <li>Naslouchat tikotu hodin.</li>
+  <li>Naslouchat a čekat na výstup, generovaný knihovnou JavaScriptu.</li>
+</ul>
+
+<p>Elm poskytuje <a href="commands.html" target="_blank">příkazy</a>, které ošetřují situace z první kategorie a <a href="/subscriptions.html" target="_blank">subskripty</a>, které ošetřují situace z druhé kategorie.</p>
+
+<h3 id="everything-is-data">Všechno jsou data</h3>
+
+<p>Jak již bylo zmíněno v sekci <a href="/model-view-update-part-1.html" target="_blank">Skladba EA - část 1</a>, funkce <code class="highlighter-rouge">beginnerProgram</code> z modulu <code class="highlighter-rouge">Html</code> je zodpovědná za propojení funkcí pro náš počáteční model, view a update.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Program</span> <span class="kt">Never</span> <span class="kt">User</span> <span class="kt">Msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">beginnerProgram</span>
+        <span class="p">{</span> <span class="n">model</span> <span class="o">=</span> <span class="n">initialModel</span>
+        <span class="p">,</span> <span class="n">view</span> <span class="o">=</span> <span class="n">view</span>
+        <span class="p">,</span> <span class="n">update</span> <span class="o">=</span> <span class="n">update</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Na funkci <code class="highlighter-rouge">beginnerProgram</code>
+ můžeme nahlížet jako na pomocníka runtime Elmu. I když se postará o propojení, je to nakonec runtime, který renderuje HTML a směřuje sdělení ke správným funkcím. Již jsme viděli, jak runtime koordinuje interakci mezi různými funkcemi v našem kódu. Zde to máme znova:</p>
+
+<p><img src="images/model-view-update-interaction-2.png" alt="" /></p>
+
+<p>Jak se ukazuje, funkce <code class="highlighter-rouge">initialModel</code>, <code class="highlighter-rouge">view</code> a  <code class="highlighter-rouge">update</code> nehovoří mezi sebou nebo s okolním světem přímo. Runtime Elmu ošetřuje všechny uvedené interakce. V důsledku toho mohou být tyto funce <em>čisté</em>. I když funkce <code class="highlighter-rouge">initialModel</code> nepřijímá žádné vstupy, vždy vrací tentýž záznam.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">initialModel</span> <span class="o">:</span> <span class="kt">User</span>
+<span class="n">initialModel</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="p">,</span> <span class="n">loggedIn</span> <span class="o">=</span> <span class="kt">False</span>
+    <span class="p">}</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">view</code> rovněž pro tentýž model vždy vrátí stejný výstup HTML. Funkce <code class="highlighter-rouge">update</code> může vypadat trošku komplikovaně.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">User</span>
+<span class="n">update</span> <span class="n">message</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">message</span> <span class="kr">of</span>
+        <span class="kt">SaveName</span> <span class="n">name</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="p">}</span>
+
+        <span class="kt">SaveEmail</span> <span class="n">email</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">email</span> <span class="o">=</span> <span class="n">email</span> <span class="p">}</span>
+
+        <span class="kt">SavePassword</span> <span class="n">password</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">password</span> <span class="o">=</span> <span class="n">password</span> <span class="p">}</span>
+
+        <span class="kt">Signup</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">loggedIn</span> <span class="o">=</span> <span class="kt">True</span> <span class="p">}</span></code></pre></figure>
+
+<p>Přijímá sdělení a model jako vstupy a vrací nový model jako výstup. Model jsou jenom nějaká data. Ale co sdělení? To jsou data také. Je to speciální typ dat, která obsahují informaci o tom, jaká akce má být provedena. Podobně jsou data také <a href="commands.html" target="_blank">příkazy</a> a <a href="tasks.html" target="_blank">úlohy</a>, o kterých pohovoříme později v této kapitole.</p>
+
+<h3 id="program-as-data-transformation-machine">Program jako transformační stroj pro data</h3>
+
+<p>Nyní, když máte jisté zázemí, můžete pochopit tu chytrou techniku, kterou Elm používá k jednání s vnějším světem: se vším v našich programech zachází jako s <em>datu</em>, kromě funkcí, které s nimi pracují. To má dalekosáhlé implikace pro způsob psaní našich programů. Můžeme naše programy považovat řadu transformačních operací s daty. Přijmete nějaká data (poskytnutá třeba uživatelem), aplikujete na ně funkci, která je transformuje na jinou formu dat. A tak dál a tak dále, až máme finální výstup, který prezentujeme uživateli.</p>
+
+<p>Tento přístup k vytváření programů drasticky redukuje celkovou složitost aplikace. K této myšlence se vrátíme až budeme hovořit o příkazech a subskripcích. V této chvíli věřím, že rozumíte tomu, jak Elm umožňuje zapsat téměř všechnu naší logiku aplikace s použitím <em>čistých</em> funkcí.</p>
+
+<p><img src="images/data-transformation.png" alt="" /></p>
+
+<p>Zbytek této kapitoly je věnován zkoumání různých technik, které runtime Elmu používá při komunikaci v okolním světem. Začneme příkazy v příští sekci.</p>
+</article>
+
+   <nav class="pagination">
+<a class="pagination-next" href="model-view-update-part-2.html">
+<em>&larr; Previous</em>
+<strong>Aktualizace modelu 2</strong>
+</a>
+<a class="pagination-next" href="commands.html">
+<em>Next &rarr;</em><strong>Příkazy</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

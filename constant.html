@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.8 </h1>
+<h2>Konstanty</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="if-expression.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="value.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Letmo jsme se již zmínili o proměnných ale vynechali jsme jeden důležitý detail. Poté, co jsme vymezili hodnotu proměnné <code class="highlighter-rouge">x</code> výrazem <code class="highlighter-rouge">3x - 5 = 7</code>, proměnili jsme ji ve skutečnosti v konstantu. Pro lepší objasnění to vyjádřím jinak ještě jednou: <code class="highlighter-rouge">x = (7 + 5) / 3</code>. V této verzi může mít <code class="highlighter-rouge">x</code> pouze jednu hodnotu a tou je <code class="highlighter-rouge">4</code>. Ta se nemůže změnit, zůstane <code class="highlighter-rouge">4</code> napořád, až do konce věků. Zdá se, že jsme objevili způsob pojmenování proměnné. Nyní se můžeme odkazovat na výraz <code class="highlighter-rouge">(7 + 5) / 3</code> jako na <code class="highlighter-rouge">x</code>. Narazíme-li na jiný výraz, který používá symbol <code class="highlighter-rouge">x</code>, můžeme jej bezpečně nahradit hodnotou <code class="highlighter-rouge">(7 + 5) / 3</code>. Jak se ukazuje, umožňuje nám Elm pojmenovávat výrazy takovýmto způsobem:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">7</span> <span class="o">+</span> <span class="mi">5</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3</span>
+<span class="mi">4</span>
+
+<span class="o">&gt;</span> <span class="n">x</span>
+<span class="mi">4</span>
+
+<span class="o">&gt;</span> <span class="n">meaningOfLife</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="mi">42</span>
+
+<span class="o">&gt;</span> <span class="n">meaningOfLife</span>
+<span class="mi">42</span></code></pre></figure>
+
+<p>Od této chvíle budeme používat termín <em>konstanta</em> pro něco, co dává jméno výrazu, potažmo hodnotě. Elm má několik konstant již definovaných, například naši oblíbenou z matematiky:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">pi</span>
+<span class="mf">3.141592653589793</span></code></pre></figure>
+
+<h3 id="naming-constants">Pojmenování konstant</h3>
+
+<p>Elm disponuje jistymi pravidly pro označení konstant. 
+</p>
+
+<h4 id="camel-case">Camel Case</h4>
+
+<p>První písmeno názvu konstanty musí být malé velikosti a první písmeno následně připojeného slova má být kapitálka. Tento styl pojmenovávání se nazývá <a href="https://en.wikipedia.org/wiki/Camel_case" target="_blank">Camel Case</a>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">meaningOfLife</span> <span class="o">=</span> <span class="mi">42</span>   <span class="c1">-- Platné jméno pro konstantu</span>
+<span class="mi">42</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="kt">MeaningOfLife</span> <span class="o">=</span> <span class="mi">42</span>   <span class="c1">-- Neplatné jméno pro konstantu</span></code></pre></figure>
+
+<h4 id="numbers">Čísla</h4>
+
+<p>Konstanta může mít ve svém názvu číslo.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">height1</span> <span class="o">=</span> <span class="mi">6</span>   <span class="c1">-- Platné ale nedoporučované</span>
+<span class="mi">6</span></code></pre></figure>
+
+<p>I když je <code class="highlighter-rouge">height1</code> platným názvem, doporučuji čísla v názvech nepoužívat. Měli bychom vytvářet popisná jména. Čísla jsou kryptická. </p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">firstHeight</span> <span class="o">=</span> <span class="mi">6</span>   <span class="c1">-- Mnohem lepší</span>
+<span class="mi">6</span></code></pre></figure>
+
+<h4 id="apostrophes">Apostrofy</h4>
+
+<p>Od verze <code class="highlighter-rouge">0.18</code> nejsou apostrofy v názvech konstant povoleny. </p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">name'</span> <span class="o">=</span> <span class="s">"Walter"</span>
+
+<span class="c1">------------------------- SYNTAX PROBLEM -----------------------------</span>
+<span class="kt">Ran</span> <span class="n">into</span> <span class="n">a</span> <span class="n">single</span> <span class="n">quote</span> <span class="kr">in</span> <span class="n">a</span> <span class="n">variable</span> <span class="n">name</span><span class="o">.</span> <span class="kt">This</span> <span class="n">was</span> <span class="n">removed</span> <span class="kr">in</span> <span class="mf">0.18</span><span class="o">!</span>
+
+<span class="mi">3</span><span class="o">|</span>   <span class="n">name'</span> <span class="o">=</span> <span class="s">"Walter"</span>
+         <span class="o">^</span>
+<span class="kt">Change</span> <span class="n">it</span> <span class="n">to</span> <span class="n">a</span> <span class="n">number</span> <span class="n">or</span> <span class="n">an</span> <span class="n">underscore</span><span class="p">,</span> <span class="n">like</span> <span class="n">name_</span> <span class="n">or</span> <span class="n">name1</span>
+
+<span class="kt">Or</span> <span class="n">better</span> <span class="n">yet</span><span class="p">,</span> <span class="n">choose</span> <span class="n">a</span> <span class="n">more</span> <span class="n">descriptive</span> <span class="n">name</span><span class="o">!</span></code></pre></figure>
+
+<h4 id="underscore">Podtržítko</h4>
+
+<p>Podtržítka jsou v názvu konstant tolerována.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">base_height</span> <span class="o">=</span> <span class="mi">4</span>   <span class="c1">-- Platné ale nedoporučené</span>
+<span class="mi">4</span></code></pre></figure>
+
+<p>Stylistická konvence Elmu předepisuje názvy konstant ve stylu Camel Case. Použití podtržítka mezi slovy v názvu se nazývá <a href="https://en.wikipedia.org/wiki/Snake_case" target="_blank">Snake Case</a>.</p>
+
+<p>Podobně jako u čísel, můžeme být v pokušení přidat podtržítko na konec názvu konstanty.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Sansa"</span>
+<span class="s">"Sansa"</span>
+
+<span class="o">&gt;</span> <span class="n">name_</span> <span class="o">=</span> <span class="s">"Stark"</span>    <span class="c1">-- Platné ale nedoporučené</span>
+<span class="s">"Stark"</span></code></pre></figure>
+
+<p>Doporučuji nahradit podtržítko smysluplným slovem, popisujícím jemné rozdíly.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">firstName</span> <span class="o">=</span> <span class="s">"Sansa"</span>
+<span class="s">"Sansa"</span>
+
+<span class="o">&gt;</span> <span class="n">lastName</span> <span class="o">=</span> <span class="s">"Stark"</span>    <span class="c1">-- Mnohem lepší</span>
+<span class="s">"Stark"</span></code></pre></figure>
+
+<h4 id="special-characters">Specielní znaky</h4>
+
+<p>Konstanta nemůže mít ve svém názvu specielní znaky, jako např. <code class="highlighter-rouge">$</code>, <code class="highlighter-rouge">#</code> nebo <code class="highlighter-rouge">&amp;</code>).</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">height</span><span class="o">$</span> <span class="o">=</span> <span class="mi">7</span>       <span class="c1">-- Neplatný název</span>
+
+<span class="c1">------------------- SYNTAX PROBLEM----------------------</span>
+<span class="kt">I</span> <span class="n">ran</span> <span class="n">into</span> <span class="n">something</span> <span class="n">unexpected</span> <span class="n">when</span> <span class="n">parsing</span> <span class="n">your</span> <span class="n">code</span><span class="o">!</span>
+
+<span class="mi">4</span><span class="o">|</span>   <span class="n">height</span><span class="o">$</span> <span class="o">=</span> <span class="mi">7</span>
+             <span class="o">^</span>
+<span class="kt">I</span> <span class="n">am</span> <span class="n">looking</span> <span class="n">for</span> <span class="n">one</span> <span class="kr">of</span> <span class="n">the</span> <span class="n">following</span> <span class="n">things</span><span class="o">:</span>
+
+    <span class="n">an</span> <span class="n">expression</span>
+    <span class="n">whitespace</span></code></pre></figure>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="value.html">
+<em>&larr; Previous</em>
+<strong>Hodnota</strong>
+</a>
+<a class="pagination-next" href="if-expression.html">
+<em>Next &rarr;</em><strong>Výraz IF</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+  </body>
+</html>

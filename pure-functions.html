@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 4.3 </h1>
+<h2>Čisté funkce</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="function-composition.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="immutability.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>V sekci <a href="immutability.html" target="_blank">Immutability</a>, kde jsme aplikovali JS verzi funkce <code class="highlighter-rouge">scoresLessThan320</code>, která změnila původní seznam, jsme obdrželi rozdílné výsledky v závislosti na pořadí aplikace. Když jsme ji aplikovali před <code class="highlighter-rouge">doubleScores</code>, dostali jsme, co jsme očekávali.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&gt;</span> <span class="nx">scores</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="nx">scoresLessThan320</span><span class="p">(</span><span class="nx">scores</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span><span class="p">]</span></code></pre></figure>
+
+<p>Když jsme ji však aplikovali po <code class="highlighter-rouge">doubleScores</code>, obdrželi jsme úplně jiný výsledek.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&gt;</span> <span class="nx">scores</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="nx">doubleScores</span><span class="p">(</span><span class="nx">scores</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">632</span><span class="p">,</span> <span class="mi">640</span><span class="p">,</span> <span class="mi">624</span><span class="p">,</span> <span class="mi">740</span><span class="p">,</span> <span class="mi">674</span><span class="p">,</span> <span class="mi">636</span><span class="p">,</span> <span class="mi">628</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="nx">scoresLessThan320</span><span class="p">(</span><span class="nx">scores</span><span class="p">)</span>
+<span class="p">[]</span></code></pre></figure>
+
+<p>Funkce, které vykazují podobně nekonzistentní chování, se označují jako <em>nečisté</em>. Naproti tomu v Elmu jsou všechny funkce <em>čisté</em>, což znamená, že při stejném vstupu <em>vždy</em> mají stejný výstup, bez ohledu na pořadí jejich aplikace.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">scores</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span><span class="mi">320</span><span class="p">,</span><span class="mi">312</span><span class="p">,</span><span class="mi">370</span><span class="p">,</span><span class="mi">337</span><span class="p">,</span><span class="mi">318</span><span class="p">,</span><span class="mi">314</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">scoresLessThan320</span> <span class="n">scores</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span><span class="mi">312</span><span class="p">,</span><span class="mi">318</span><span class="p">,</span><span class="mi">314</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">doubleScores</span> <span class="n">scores</span>
+<span class="p">[</span><span class="mi">632</span><span class="p">,</span><span class="mi">640</span><span class="p">,</span><span class="mi">624</span><span class="p">,</span><span class="mi">740</span><span class="p">,</span><span class="mi">674</span><span class="p">,</span><span class="mi">636</span><span class="p">,</span><span class="mi">628</span><span class="p">]</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">scores</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span><span class="mi">320</span><span class="p">,</span><span class="mi">312</span><span class="p">,</span><span class="mi">370</span><span class="p">,</span><span class="mi">337</span><span class="p">,</span><span class="mi">318</span><span class="p">,</span><span class="mi">314</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">doubleScores</span> <span class="n">scores</span>
+<span class="p">[</span><span class="mi">632</span><span class="p">,</span><span class="mi">640</span><span class="p">,</span><span class="mi">624</span><span class="p">,</span><span class="mi">740</span><span class="p">,</span><span class="mi">674</span><span class="p">,</span><span class="mi">636</span><span class="p">,</span><span class="mi">628</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="n">scoresLessThan320</span> <span class="n">scores</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span><span class="mi">312</span><span class="p">,</span><span class="mi">318</span><span class="p">,</span><span class="mi">314</span><span class="p">]</span></code></pre></figure>
+
+<p>Je tu ještě jedna podmínka, kterou musí funkce splnit aby mohla být považována za <em>čistou</em>: nemá vytvářet vedlejší účinky. Než pochopíme vedlejší účinky (side effect), potřebujeme vědět, co je to <em>stav</em> (state).</p>
+
+<h3 id="what-is-a-state">Co je stav?</h3>
+
+<p>Stav (state) reprezentuje všechny informace, k nímž má funkce v daném okamžiku přístup. V sekci <a href="immutability.html" target="_blank">Neměnitelnost</a> jsme napsali tento kód:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">multiplier</span> <span class="o">=</span>
+    <span class="mi">2</span>
+
+
+<span class="n">doubleScores</span> <span class="n">scores</span> <span class="o">=</span>
+    <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">*</span> <span class="n">multiplier</span><span class="p">)</span> <span class="n">scores</span></code></pre></figure>
+
+<p>Stav funkce <code class="highlighter-rouge">doubleScores</code> jsou veškeré informace, uložené v parametru <code class="highlighter-rouge">scores</code> a v konstantě <code class="highlighter-rouge">multiplier</code>, k nimž má funkce přístup. Kdybychom uvedli jinou konstantu <code class="highlighter-rouge">differentMultiplier</code>:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">differentMultiplier</span> <span class="o">=</span>
+    <span class="mi">3</span>
+
+
+<span class="n">multiplier</span> <span class="o">=</span>
+    <span class="mi">2</span>
+
+
+<span class="n">doubleScores</span> <span class="n">scores</span> <span class="o">=</span>
+    <span class="kt">List</span><span class="o">.</span><span class="n">map</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="o">-&gt;</span> <span class="n">x</span> <span class="o">*</span> <span class="n">multiplier</span><span class="p">)</span> <span class="n">scores</span></code></pre></figure>
+
+<p>ta by se rovněž stala součástí stavu funkce <code class="highlighter-rouge">doubleScores</code>.  I když <code class="highlighter-rouge">doubleScores</code> ve své definici konstantu <code class="highlighter-rouge">differentMultiplier</code> nepoužívá, může k ní mít přístup.</p>
+
+<h3 id="side-effect">Vedlejší účinek</h3>
+
+<p>Funkce má vedlejší účinek, když modifikuje svůj stav. Jinými slovy, funkce vytvářejí vedlejší účinek, pokud provádí jakoukoli jinou akci, než počítání své vratné hodnoty. Funkce Elmu vedlejší účinky nemají. Výše uvedená funkce <code class="highlighter-rouge">doubleScores</code> nemůže měnit žádnou část svého stavu. Protože jsou <code class="highlighter-rouge">scores</code>, <code class="highlighter-rouge">multiplier</code> a <code class="highlighter-rouge">differentMultiplier</code> všechny neměnitelné, funkce <code class="highlighter-rouge">doubleScores</code> je změnit ani nemůže. Proto si funkce Elmu nepamatuje žádnou z předcházejících událostí daných sekvencí operace. Každá interakce s funkcí se odehrává výlučně na základě dodaných informací.</p>
+
+<p>V sekci <a href="function.html" target="_blank">Funkce</a> jsme si říkali, že funkce v matematice je vztah mezi sadou vstupů a sadou možných výstupů, přičemž je každý vstup promítán (mapped) přesně na jeden výstup.</p>
+
+<p><img src="images/function.png" alt="" /></p>
+
+<p>Funkce v Elmu <em>vždy</em> vrací tytéž výstupy pro stejné vstupy a to bez vedlejších účinků. Jejich chování se perfektně shoduje s tím, jak pracují v matematice.</p>
+
+<dl>
+  <dt>Referenční transparentnost</dt>
+  <dd>Může-li být výraz nahrazen hodnotou svého výsledku bez změny chování programu, říkáme, že tento výraz je referenčně transparentní. Protože funkce v Elmu jsou výrazy, které mají tytéž výstupy pro tytéž vstupy, jsou referencčně transparentní. Můžeme bezpečně nahradit aplikaci (volání) funkce jejím výstupem kdekoliv v programu, aniž se změní jeho chování.</dd>
+</dl>
+
+<p>V nečistých jazycích, jako JavaScript, mohou funkce měnit svůj stav podle libosti. Již jsme objevili, že funkce  <code class="highlighter-rouge">doubleScore</code> v JavaScriptu  <em>může</em> může měnit parametry seznamu <code class="highlighter-rouge">scores</code>, na což si musíme dávat bedlivý pozor.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">multiplier</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">scores</span> <span class="o">=</span> <span class="p">[</span><span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span><span class="p">];</span>
+
+<span class="kd">function</span> <span class="nx">doubleScores</span><span class="p">(</span><span class="nx">scores</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">newScores</span> <span class="o">=</span> <span class="p">[];</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">scores</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">newScores</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">scores</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">*</span> <span class="nx">multiplier</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nx">newScores</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Tato funkce může rovněž změnit proměnnou <code class="highlighter-rouge">multiplier</code>, která je definována mimo těla funkce. V souboru <code class="highlighter-rouge">experiment.js</code> přiřaďte uvnitř funkce <code class="highlighter-rouge">newScores</code> novou hodnotu <code class="highlighter-rouge">3</code> proměnné <code class="highlighter-rouge">multiplier</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">multiplier</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">scores</span> <span class="o">=</span> <span class="p">[</span><span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span><span class="p">];</span>
+
+<span class="kd">function</span> <span class="nx">doubleScores</span><span class="p">(</span><span class="nx">scores</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">newScores</span> <span class="o">=</span> <span class="p">[];</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">scores</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">newScores</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">=</span> <span class="nx">scores</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="o">*</span> <span class="nx">multiplier</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="nx">multiplier</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="nx">newScores</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Nyní poznejme důsledky změny stavu, kterou jsme provedli. Obnovte stránku <code class="highlighter-rouge">index.html</code> v prohlížeči a zadejte následující kód v konzole prohlížeče.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&gt;</span> <span class="nx">multiplier</span>
+<span class="mi">2</span>
+
+<span class="o">&gt;</span> <span class="nx">scores</span>
+<span class="p">[</span><span class="mi">316</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">312</span><span class="p">,</span> <span class="mi">370</span><span class="p">,</span> <span class="mi">337</span><span class="p">,</span> <span class="mi">318</span><span class="p">,</span> <span class="mi">314</span><span class="p">]</span>
+
+<span class="o">&gt;</span> <span class="nx">doubleScores</span><span class="p">(</span><span class="nx">scores</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">632</span><span class="p">,</span> <span class="mi">640</span><span class="p">,</span> <span class="mi">624</span><span class="p">,</span> <span class="mi">740</span><span class="p">,</span> <span class="mi">674</span><span class="p">,</span> <span class="mi">636</span><span class="p">,</span> <span class="mi">628</span><span class="p">]</span></code></pre></figure>
+
+<p>Zatím všechno vypadá dobře. Uvidíme, co se stane, když aplikujeme funkci <code class="highlighter-rouge">doubleScores</code> na parametr <code class="highlighter-rouge">scores</code> znovu.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&gt;</span> <span class="nx">doubleScores</span><span class="p">(</span><span class="nx">scores</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">948</span><span class="p">,</span> <span class="mi">960</span><span class="p">,</span> <span class="mi">936</span><span class="p">,</span> <span class="mi">1110</span><span class="p">,</span> <span class="mi">1011</span><span class="p">,</span> <span class="mi">954</span><span class="p">,</span> <span class="mi">942</span><span class="p">]</span></code></pre></figure>
+
+<p>Každý element seznamu má trojnásobnou hodnotu, což není to, co jsme chtěli. Je to proto, že jsme změnili hodnotu parametru <code class="highlighter-rouge">multiplier</code> na <code class="highlighter-rouge">3</code> poté, co se zdvojnásobila hodnota každého elementu seznamu v předchozím běhu. Změna stavu funkce <code class="highlighter-rouge">doubleScore</code> vytvořila vedlejší účinek s nezamýšlenými důsledky.</p>
+
+<h3 id="benefits-of-pure-functions">Vyhody čistých funkcí</h3>
+
+<p>Jaké praktické výhody máme z čistých funkcí? Jsou užitečné v mnoha směrech:</p>
+
+<p><strong>Srozumitelný kód</strong> - Idea <em>snadné srozumitelnosti kódu</em> je velmi subjektivní a závisí na představě každého individuálního programátora. Můžeme-li se spolehnout, že funkce se nechovají překvapivě novým způsobem - je chápání našeho programu mnohem snadnější. Funkce nejsou ovlivňovány externími stavy. Nemají rovněž možnost měnit jakýkoliv stav. V důsledku toho nemusíme mentálně sledovat věci, které nejsou v jejich "scope". Gró chování funkce pochopíme z pouhého pohledu na její vstup a výstup.</p>
+
+<p><strong>Snadné ladění</strong> - Je mnohem snadnější nalézt jádro chyby v programu, který byl sestaven z čistých funkcí. Protože funkce v Elmu nejsou závislé na nesouvisejícím kódu, provedeném před nimi, můžeme chybu spolehlivě reprodukovat. Můžeme-li ji reprodukovat, je nalezení její příčiny snadné. Přerušujeme provádění našeho programu a zkoušíme výstup každé funkce. Protože funkce závisí pouze na svých argumentech a na jiných neměnitelných konstantách ve svém rozsahu (scope), jsou všechny vstupy přímo před našima očima. Narazíme-li na funkci s nečekaným výstupem, potom jsme uvnitř této funkce museli použít nesprávnou logiku. To se jiší od jazyků bez neměnitelnosti a čistých funkcí. Když funkce v těchto jazycích produkují nečekaný výstup, nemůžeme si být jisti, že příčinou je jejich nesprávná logika, protože jsou závislé na nepředvídatelných externích stavech.</p>
+
+<p><strong>Snadné testování</strong> - Ověření, že naše funkce pracují přesně tak, jak jsme očekávali je rovněž snadnější u čistých funkcí. Existují různé způsoby ověření chování funkce. Jednou takovou technikou jsou <em>jednotkové testy</em> (unit tests), které určí, zda individuální jednotka zdrojového kódu může být spolehlivě použita. Touto individuální jednotkou je v Elmu funkce. Při psaní jednotkových testů opakovaně zadáváme funkci sadu vstupních hodnot a ověřujeme, zda jednotlivé výstupy se shodují se sadou výstupních hodnot. Protože čisté funkce nejsou závislé na externích stavech, nemusíme tuto okolnost ověřovat. Naproti tomu v jazycích, které postrádají čisté funkce, je psaní takových testů nejen nezbytné ale i poměrně záludné. Psaní <a href="/easy-to-test.html" target="_blank">testů</a> probereme později v této kapitole.</p>
+
+<p><strong>Řešení složitých problémů jednoduchými funkcemi</strong> - Účinný způsob řešení problému je jeho rozdělení na dílčí úseky. Můžeme potom psát malé, spolehlivé funkce, které řeší každý miniproblém separátně. Potom vytvoříme řešení seskupením funkcí tak aby řešily původní složitý problém. Je neuvěřitelně těžké použít tuto techniku, pokud funkce nejsou čisté. Uvidíme konkretní příklad <a href="function-composition.html" target="_blank">kombinace čistých funkcí k řešení složitého problému</a> později v této kapitole.</p>
+
+<p>V několika dalších sekcích se ponoříme hlouběji do tématu, jak čisté funkce nám umožňují vytvářet elegantní řešení větších problémů a jak je snadné je testovat.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="immutability.html">
+<em>&larr; Previous</em>
+<strong>Neměnitelnost</strong>
+</a>
+<a class="pagination-next" href="function-composition.html">
+<em>Next &rarr;</em><strong>Ripple-Carry Adder</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

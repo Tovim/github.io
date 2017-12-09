@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 3.5 </h1>
+<h2>Komentáře</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="expression.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="comparison.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+        <p>Komentáře jsou velice užitečným doplňkem kódu:</p>
+
+<ul>
+  <li>informují místně o práci kódu</li>
+  <li>označují tematické úseky kódu</li>
+</ul>
+
+<p>Komentáře jsou dvojího druhu: jednořádkové a víceřádkové.</p>
+
+<h3 id="single-line-comments">Jednořádkové komentáře</h3>
+
+<p>Jednořádkné (<em>inline</em>) komentáře začínají <code class="highlighter-rouge">--</code>. Elm ignoruje veškerý text mezi<code class="highlighter-rouge">--</code> a koncem řádku.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">42</span> <span class="c1">-- This is a single line comment and will be ignored by Elm.</span>
+<span class="mi">42</span>
+
+<span class="o">&gt;</span> <span class="mi">42</span> <span class="o">*</span> <span class="p">(</span><span class="mi">78</span> <span class="o">-</span> <span class="p">(</span><span class="mi">50</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">80</span> <span class="o">/</span> <span class="mi">3</span><span class="p">))</span> <span class="c1">-- A slightly more complex math expression.</span>
+<span class="mi">3871</span></code></pre></figure>
+
+<h3 id="multi-line-comments">Víceřádkové komentáře</h3>
+
+<p>Víceřádkové (<em>blokové</em>) začínají znaky <code class="highlighter-rouge"><span class="p">{</span><span class="err">-</span></code> a končí znaky <code class="highlighter-rouge">-}</code>. Veškerý mezilehlý text je ignorován.</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="mi">5</span> <span class="cm">{- This is a block comment and will be ignored by Elm. -}</span>
+<span class="mi">5</span></code></pre></figure>
+
+<p>Zde je ukázka použití víceřádkového komentáře, vysvětlujícího použití operátoru <code class="highlighter-rouge">||</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="cm">{- The logical OR operator. `True` if one or both inputs are `True`.
+
+  Note: When used in the infix position, like `(left || right)`, the
+        operator short-circuits. This means if `left` is `True` we do
+        not bother evaluating `right` and just return `True` overall.
+-}</span>
+
+<span class="p">(</span><span class="o">||</span><span class="p">)</span> <span class="o">:</span> <span class="kt">Bool</span> <span class="o">-&gt;</span> <span class="kt">Bool</span> <span class="o">-&gt;</span> <span class="kt">Bool</span>
+<span class="p">(</span><span class="o">||</span><span class="p">)</span> <span class="o">=</span>
+  <span class="kt">Native</span><span class="o">.</span><span class="kt">Basics</span><span class="o">.</span><span class="n">or</span></code></pre></figure>
+
+<p>Obecně vzato, komentáře v REPL nejsou nezbytné. Používají se jako doplněk kódu v souborech.</p>
+
+<h3 id="toggling-comments">Přepínání komentářů</h3>
+
+<p>Často při experimentování s kódem potřebujeme přepínat (vypínat a zapínat) komentáře. Většina editorů kódu disponuje zkratkou pro přepínání jednořádkových komentářů. Například v <a href="https://www.sublimetext.com/" target="_blank">Sublime Text</a> a <a href="https://atom.io/" target="_blank">Atom</a> může být (v Mac) komentář přepínán stiskem <code class="highlighter-rouge">Cmd</code> + <code class="highlighter-rouge">/</code>. Tyto editory ovšem nemají dobrý mechanizmus pro přepínání víceřádkových komentářů. Dobrým trikem pro tento případ je přidání a odebrání jednoho znaku <code class="highlighter-rouge">}</code> na prvním řádku. Řekněme, že potřebujeme přechodně zneplatnit nějaký kód:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="cm">{--
+  multiply x y = x * y
+  divide x y = x / y
+--}</span></code></pre></figure>
+
+<p class="info">Váš editor zdrojového kódu nemusí sám od sebe umět přepínat komentáře Elmu. Možná je potřebná instalace vhodného pluginu. Potřebné infnormace najdete v odstavci <a href="installation.html#source-code-editor" target="_blank">Editor zdrojového kódu</a> v sekci 2.2.</p>
+
+<p>Všimněte si, že jsme přidali znak <code class="highlighter-rouge">-</code> za <code class="highlighter-rouge"><span class="p">{</span><span class="err">-</span></code> a před <code class="highlighter-rouge">-}</code>. Pro vypuštění označeného kódu stačí přidat znak <code class="highlighter-rouge">}</code> na konec prvního řádku.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="cm">{--}</span>
+  <span class="n">multiply</span> <span class="n">x</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+  <span class="n">divide</span> <span class="n">x</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">y</span>
+<span class="c1">--}</span></code></pre></figure>
+
+<p>Protože vypouštěcímu znaku <code class="highlighter-rouge">}</code> předcházejí dvě pomlčky <code class="highlighter-rouge">--</code>, Elm je považuje za jednořádkový komentář. Pro obnovení víceřádkového komentáře (obsahujícího kód) stačí odebrat 
+<code class="highlighter-rouge">}</code> z prvního řádku.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="comparison.html">
+<em>&larr; Previous</em>
+<strong>Srovnávání</strong>
+</a>
+<a class="pagination-next" href="expression.html">
+<em>Next &rarr;</em><strong>Výraz</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

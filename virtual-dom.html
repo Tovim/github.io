@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 5.3 </h1>
+<h2>Virtuální DOM</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="model-view-update-part-2.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="model-view-update-part-1.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>Systém <a href="getting-started.html#2.7" target="_blank">Elm runtime</a> používá paket <a href="http://package.elm-lang.org/packages/elm-lang/virtual-dom/latest" target="_blank"><code class="highlighter-rouge">elm-lang/virtual-dom</code></a> pro zobrazení HTML na obrazovku. V této sekci si povíme, jak tato knihovna pracuje. Nejprve pojďme pochopit, jak vůbec prohlížeče HTML zobrazují.</p>
+
+<h3 id="how-browsers-render-html">Jak prohlížeče zobrazují HTML</h3>
+
+<p>Je-li prohlížeči poskytnut nějaký HTML kód, projde řadou transformací, než se jeho UI elementy zobrazí na obrazovce.</p>
+
+<p><img src="images/browser-parse-flow.png" alt="" /></p>
+
+<h4 id="1-parse-html">1. Parsování HTML</h4>
+
+<p>Pohleďme jak je kód HTML, který jsme viděli v sekci <a href="model-view-update-part-1.html" target="_blank">Skladba EA - 1</a>, zpracován.</p>
+
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="nt">&lt;html&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;div&gt;</span>
+      <span class="nt">&lt;button&gt;</span> - <span class="nt">&lt;/button&gt;</span>
+      0
+      <span class="nt">&lt;button&gt;</span> + <span class="nt">&lt;/button&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span></code></pre></figure>
+
+<p>První věc, kterou prohlížeč při setkání s výše uvedeným kódem učiní, je to že vytvoří HTML tokeny. Tokeny jsou stavební bloky jazyka. Ve svém úhrnu reprezentují celý slovník daného jazyka. Prohlížeče používají proces, zvaný <em>tokenizace</em> nebo <em>lexikální analýza</em> k rozdrobení HTML kódu na jednotlivé tokeny. Obrázek dole ukazuje, jak se výše uvedený kód jeví prohlížeči - jako serie textových znaků.</p>
+
+<p><img src="images/html-tokenization-1.png" alt="" /></p>
+
+<p>Pro zjednodušení je samozřejmě zobrazena jenom část kódu. Prohlížeč prochází jednotlivými znaky, počínaje prvním.</p>
+
+<p><img src="images/html-tokenization-2.png" alt="" /></p>
+
+<p>První znak, na který narazí, je <code class="highlighter-rouge">&lt;</code>, z čehož plyne, že následuje token <em>počátečního tagu</em>. Prohlížeč pokračuje probíráním dalších znaků až narazí na <code class="highlighter-rouge">&gt;</code>, což označuje konec tokenu <em>počátečního tagu</em>.</p>
+
+<p><img src="images/html-tokenization-3.png" alt="" /></p>
+
+<p>Znaky mezi <code class="highlighter-rouge">&lt;</code> a <code class="highlighter-rouge">&gt;</code> jsou konvertovány na první počáteční tag, zvaný <code class="highlighter-rouge">html</code>.</p>
+
+<p><img src="images/html-tokenization-4.png" alt="" /></p>
+
+<p>Druhým tokenem je počáteční tag <code class="highlighter-rouge">body</code>.</p>
+
+<p><img src="images/html-tokenization-5.png" alt="" /></p>
+
+<p><img src="images/html-tokenization-6.png" alt="" /></p>
+
+<p>Prohlížeč pokračuje v probírání znaků v našem kódu, konvertujíc je na další tokeny. Obrázek dole ukazuje všechny tokeny z našeho kódu.</p>
+
+<p><img src="images/html-tokenization-7.png" alt="" /></p>
+
+<h4 id="2-construct-the-dom-tree">2. Vytvoření stromové struktuyry DOM</h4>
+
+<p>V tokenizační fázi vytvořil prohlížeč z textových znaků řadu tokenů. Dalším krokem je použití těchto tokenů k sestavení stromové struktury DOM (Document Object Model).</p>
+
+<p class="info"><em>"Document Object Model (DOM) je programovací rozhraní (API) pro dokumenty HTML a XML. Poskytuje strukturovanou reprezentaci dokumentu a definuje způsob, jímž lze ke struktuře přistoupit z programů, které mohou měnit jeho strukturu, styl a obsah. DOM poskytuje reprezentaci dokumentu jako strukturovanou skupinu nodů a objektů, vybavených vlastnostmi a metodami. V podstatě spojuje webové stránky se skripty či programovacími jazyky" </em> - <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction" target="_blank">Mozilla Developer Network</a></p>
+
+<p>Po načtení stránky HTML v ní často potřebujeme provést změny v závislosti na různých událostech generovaných uživatelem nebo jiným zdrojem. Když například uživatel stiskne tlačítko <code class="highlighter-rouge">+</code> v aplikaci "counter", vytvoří prohlížeč stromovou strukturu, zvanou "tree" (strom). Tree je datová struktura, simulující hierarchický vztah mezi objekty.</p>
+
+<p>S přístupem k objektové reprezentaci každého elemnetu stránky HTML můžeme nyní přidávat, měnit a odebírat HTML elementy a atributy, měnit styly CSS, reagovat na existující události nebo vytvářet události nové prostřednictvím JavaScriptu.
+<p>Objekty DOM mají tendenci mít téměř jednoznačtou souvztažnost s elementy HTML, jak ukázáno v obrázku dole.</p>
+
+<p><img src="images/html-to-dom-mapping.png" alt="" /></p>
+
+<p>Souvztažnost (mapping) je velice těsná, protože prohlížeč tvoří strom DOM z tokenů, extrahovaných z původního kódu HTML, jako zobrazeno dole.</p>
+
+<p><img src="images/html-token-to-dom-mapping.png" alt="" /></p>
+
+<p>V hantýrce HTML jsou objekty stromu DOM často označovány jako <code class="highlighter-rouge">noudy</code> (nodes). Můžeme být konkretní a označovat každý node rozlišným jménem podle typu objektu, který reprezentuje. Například kořenový node ve stromu DOM je známý jako <code class="highlighter-rouge">document</code>. Je to specielní typ nodu, který reprezentuje celý dokument HTML a je vytvořen jako první. Po něm následují další nody, vytvořené z následujících tokenů.</p>
+
+<p><img src="images/dom-tree-with-document-node.png" alt="" /></p>
+
+<p>Nody, které mohou být použity k určení tagu HTML, se nazývají <code class="highlighter-rouge">elementy</code>. Atributy elementů, jako je <code class="highlighter-rouge">id</code> a <code class="highlighter-rouge">class</code> mohou být reprezentovány s použitím nodů <code class="highlighter-rouge">attribute</code>. Podobně komentáře a prostý text mohou být reprezentovány nody <code class="highlighter-rouge">comment</code> a <code class="highlighter-rouge">text</code>. Oficiální  <a href="https://www.w3.org/TR/dom/" target="_blank">specifikace DOM</a> obsahuje mnoho dalších typů nodů.</p>
+
+<p>Typ nodu můžeme vlastně získat přímo z konzoly prohlížeče. Otevřete tuto konzolu na stránce <a href="http://localhost:8000/elm-examples/Counter.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Counter.elm</code></a> a zadejte následující příkaz za promptem.</p>
+
+<dl>
+  <dt>Otevření webové konzoly v prohlížeči</dt>
+  <dd>Instrukce pro otevření konzoly v prohlížečí se liší podle typu prohlížeče. Přečtěte si prosím toto <a href="https://www.wickedlysmart.com/hfjsconsole/" target="_blank">pěkné poučení od WickedlySmart</a> o konzolách v různých prohlížečích.</dd>
+</dl>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&gt;</span> <span class="nb">document</span><span class="p">.</span><span class="nx">nodeType</span>
+<span class="mi">9</span></code></pre></figure>
+
+<p>Vlastnost <a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType" target="_blank"><code class="highlighter-rouge">nodeType</code></a> vrací číslo. Abychom zjistili, který typ nodu našemu číslu odpovídá, musíme konzultovat následující tabulku.</p>
+
+<p><img src="images/node-types-mdn.png" alt="" /></p>
+
+<div style="text-align:center">
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType" target="_blank">
+        Zdroj: Mozilla Developer Network
+    </a>
+</div>
+
+<p>Číslu <code class="highlighter-rouge">9</code> odpovídá  <code class="highlighter-rouge">DOCUMENT_NODE</code>. Zjistěme typ nodu několika dalších objektů zápisem příkazů do webové konzoly:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="o">&gt;</span> <span class="kd">var</span> <span class="nx">div</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">"div"</span><span class="p">)</span>
+<span class="kc">undefined</span>
+
+<span class="o">&gt;</span> <span class="nx">div</span><span class="p">.</span><span class="nx">nodeType</span>
+<span class="mi">1</span>      <span class="c1">// --&gt; ELEMENT_NODE</span>
+
+<span class="o">&gt;</span> <span class="kd">var</span> <span class="nx">text</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span><span class="p">(</span><span class="s2">"some text"</span><span class="p">)</span>
+<span class="kc">undefined</span>
+
+<span class="o">&gt;</span> <span class="nx">text</span><span class="p">.</span><span class="nx">nodeType</span>
+<span class="mi">3</span>      <span class="c1">// --&gt; TEXT_NODE</span>
+
+<span class="o">&gt;</span> <span class="kd">var</span> <span class="nx">comment</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createComment</span><span class="p">(</span><span class="s2">"some comment"</span><span class="p">)</span>
+<span class="kc">undefined</span>
+
+<span class="o">&gt;</span> <span class="nx">comment</span><span class="p">.</span><span class="nx">nodeType</span>
+<span class="mi">8</span>      <span class="c1">// --&gt; COMMENT_NODE</span></code></pre></figure>
+
+<p>Všimněte si, že můžeme vytvořit elementy HTML použitím JavaScriptových funkcí, jako je <code class="highlighter-rouge">createElement</code>, <code class="highlighter-rouge">createTextNode</code> a <code class="highlighter-rouge">createComment</code>. To je možné díky existenci stromu DOM. Kód HTML, který napíšeme, je přeměněn v něco, s čím můžeme v paměti manipulovat s použitím JavaScriptu.</p>
+
+<h4 id="3-construct-the-render-tree">3. Vytvoření Render Tree</h4>
+
+<p>Během vytváření stromu DOM se paralelně tvoří další strom, zvaný <em>render tree</em>. Tento strom obsahuje informace o stylu každého nodu DOM, které určují způsob jeho zobrazení. Nody, které nejsou určeny k zobrazení na obrazovce, nejsou zahrnuty do render tree. Zde je několik neviditelných nodů: <code class="highlighter-rouge">head</code>, <code class="highlighter-rouge">script</code>a <code class="highlighter-rouge">meta</code>. Některé nody mohou být skryté via CSS použitím sentence <code class="highlighter-rouge">display: none</code>. Tyto nody jsou rovněž vyloučeny z render tree.</p>
+
+<h4 id="4-layout-the-render-tree">4. Rozložení nodů</h4>
+
+<p>Po dokončení render tree přechází prohlížeč do přípravy pro zobrazení jednotlivých nodů. Render tree obsahuje informace o tom, <em>jak</em> mají být nody zobrazeny, ale ne <em>kde</em> na obrazovce mají být vykresleny. Prohlížeč počítá pozici a velikost každého nodu z informací, uložených v render tree.</p>
+
+<h4 id="5-paint-the-render-tree-on-screen">5. Malování</h4>
+
+<p>Nyní, když jsou všechny informace pro vynesení nodů vyhodnoceny, počíná prohlížeč konvertovat každý node v render tree na skutečné pixely v obrazovce. Tento proces se nazývá <em>painting</em> (malování).</p>
+
+<p>Virtuální knihovna DOM v Elmu se zabývá pouze stromem DOM, nikoliv render tree, avšak poučení o obou vám dává ucelenější obraz toho, jak je stránka HTML vyvedena prohlížečem.</p>
+
+<dl>
+  <dt>Further Reading</dt>
+  <dd>What we covered so far is a very high-level overview of how browsers parse and render HTML on a screen. If you’d like to learn more about this topic, here are a few resources:</dd>
+  <dd>
+    <ul>
+      <li><a href="https://www.html5rocks.com/en/tutorials/internals/howbrowserswork/" target="_blank">How Browsers Work: Behind the scenes of modern web browsers</a></li>
+      <li><a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/constructing-the-object-model#top_of_page" target="_blank">Web Fundamentals - Constructing the Object Model</a></li>
+      <li><a href="https://developers.google.com/web/fundamentals/performance/critical-rendering-path/render-tree-construction" target="_blank">Web Fundamentals - Render-tree Construction, Layout, and Paint</a></li>
+    </ul>
+  </dd>
+</dl>
+
+<h3 id="virtual-dom">Virtuální DOM</h3>
+
+<p>I když strom DOM nám usnadňuje vytváření, aktualizaci a odebírání nodů, přímá manipulace s tímto stromem je při velkém počtu nodů pomalá. Napišme nějaký kód v JavaScriptu abychom zjistili, jak dlouho trvá aktualizace nodu DOM ve srovnání s jednoduchým řetězcem. Vytvořte nový soubor s názvem <code class="highlighter-rouge">dom-performance-test.js</code> v adresáři <code class="highlighter-rouge">beginning-elm</code>.</p>
+
+<p><img src="images/dom-performance-test-file.png" alt="" /></p>
+
+<p>Přidejte následující kód do souboru <code class="highlighter-rouge">dom-performance-test.js</code>.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Create a simple string</span>
+<span class="kd">var</span> <span class="nx">someString</span> <span class="o">=</span> <span class="s2">"some string"</span><span class="p">;</span>
+
+<span class="c1">// Update string 10,000 times</span>
+<span class="kd">function</span> <span class="nx">updateString</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">someString</span> <span class="o">=</span> <span class="s2">"updated string"</span>
+    <span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c1">// Find out how long it takes to update a string 10,000 times</span>
+<span class="kd">var</span> <span class="nx">t1</span> <span class="o">=</span> <span class="nx">performance</span><span class="p">.</span><span class="nx">now</span><span class="p">();</span>
+<span class="nx">updateString</span><span class="p">();</span>
+<span class="kd">var</span> <span class="nx">t2</span> <span class="o">=</span> <span class="nx">performance</span><span class="p">.</span><span class="nx">now</span><span class="p">();</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"It took "</span> <span class="o">+</span> <span class="p">(</span><span class="nx">t2</span> <span class="o">-</span> <span class="nx">t1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" milliseconds to update a string."</span><span class="p">);</span></code></pre></figure>
+
+<p>Vytvořili jsme jednoduchý řetězec a napsali funkci, která tento řetězec 10.000 krát aktualizuje. Potom jsme použili funkci <a href="https://developer.mozilla.org/en-US/docs/Web/API/Performance/now" target="_blank"><code class="highlighter-rouge">performance.now()</code></a> k odchycení časového okamžiku (timestamp) před a po volání funkce <code class="highlighter-rouge">updateString</code>. Nakonec jsme vytiskli délku provádění této funkce do konzoly.</p>
+
+<p>Nyní napíšeme podobný test abychom zjistili, jak dlouho trvá aktualizace nodu DOM. Přidejte následující kód na spodek souboru <code class="highlighter-rouge">dom-performance-test.js</code>.</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Create new nodes</span>
+<span class="kd">var</span> <span class="nx">newDiv</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createElement</span><span class="p">(</span><span class="s2">"div"</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">newText</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span><span class="p">(</span><span class="s2">"some text"</span><span class="p">);</span>
+
+<span class="c1">// Add new nodes to the DOM tree</span>
+<span class="nx">newDiv</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">newText</span><span class="p">);</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">newDiv</span><span class="p">);</span>
+
+<span class="c1">// Update the text node inside div 10,000 times</span>
+<span class="kd">function</span> <span class="nx">updateDOM</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">newDiv</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s2">"updated text"</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Find out how long it takes to update a DOM element</span>
+<span class="kd">var</span> <span class="nx">t3</span> <span class="o">=</span> <span class="nx">performance</span><span class="p">.</span><span class="nx">now</span><span class="p">();</span>
+<span class="nx">updateDOM</span><span class="p">();</span>
+<span class="kd">var</span> <span class="nx">t4</span> <span class="o">=</span> <span class="nx">performance</span><span class="p">.</span><span class="nx">now</span><span class="p">();</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"It took "</span> <span class="o">+</span> <span class="p">(</span><span class="nx">t4</span> <span class="o">-</span> <span class="nx">t3</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" milliseconds to update a DOM element."</span><span class="p">);</span></code></pre></figure>
+
+<p>Vytvořili jsme nový element <code class="highlighter-rouge">div</code> a vložili do něho text. Potom jsme připojili <code class="highlighter-rouge">div</code> jako dítě k elementu <code class="highlighter-rouge">body</code>. Funkce <code class="highlighter-rouge">updateDOM</code> jednoduše aktualizuje obsah HTML uvnitř elementu <code class="highlighter-rouge">div</code> 10,000 krát přiřazením nové hodnoty k vlastnosti <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML" target="_blank"><code class="highlighter-rouge">innerHtml</code></a>.</p>
+
+<p>Ke spuštění tohoto experimentu potřebujeme načíst soubor <code class="highlighter-rouge">dom-performance-test.js</code> uvnitř souboru <code class="highlighter-rouge">index.html</code>, umístěného v adresáři <code class="highlighter-rouge">beginning-elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+  .
+  .
+  <span class="nt">&lt;body&gt;</span>
+    .
+    .
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"elm.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"experiment.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"dom-performance-test.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    .
+    .
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span></code></pre></figure>
+
+<p>Otevřte <code class="highlighter-rouge">index.html</code> v prohlížeči a poté otevřte konzolu prohlížeče. Měli byste vidět čas aktualizace řetězce a elementu DOM v milisekundách.</p>
+
+<p><img src="images/dom-performance-1.png" alt="" /></p>
+
+<p>Uvedená čísla jsou z prohlížeče Chrome 56 na platformě MacBook Air s procesorem 1.6 GHz Intel Core i5 a s pamětí 8 GB.
+Vy můžete vidět jiné výsledky v závislosti na použitém počítači a prohlížeči. Ať už používáte jakoukoliv platformu a prohlížeč, vždy je aktualizace elementu DOM výrazně delší než aktualizace řetězce. Proč tomu tak je?</p>
+
+<p>Aktualizace stringu je přímočará. JavaScript ví, kde je řetězec v paměti uložen, takže jeho aktualizace spočívá v přepsání několika bitů v paměti novou hodnotou. Když ale aktualizujeme node DOM, není to jenom JavaScript, který je do aktualizace zapojen. Prohlížeč musí protáhnout novou změnu celým dříve popsaným procesem:</p>
+
+<ul>
+  <li>parsovat HTML</li>
+  <li>aktualizovat strom DOM</li>
+  <li>aktualizovat render tree</li>
+  <li>rozvrhnout render tree</li>
+  <li>namalovat render tree na obrazovku</li>
+</ul>
+
+<p>V závislosti na složitosti změny může prohlížeč potřebovat zničit a znovu vytvořit stávající dětské nody elementu, který se pokoušíme aktualizovat. Může také potřebovat přepočítat fyzické rozměry a styly mnoha nodů, změnou ovlivněných. Jsou-li do akce zapojeny nějaké extenze prohlížeče, které řídí přístup k nodu, který chceme upravit, musí se prohlížeč nejprve ptát na jejich svolení a uvědomit je o provedené změně.</p>
+
+<p>Úplný rozsah důsledků aktualizace nodu DOM může být obrovský. Náš experiment nebyl nijak složitý a přesto aktualizace nodu DOM trvala 288 krát déle než aktualizace řetězce. Můžeme si představit, jak dlouho by trvalo, kdybychom chtěli aktualizovat mnoho nodů najednou.</p>
+
+<p>I když se tomuto problému nemůžeme vyhnout, Elm jej zmenšuje prováděním co možná nejmenšího počtu aktualizací stromu DOM. Elm od nás vlastně přebírá zodpovědnost za aktualizování stromu DOM. Dříve, když jsme napsali tento kód v JavaScriptu:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="c1">// Update the text node inside div 10,000 times</span>
+<span class="kd">function</span> <span class="nx">updateDOM</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">10000</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">newDiv</span><span class="p">.</span><span class="nx">innerHTML</span> <span class="o">=</span> <span class="s2">"updated text"</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>stáli jsme před nepříjemným problémem vlatnoručně aktualizovat DOM. V Elmu nám stačí pouze určit, jak chceme náš model prezentovat uživateli. V sekci <a href="model-view-update-part-1.html#view" target="_blank">Skladba EA - 1</a> jsme napsali následujcí kód pro zobrazení naší sestavy "view".</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Decrement</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"-"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="n">model</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Increment</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"+"</span> <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Nemuseli jsme určovat, které nody DOM by měly být aktualizovány. Vše, co jsme udělali bylo to, že jsme určili, jak by mělo naše zobrazení (view) vypadat a to použitím jednoduchých funkcí Elmu. Elm za scénou použil paket <a href="http://package.elm-lang.org/packages/elm-lang/virtual-dom/latest" target="_blank"><code class="highlighter-rouge">elm-lang/virtual-dom</code></a> ke konvertování kódu ve funkci <code class="highlighter-rouge">view</code> na aktuální nody DOM.</p>
+
+<p><img src="images/elm-runtime-virtual-dom.png" alt="" /></p>
+
+<p>Ponořme se hlouběji do paketu <code class="highlighter-rouge">elm-lang/virtual-dom</code> abychom pochopili, jak pracuje. Většina funkcí, definovaných v modulu <code class="highlighter-rouge">Html</code> jsou zábaly virtuálních nodů DOM. Pohleďte, jak je uvedena funkce <code class="highlighter-rouge">div</code> v modulu <code class="highlighter-rouge">Html</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">div</span> <span class="o">:</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Attribute</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Html</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">div</span> <span class="o">=</span>
+    <span class="n">node</span> <span class="s">"div"</span></code></pre></figure>
+
+<p>Vše co dělá je to, že posílá název tagu další funkci zvané <code class="highlighter-rouge">node</code>, rovněž definované v modulu <code class="highlighter-rouge">Html</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">node</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Attribute</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Html</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">node</span> <span class="o">=</span>
+    <span class="kt">VirtualDom</span><span class="o">.</span><span class="n">node</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">node</code> poskytuje obecný způsob vytváření tagů HTML. Většina pomocných funkcí v modulu <code class="highlighter-rouge">Html</code>, jako <code class="highlighter-rouge">div</code>, <code class="highlighter-rouge">button</code> a <code class="highlighter-rouge">label</code> jsou definovány s pomocí funkce <code class="highlighter-rouge">node</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">button</span> <span class="o">:</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Attribute</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Html</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">button</span> <span class="o">=</span>
+    <span class="n">node</span> <span class="s">"button"</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">label</span> <span class="o">:</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Attribute</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Html</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">label</span> <span class="o">=</span>
+    <span class="n">node</span> <span class="s">"label"</span></code></pre></figure>
+
+<p>Modul <code class="highlighter-rouge">Html</code> poskytuje impresivní seznam pomocných funkcí pro vytváření téměř všech v dnešní době používaných tagů. Pokud však potřebujeme vytvořit nějaký tag, který oněmi funkcemi vytvořit nejde, můžeme použit funkci <code class="highlighter-rouge">node</code> třeba takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">someTag</span> <span class="o">:</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Attribute</span> <span class="kt">Msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Html</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">someTag</span> <span class="n">attributes</span> <span class="n">children</span> <span class="o">=</span>
+    <span class="n">node</span> <span class="s">"sometag"</span> <span class="n">attributes</span> <span class="n">children</span></code></pre></figure>
+
+<p>Podíváme-li se na uvedení funkce <code class="highlighter-rouge">node</code>, vidíme že to je jednoduchý obal nodu DOM.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">node</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Attribute</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Html</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">node</span> <span class="o">=</span>
+    <span class="kt">VirtualDom</span><span class="o">.</span><span class="n">node</span></code></pre></figure>
+
+<p>Kdybychom chtěli, mohli jsme v naší funkci <code class="highlighter-rouge">view</code> použít <code class="highlighter-rouge">VirtualDom.node</code> přímo. Vyzkoušejme to. Upravte funkci <code class="highlighter-rouge">view</code> v souboru <code class="highlighter-rouge">Counter.elm</code> jak ukázáno dole a také importujte modul <code class="highlighter-rouge">VirtualDom</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Counter</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">VirtualDom</span>
+<span class="kr">import</span> <span class="nn">Html.Events</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+
+<span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kt">VirtualDom</span><span class="o">.</span><span class="n">node</span> <span class="s">"div"</span>
+        <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Decrement</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"-"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="n">model</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Increment</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"+"</span> <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Spusťte <code class="highlighter-rouge">elm-reactor</code> v terminálu z adresáře <code class="highlighter-rouge">beginning-elm</code> a přejděte na tuto stránku v prohlížeči: <a href="http://localhost:8000/elm-examples/Counter.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Counter.elm</code></a>. Měl byste vidět následující chybu.</p>
+
+<p><img src="images/virtual-dom-module-not-found.png" alt="" /></p>
+
+<p>Elm si stěžuje, že nemůže nalézt modul <code class="highlighter-rouge">VirtualDom</code>, i když paket do kterého  patří, je již instalován.</p>
+
+<p><img src="images/virtual-dom-package-location.png" alt="" /></p>
+
+<p>Když jsme instalovali paket <a href="http://package.elm-lang.org/packages/elm-lang/html/latest" target="_blank"><code class="highlighter-rouge">elm-lang/html</code></a> v odstavci <a href="getting-started.html#2.2" target="_blank">Vytvoření jednoduché stránky</a> sekce "Začínáme", byl paket <code class="highlighter-rouge">elm-lang/virtual-dom</code> rovněž instalován, protože to je jeden z paketů, na nichž je <code class="highlighter-rouge">elm-lang/html</code> závislý.</p>
+
+<p>Elm nám nyní vrátil chybové hlášení, protože v našem kódu nemáme přístup k modulu, ledaže je příslušný paket výslovně uveden v souboru <code class="highlighter-rouge">beginning-elm/elm-package.json</code>. Což aktuálně není.</p>
+
+<figure class="highlight"><pre><code class="language-code" data-lang="code">{
+    .
+    .
+    "dependencies": {
+        "elm-lang/core": "5.0.0 &lt;= v &lt; 6.0.0",
+        "elm-lang/html": "2.0.0 &lt;= v &lt; 3.0.0",
+        "elm-lang/http": "1.0.0 &lt;= v &lt; 2.0.0"
+    },
+    .
+    .
+}</code></pre></figure>
+
+<p>Můžeme buď přímo přidat <code class="highlighter-rouge">elm-lang/virtual-dom</code> do souboru <code class="highlighter-rouge">elm-package.json</code> nebo nechat to za nás udělat aplikaci <code class="highlighter-rouge">elm-package</code>. Zkusme druhý přístup. Z adresáře <code class="highlighter-rouge">beginning-elm</code> zadejte v terminálu následující příkaz.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-package install elm-lang/virtual-dom</code></pre></figure>
+
+<p>Odpovězte <code class="highlighter-rouge">y</code>, byvše tázáni zda přidat <code class="highlighter-rouge">elm-lang/virtual-dom</code> jako dependenci do souboru <code class="highlighter-rouge">elm-package.json</code> a odsouhlaste plán instalace. Když nyní obnovíte stránku <a href="http://localhost:8000/elm-examples/Counter.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Counter.elm</code></a>, uvidíte další chybu.</p>
+
+<p><img src="images/virtual-dom-delete-build-artifacts-error.png" alt="" /></p>
+
+<p>Obvykle umí Elm velmi přesně sdělit příčinu chyby. V tomto případě nám chybové hlášení nic určitého neříká. Protože jsme chtěli aby Elm instaloval paket, který byl již přítomný, byl <code class="highlighter-rouge">elm-reactor</code> zmaten. Pokračujte a smažte adresář <code class="highlighter-rouge">build-artifacts</code>, umístěný v adresáři <code class="highlighter-rouge">beginning-elm/elm-stuff</code>. To přinutí <code class="highlighter-rouge">elm-reactor</code> rekompilovat celý projekt a vyhnout se nejasnostem. Když nyní opět obnovíte stránku <a href="http://localhost:8000/elm-examples/Counter.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Counter.elm</code></a> měl byste vidět naše pěkné zobrazení (view).</p>
+
+<p><img src="images/counter-app-1.png" alt="" /></p>
+
+<p>Pohleďme, jak je funkce <code class="highlighter-rouge">VirtualDom.node</code> implementována:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">node</span> <span class="o">:</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Property</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">Node</span> <span class="n">msg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Node</span> <span class="n">msg</span>
+<span class="n">node</span> <span class="o">=</span>
+    <span class="kt">Native</span><span class="o">.</span><span class="kt">VirtualDom</span><span class="o">.</span><span class="n">node</span></code></pre></figure>
+
+<p>Jak se ukazuje, je to rovněž obal pro další funkci <code class="highlighter-rouge">node</code>, definovanou v modulu <code class="highlighter-rouge">Native.VirtualDom</code>. Prefix <code class="highlighter-rouge">Native</code> indikuje, že tento modul není napsán v Elmu. Nativní moduly jsou obvykle psány v JavaScriptu ale mohou být rovněž psány v nějakém jiném jazyce (e.g., CoffeeScript), který je posléze kompilován do JavaScriptu.</p>
+
+<p>Mnohé moduly Elmu jsou za scénou částečně implementovány v JavaScriptu. Například, funkce<code class="highlighter-rouge">List.foldr</code>, se kterou jsme se setkali v sekci <a href="list.html#folding-a-list" target="_blank">Redukce seznamu</a>, je implementována takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">foldr</span> <span class="o">:</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">List</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span>
+<span class="n">foldr</span> <span class="o">=</span>
+    <span class="kt">Native</span><span class="o">.</span><span class="kt">List</span><span class="o">.</span><span class="n">foldr</span></code></pre></figure>
+
+<p>Funkce<code class="highlighter-rouge">Native.List.foldr</code> je naproti tomu implementována v JavaScriptu takto:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">foldr</span><span class="p">(</span><span class="nx">f</span><span class="p">,</span> <span class="nx">b</span><span class="p">,</span> <span class="nx">xs</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">arr</span> <span class="o">=</span> <span class="nx">toArray</span><span class="p">(</span><span class="nx">xs</span><span class="p">);</span>
+	<span class="kd">var</span> <span class="nx">acc</span> <span class="o">=</span> <span class="nx">b</span><span class="p">;</span>
+	<span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="nx">arr</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">--</span><span class="p">;</span> <span class="p">)</span>
+	<span class="p">{</span>
+		<span class="nx">acc</span> <span class="o">=</span> <span class="nx">A2</span><span class="p">(</span><span class="nx">f</span><span class="p">,</span> <span class="nx">arr</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span> <span class="nx">acc</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">acc</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Podobně funkce <code class="highlighter-rouge">String.filter</code>, o které jsme hovořili v sekci <a href="string.html#filtering-a-string" target="_blank">Filtrování řetězce</a> také za scénou používá nativní modul.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">filter</span> <span class="o">:</span> <span class="p">(</span><span class="kt">Char</span> <span class="o">-&gt;</span> <span class="kt">Bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">String</span> <span class="o">-&gt;</span> <span class="kt">String</span>
+<span class="n">filter</span> <span class="o">=</span>
+    <span class="kt">Native</span><span class="o">.</span><span class="kt">String</span><span class="o">.</span><span class="n">filter</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">Native.String.filter</code> je naproti tomu implementována v JavaScriptu takto:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">filter</span><span class="p">(</span><span class="nx">pred</span><span class="p">,</span> <span class="nx">str</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="nx">str</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s1">''</span><span class="p">).</span><span class="nx">map</span><span class="p">(</span><span class="nx">_elm_lang$core$Native_Utils</span><span class="p">.</span><span class="nx">chr</span><span class="p">).</span><span class="nx">filter</span><span class="p">(</span><span class="nx">pred</span><span class="p">).</span><span class="nx">join</span><span class="p">(</span><span class="s1">''</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>V současné době je 24.2% celého paketu <a href="https://github.com/elm-lang/core" target="_blank"><code class="highlighter-rouge">elm-lang/core</code></a>, což zahrnuje i standardní moduly jako <code class="highlighter-rouge">List</code> a <code class="highlighter-rouge">String</code>, implementováno v JavaScriptu.</p>
+
+<p><img src="images/elm-lang-core-javascript-percentage.png" alt="" /></p>
+
+<p>Podobně je 39.5% paketu <a href="https://github.com/elm-lang/virtual-dom" target="_blank"><code class="highlighter-rouge">elm-lang/virtual-dom</code></a>  implementováno v JavaScriptu.</p>
+
+<p><img src="images/virtual-dom-javascript-percentage.png" alt="" /></p>
+
+<p>Nyní, když víme co jsou nativní moduly, vraťme se zpět k modulu <code class="highlighter-rouge">Native.VirtualDom</code>. Funkce <code class="highlighter-rouge">node</code> v tomto modulu je implementována takto v JavaScriptu:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="kd">function</span> <span class="nx">node</span><span class="p">(</span><span class="nx">tag</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">return</span> <span class="nx">F2</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">factList</span><span class="p">,</span> <span class="nx">kidList</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">nodeHelp</span><span class="p">(</span><span class="nx">tag</span><span class="p">,</span> <span class="nx">factList</span><span class="p">,</span> <span class="nx">kidList</span><span class="p">);</span>
+	<span class="p">});</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Používá funkci zvanou <code class="highlighter-rouge">nodeHelp</code> k vytvoření nodů DOM. Funkce <code class="highlighter-rouge">nodeHelp</code> naproti tomu používá funkci zvanou <code class="highlighter-rouge">organizeFacts</code>. Prolézat celou králičí norou, abychom pochopili, jak každá z těchto funkcí pracuje, je mimo rámec této knihy. Modul <code class="highlighter-rouge">Native.VirtualDom</code> obsahuje docela složitý kód, jemuž nejsme schopni rozumět bez rozsáhlé znalosti JavaScriptu a interních souvislostí virtuálního DOM. Spokojíme se se zjednodušeným přehledem toho, jak <code class="highlighter-rouge">Native.VirtualDom</code> pracuje. Následující <a href="https://en.wikipedia.org/wiki/Algorithm" target="_blank">algoritmus</a> zhruba vystihuje proces, použitý tímto modulem .</p>
+
+<p><strong>Krok 1:</strong> Vytvořit virtuální strom DOM, což není přesná replika skutečného stromu DOM, nýbrž jenom odlehčená verze, vytvořená s použitím <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects" target="_blank">objektů</a> JavaScriptu.</p>
+
+<p><strong>Krok 2:</strong> Provést změnu UI v naší aplikaci. Touto změnou může být cokoli, například změna barvy tlačítka nebo přidání úplně nového elementu UI nebo odebrání stávajícího.</p>
+
+<p><strong>Krok 3:</strong> Vytvořit nový virtuální strom DOM, který reflektuje námi provedené změny UI. Tento strom se liší od stromu z kroku 1..</p>
+
+<p><strong>Krok 4:</strong> Přesně určit rozdíly mezi novým a předchozím virtuálním stromem. V tomto punktu virtuální DOM skutečně září. Kdybychom měli určovat rozdíly mezi novým a předchozím UI s použitím reálného DOM, spotřebovali bychom na to mnoho zdrojů. Virtuální DOM je naproti tomu velmi optimalizován pro takovéto operace.</p>
+
+<p><strong>Krok 5:</strong> Opakovat kroky 2 až 4, dokud nejsou identifikovány všechny změny UI..</p>
+
+<p><strong>Krok 6:</strong> Vytvořit instrukce pro úpravu reálného stromu DOM v jedné velké dávce. Jak již zmíněno, i zdánlivě malá změna reálného DOM je náročná z hlediska výkonu. Je tedy uvážlivé spojovat více instrukcí dohromady než aplikovat každou změnu individuálně.</p>
+
+<p><strong>Krok 7:</strong> Upravit reálný DOM s použitím funkce  <a href="https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame" target="_blank"><code class="highlighter-rouge">requestAnimationFrame</code></a>, která určí nejlepší způsob aplikace vícerých změn tak, aby byl přechod z předchozího UI do nového co nejhladší.</p>
+
+<p>I když jsme se v této sekci zavrtávali hluboko do paketu <code class="highlighter-rouge">elm-lang/virtual-dom</code>, dobrá zpráva je ta, že ve skutečnosti nemusíme vůbec rozumět jak pracuje, abychom byli schopni vytvářet velké aplikace v Elmu. Modul <code class="highlighter-rouge">Html</code> odklání  všechny nečisté detaily a umožňuje nám používat jednoduché funkce jako <code class="highlighter-rouge">div</code>, <code class="highlighter-rouge">button</code> a <code class="highlighter-rouge">label</code>, které se vztahují přímo k tagům HTML.</p>
+
+<dl>
+  <dt>A Brief History of Virtual DOM</dt>
+  <dd>The concept of virtual DOM was popularized by <a href="https://facebook.github.io/react/" target="_blank">React</a> — a JavaScript library for building user interfaces — back in 2013. At the time, the virtual DOM implementation was buried deep into React, so other languages and frameworks couldn’t take advantage of this great concept.</dd>
+  <dd>
+    <p><a href="https://twitter.com/raynos?lang=en" target="_blank">Jake Verbaten</a> realized that it’s possible to implement a virtual DOM on its own as a set of independent modules and wrote a <a href="https://gist.github.com/Raynos/8414846" target="_blank">nice article</a> that laid out what that implementation would look like. In early 2014, Matt Esch started working on creating a standalone <a href="https://github.com/Matt-Esch/virtual-dom" target="_blank">virtual DOM library</a>.</p>
+  </dd>
+  <dd>
+    <p>Soon after the standalone virtual DOM library was available, <a href="https://twitter.com/czaplic?lang=en" target="_blank">Evan Czaplicki</a> — the creator of Elm — used it as an underlying implementation for the <code class="highlighter-rouge">Native.VirtualDom</code> module. In May of 2016, a new version (0.17) of Elm was released and Evan had to rewrite the entire virtual DOM implementation from scratch to support the API changes made in 0.17. The new implementation is much faster than the versions used before 0.17.</p>
+  </dd>
+</dl>
+
+<h3 id="benefits-of-using-virtual-dom">Výhody používání virtuálního DOM</h3>
+
+<p>Z toho, co jsme dosud poznali, vyplývá, že důvodem pro existenci virtuálního DOM je eliminace úzkých profilů ve výkonu, způsobených častou manipulací se stromem DOM. Existuje ještě další přínos, který je v dnešní době více relevantní a to ten, že můžeme psát modulární kód pro "view" s použitím čistých funkcí. Zbytek této sekce je věnován prozkoumání těchto přínosů.</p>
+
+<h4 id="writing-modular-view-code">Psaní modulárního kódu "view"</h4>
+
+<p>Pohleďme ještě jednou na funkci <code class="highlighter-rouge">view</code>, kterou jsme napsali dříve.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Decrement</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"-"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="n">text</span> <span class="p">(</span><span class="n">toString</span> <span class="n">model</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">button</span> <span class="p">[</span> <span class="n">onClick</span> <span class="kt">Increment</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"+"</span> <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Pěkné na této funkci je to, že vždy vrátí presně tentýž HTML pro tentýž vstup. To znamená, že můžeme spolehlivě ověřit <a href="easy-to-test.html" target="_blank">jednoduchými testy</a>, že se funkce  <code class="highlighter-rouge">view</code>  
+chová dle očekávání. Můžeme ji také rozdělit do několika stejně spolehlivých funkcí, začíná-li být více složitá. Představme si aplikaci, jejíž domovská stránka vypadá takto:</p>
+
+<p><img src="images/amicus-home-page.png" alt="" /></p>
+
+<p>Domovská stránka je rozdělena do tří odlišných oblastí: navigační záhlaví, hlavní oblast a zápatí. Kód "view" pro tuto stránku bude zajisté mnohem složitější, než výše uvedená funkce <code class="highlighter-rouge">view</code>, ale můžeme jej rozdělit do několika méně zdrcujících funkcí. Takto nějak by mohla hypothetická funkce <code class="highlighter-rouge">view</code> pro domovskou stránku vypadat:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">nav</span> <span class="n">model</span>
+        <span class="p">,</span> <span class="n">mainContent</span> <span class="n">model</span>
+        <span class="p">,</span> <span class="n">footer</span> <span class="n">model</span>
+        <span class="p">]</span>
+
+
+<span class="n">nav</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">nav</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">header</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"navbar navbar-fixed-top navbar-inverse"</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"container"</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"navbar-header"</span> <span class="p">]</span>
+                <span class="p">[</span> <span class="n">button</span>
+                    <span class="p">[</span> <span class="kr">class</span> <span class="s">"navbar-toggle"</span>
+                    <span class="p">,</span> <span class="n">attribute</span> <span class="s">"data-target"</span> <span class="s">"#myNavBar"</span>
+                    <span class="p">,</span> <span class="n">attribute</span> <span class="s">"data-toggle"</span> <span class="s">"collapse"</span>
+                    <span class="p">]</span>
+                    <span class="p">[</span> <span class="n">span</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"icon-bar"</span> <span class="p">]</span> <span class="kt">[]</span>
+                    <span class="p">,</span> <span class="n">span</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"icon-bar"</span> <span class="p">]</span> <span class="kt">[]</span>
+                    <span class="p">,</span> <span class="n">span</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"icon-bar"</span> <span class="p">]</span> <span class="kt">[]</span>
+                    <span class="p">]</span>
+                <span class="p">,</span> <span class="n">li</span> <span class="kt">[]</span>
+                    <span class="p">[</span> <span class="n">a</span> <span class="p">[</span> <span class="n">href</span> <span class="s">"#home"</span><span class="p">,</span> <span class="n">id</span> <span class="s">"logo"</span> <span class="p">]</span>
+                        <span class="p">[</span> <span class="n">text</span> <span class="s">"amicus app"</span> <span class="p">]</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">nav</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"collapse navbar-collapse"</span><span class="p">,</span> <span class="n">id</span> <span class="s">"myNavBar"</span> <span class="p">]</span>
+                <span class="p">[</span> <span class="n">ul</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"nav navbar-nav navbar-right"</span> <span class="p">]</span>
+                    <span class="p">[</span> <span class="n">li</span> <span class="kt">[]</span>
+                        <span class="p">[</span> <span class="n">a</span> <span class="p">[</span> <span class="n">href</span> <span class="s">"#help"</span> <span class="p">]</span>
+                            <span class="p">[</span> <span class="n">text</span> <span class="s">"Help"</span> <span class="p">]</span>
+                        <span class="p">]</span>
+                    <span class="p">,</span> <span class="n">li</span> <span class="kt">[]</span>
+                        <span class="p">[</span> <span class="n">a</span> <span class="p">[</span> <span class="n">href</span> <span class="s">"#login"</span> <span class="p">]</span>
+                            <span class="p">[</span> <span class="n">text</span> <span class="s">"Login"</span> <span class="p">]</span>
+                        <span class="p">]</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span>
+
+
+<span class="n">mainContent</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">mainContent</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">model</span><span class="o">.</span><span class="n">route</span> <span class="kr">of</span>
+        <span class="kt">HomeRoute</span> <span class="o">-&gt;</span>
+            <span class="kt">StaticPages</span><span class="o">.</span><span class="kt">HomeView</span><span class="o">.</span><span class="n">view</span> <span class="nb">()</span>
+
+        <span class="kt">AboutRoute</span> <span class="o">-&gt;</span>
+            <span class="kt">StaticPages</span><span class="o">.</span><span class="kt">AboutView</span><span class="o">.</span><span class="n">view</span> <span class="nb">()</span>
+
+        <span class="kt">ContactRoute</span> <span class="o">-&gt;</span>
+            <span class="kt">StaticPages</span><span class="o">.</span><span class="kt">ContactView</span><span class="o">.</span><span class="n">view</span> <span class="nb">()</span>
+
+        <span class="kt">HelpRoute</span> <span class="o">-&gt;</span>
+            <span class="kt">StaticPages</span><span class="o">.</span><span class="kt">HelpView</span><span class="o">.</span><span class="n">view</span> <span class="nb">()</span>
+
+        <span class="kt">SignupRoute</span> <span class="o">-&gt;</span>
+            <span class="kt">App</span><span class="o">.</span><span class="n">map</span> <span class="kt">SignupMsg</span> <span class="p">(</span><span class="kt">Signup</span><span class="o">.</span><span class="kt">View</span><span class="o">.</span><span class="n">view</span> <span class="n">model</span><span class="o">.</span><span class="n">currentUser</span><span class="p">)</span>
+
+        <span class="kt">ProfileRoute</span> <span class="o">-&gt;</span>
+            <span class="kt">App</span><span class="o">.</span><span class="n">map</span> <span class="kt">ProfileMsg</span> <span class="p">(</span><span class="kt">Profile</span><span class="o">.</span><span class="kt">View</span><span class="o">.</span><span class="n">view</span> <span class="n">model</span><span class="o">.</span><span class="n">currentUser</span><span class="p">)</span>
+
+        <span class="kt">LoginRoute</span> <span class="o">-&gt;</span>
+            <span class="kt">App</span><span class="o">.</span><span class="n">map</span> <span class="kt">LoginMsg</span> <span class="p">(</span><span class="kt">Login</span><span class="o">.</span><span class="kt">View</span><span class="o">.</span><span class="n">view</span> <span class="n">model</span><span class="o">.</span><span class="n">currentUser</span><span class="p">)</span>
+
+        <span class="kt">NotFoundRoute</span> <span class="o">-&gt;</span>
+            <span class="n">notFoundView</span>
+
+
+<span class="n">notFoundView</span> <span class="o">:</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">notFoundView</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Not found"</span> <span class="p">]</span>
+
+
+<span class="n">footer</span> <span class="o">:</span> <span class="kt">Model</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">footer</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="kt">Html</span><span class="o">.</span><span class="n">footer</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"container"</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">small</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Copyright © 2016 Vandelay Industries"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">nav</span> <span class="kt">[]</span>
+            <span class="p">[</span> <span class="n">ul</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">li</span> <span class="kt">[]</span>
+                    <span class="p">[</span> <span class="n">a</span> <span class="p">[</span> <span class="n">href</span> <span class="s">"#about"</span> <span class="p">]</span>
+                        <span class="p">[</span> <span class="n">text</span> <span class="s">"About"</span> <span class="p">]</span>
+                    <span class="p">]</span>
+                <span class="p">,</span> <span class="n">li</span> <span class="kt">[]</span>
+                    <span class="p">[</span> <span class="n">a</span> <span class="p">[</span> <span class="n">href</span> <span class="s">"#contact"</span> <span class="p">]</span>
+                        <span class="p">[</span> <span class="n">text</span> <span class="s">"Contact"</span> <span class="p">]</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Nesnažte se rozumět, jak každá funkce ve výše uvedeném kódu pracuje. Soustřeďte se na jeho celkovou strukturu. Místo aby sama produkovala celý HTML, deleguje funkce <code class="highlighter-rouge">view</code> tento úkol na funkce <code class="highlighter-rouge">nav</code>, <code class="highlighter-rouge">mainContent</code> a <code class="highlighter-rouge">footer</code>, jež jsou zodpovědné za vytvoření HTML pro každou jednotlivou sekci stránky. Tímto rozdělením kódu jsme výrazně redukovali "poznávací přetížení". Můžeme se soustředit na určitou část stránky vyhledáním příslušné funkce a pokusit se porozumět této dílčí funkci. Toto je jeden z důvodů, proč je Elm tak fantastický nástroj pro vytváření vysoce interaktivních webových aplikací které mohou v čase zvětšovat svůj objem a složitost.</p>
+
+<p>Ve většině jazyků a frameworků není taková přímočará možnost psát modulární funkce "view" jako v Elmu. Je to nejenom proto, že tyto jazyky postrádají inherentní podporu pro čisté funkce ale také proto, že jejich kód "view" často potřebuje pracovat přímo s reálným DOM.</p>
+
+<p><img src="images/view-code-in-other-languages.png" alt="" /></p>
+
+<p>Zatímco v Elmu je kód "view" izolován od reálného DOM jeho runtimem.
+</p>
+
+<p><img src="images/view-code-in-elm.png" alt="" /></p>
+
+<h4 id="performance-benefits">Výkonostní benefity</h4>
+
+<p>I když runtime Elmu odstíní špinavé detaily manipulace s realným DOM, má velkou volnost pro provádění chytrých optimalizací za scénou, jež ústí v mnohem rychlejším zobrazováním stránek. Jak přesně umí Elm zobrazovat stránky? Dole uvedený graf ukazuje, jak si Elm vede ve srovnání s několika nejpopulárnějšími v současné době používanými front-end frameworky.</p>
+
+<p><img src="images/elm-vs-other-frameworks.png" alt="" /></p>
+<div style="text-align:center">
+    <a href="http://elm-lang.org/blog/blazing-fast-html-round-two" target="_blank">
+        Source: Blazing Fast HTML by Evan Czaplicki
+    </a>
+</div>
+
+<p>Graf ukazuje, že je Elm <em>extrémně</em> rychlý, co se týče zobrazování stránek. Pokud byste se chtěli dozvědět, jaké optimalizace Elm používá pro dosažení takového velkého výkonu, určitě si přečtěte <a href="http://elm-lang.org/blog/blazing-fast-html-round-two" target="_blank">tento</a> úžasný příspěvek od Evana Czaplického.</p>
+
+<h3 id="summary">Shrnutí</h3>
+
+<p>V této sekci jsme poznali, jak moderní prohlížeče zpracovávají HTML parsováním proudu znaků na tokeny, ze kterých vytvoří strom DOM. Tento strom (tree) je poté konvertován na render tree, jenž prochází procesem rozmisťování (layout) předtím, než je vykreslen na obrazovku.</p>
+
+<p>Také jsme zjistili, že manipulace se stromem DOM je docela pomalá. To vedlo k vývoji virtuálního DOM, který umožnil runtime Elmu výrazně urychlit proces renderování. Virtuální DOM nám také umožnil psát modulární kód pro "view" s použitím čistých funkcí, které se dobře testují a v delším časovém horizontu udržují.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="model-view-update-part-1.html">
+<em>&larr; Previous</em>
+<strong>Skladba EA 1</strong>
+</a>
+<a class="pagination-next" href="model-view-update-part-2.html">
+<em>Next &rarr;</em><strong>Skladba EA 2</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>

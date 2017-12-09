@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title> - Beginning Elm</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="css/main.css">
+<!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">    deformuje zobrazení font awsome -->
+</head>
+
+<body>
+
+<section class="heading">
+<h1> 5.4 </h1>
+<h2>Skladba EA - 2</h2>
+</section>
+
+<div class="page-content">
+<div class="container">
+
+<div class="breadcrumb-holder">
+<header id="breadcrumb" class="breadcrumb">
+<a href="aa-index.html" class="breadcrumb-toggle">
+  <span></span>
+  <span></span>
+  <span></span>
+</a>
+
+<span class="breadcrumb-section">syntaxe</span>
+
+<a class="breadcrumb-next" href="side-effects.html">
+<i class="fa fa-angle-right"></i><span>Next article</span>
+</a>
+<a class="breadcrumb-previous" href="virtual-dom.html">
+<i class="fa fa-angle-left"></i><span>Previous article</span>
+</a>
+          
+</header>
+</div>
+
+<article class="content">
+<p>V sekci <a href="model-view-update-part-1.html" target="_blank">Skladba EA - 1</a> jsme použili velice jednoduchý příklad pro osvojení základních konceptů systému Elm Architecture. V této sekci vytvoříme lehce složitější aplikaci pro upevnění našeho chápání vzoru Model-View-Update.</p>
+
+<h3 id="building-a-sign-up-form">Registrační formulář</h3>
+
+<p>Většina dnešních webových aplikací od uživatele vyžaduje aby si vytvořil účet, neboli aby se registroval; pojďme tedy vytvořit registrační formulář v Elmu. Bude to dobré cvičení, na němž si ověříme působení Elm Architecture. Bude to také příležitost poznat stylování aplikace s použitím různých technik, včetně externího CSS. Takto by náš registrační formulář měl vypadat:</p>
+
+<p><img src="images/signup-form-inline-styled.png" alt="" /></p>
+
+<p>Při vytváření nové aplikace často nevíme kde začít. Je zajisté možné začít tak, jak jsme to udělali v sekci <a href="model-view-update-part-1.html" target="_blank">Skladba EA - 1</a>, to jest definovat model, napsat kód pro prezentaci "view" a zvolit sdělení, která může uživatel poslat aplikaci. Poté použít tato sdělení k transformaci stávajícího modelu na nový. Pusťme se tedy do práce.</p>
+
+<h3 id="model">Model</h3>
+
+<p>Nejprve musíme zvážit, jaké informace může naše aplikace potřebovat sledovat. K vytvoření nového účtu potřebujeme jméno uživatele, email a heslo. Také potřebujeme vést záznam o tom, je-li uživatel přihlášen či nikoliv. Na základě řečeného může model vypadat takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="kr">type</span> <span class="n">alias</span> <span class="kt">User</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">name</span> <span class="o">:</span> <span class="kt">String</span>
+    <span class="p">,</span> <span class="n">email</span> <span class="o">:</span> <span class="kt">String</span>
+    <span class="p">,</span> <span class="n">password</span> <span class="o">:</span> <span class="kt">String</span>
+    <span class="p">,</span> <span class="n">loggedIn</span> <span class="o">:</span> <span class="kt">Bool</span>
+    <span class="p">}</span></code></pre></figure>
+
+<p>Vytvořte nový soubor s názvem <code class="highlighter-rouge">Signup.elm</code> v adresáři <code class="highlighter-rouge">beginning-elm/elm-examples</code> a vložte do něho výše uvedený kód.</p>
+
+<p><img src="images/signup-elm-file-location.png" alt="" /></p>
+
+<p>Náš model je záznam (record) se čtyřmi vlastnostmi: <code class="highlighter-rouge">name</code>, <code class="highlighter-rouge">email</code> a <code class="highlighter-rouge">password</code>, které budou ukládat informace, zadané uživatelem. Vlastnost <code class="highlighter-rouge">loggedIn</code> bude ukazovat, zda byl uživatel pověřen k používání naší aplikace. Použití kontejneru <a href="record.html" target="_blank">record</a> k definování modelu v Elmu je docela běžné.</p>
+
+<p>Označili jsme náš model jménem <code class="highlighter-rouge">User</code>. Elm nevyžaduje abychom použili slovo <code class="highlighter-rouge">Model</code>, takže jej můžeme označit, jak chceme. Model pro registraci uživatele je mnohem složitější než model pro počítadlo. Zde je model počítadla pro srovnání:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="n">alias</span> <span class="kt">Model</span>
+    <span class="o">=</span> <span class="kt">Int</span></code></pre></figure>
+
+<p>Nyní, když jsme definovali strukturu našeho modelu, potřebujeme vytvořit jeho počáteční verzi. Počáteční model bude poskytnut aplikaci při jejím spuštění. Přidejte následující kód naspod souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">initialModel</span> <span class="o">:</span> <span class="kt">User</span>
+<span class="n">initialModel</span> <span class="o">=</span>
+    <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="p">,</span> <span class="n">loggedIn</span> <span class="o">=</span> <span class="kt">False</span>
+    <span class="p">}</span></code></pre></figure>
+
+<h3 id="view">View</h3>
+
+<p>Dalším krokem je prezentace počátečního modelu uživateli. Děláme to zadáním modelu funkci <code class="highlighter-rouge">view</code>. Přidejte následující kód naspod souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="kt">[]</span>
+            <span class="p">[</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Name"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"name"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"text"</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Email"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"email"</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Password"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"password"</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">button</span>
+                    <span class="p">[</span> <span class="n">type_</span> <span class="s">"submit"</span> <span class="p">]</span>
+                    <span class="p">[</span> <span class="n">text</span> <span class="s">"Create my account"</span> <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Již víme, co funkce <code class="highlighter-rouge">div</code>, <code class="highlighter-rouge">text</code> a <code class="highlighter-rouge">button</code> dělají. Nové funkce <code class="highlighter-rouge">h1</code>, <code class="highlighter-rouge">form</code> a <code class="highlighter-rouge">input</code> reprezentují tagy HTML <code class="highlighter-rouge">&lt;h1&gt;</code>, <code class="highlighter-rouge">&lt;form&gt;</code> a <code class="highlighter-rouge">&lt;input&gt;</code>. Funkce <code class="highlighter-rouge">id</code> reprezentuje atribut tagu HTML <code class="highlighter-rouge">id</code>. Konečně, funkce <code class="highlighter-rouge">type_</code> definuje typ zamýšleného tlačítka. Funkci <code class="highlighter-rouge">type_</code> můžeme také použít k označení typu jiných tagů, jako <code class="highlighter-rouge">&lt;input&gt;</code>, <code class="highlighter-rouge">&lt;script&gt;</code> a <code class="highlighter-rouge">&lt;style&gt;</code>.</p>
+
+<p>Všimněte si podtržítka v názvu funkce <code class="highlighter-rouge">type_</code>. Je použité proto, že klíčové slovo <a href="type-system.html#creating-our-own-types" target="_blank"><code class="highlighter-rouge">type</code></a> je již v Elmu obsazeno. V sekci <a href="constant.html#naming-constants" target="_blank">Pojmenování konstant</a> bylo doporučováno, abychom se pokusili nahradit podtržítko smysluplným slovem nějak takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Sansa"</span>
+<span class="s">"Sansa"</span>
+
+<span class="o">&gt;</span> <span class="n">name_</span> <span class="o">=</span> <span class="s">"Stark"</span>    <span class="c1">-- Valid but not recommended</span>
+<span class="s">"Stark"</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="o">&gt;</span> <span class="n">firstName</span> <span class="o">=</span> <span class="s">"Sansa"</span>
+<span class="s">"Sansa"</span>
+
+<span class="o">&gt;</span> <span class="n">lastName</span> <span class="o">=</span> <span class="s">"Stark"</span>    <span class="c1">-- Much better</span>
+<span class="s">"Stark"</span></code></pre></figure>
+
+<p>Ve smyslu tohoto doporučení mohli tvůrci modulu <code class="highlighter-rouge">Html</code> přejmenovat funkci <code class="highlighter-rouge">type_</code> na funkci <code class="highlighter-rouge">buttonType</code>, ale potom by také museli vytvořit odlišné funkce pro určení atributu typu jiných tagů, jako <code class="highlighter-rouge">&lt;input&gt;</code>, <code class="highlighter-rouge">&lt;script&gt;</code> a <code class="highlighter-rouge">&lt;style&gt;</code>, což je poněkud nadbytečné a proto je použití podtržítka v tomto případě oprávněné.</p>
+
+<p>Všechny funkce, použité v deklaraci  <code class="highlighter-rouge">view</code>, jsou definovány v modulech <code class="highlighter-rouge">Html</code> a <code class="highlighter-rouge">Html.Attributes</code>, tedy pokračujte a importujte je v souboru  <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Všimněte si, že jsme museli použít prefix <code class="highlighter-rouge">Html</code> před funkcí <code class="highlighter-rouge">form</code> ve funkci <code class="highlighter-rouge">view</code> — <code class="highlighter-rouge">Html.form</code>. To proto, že jsme u modulů <code class="highlighter-rouge">Html</code> a <code class="highlighter-rouge">Html.Attributes</code> exponovali vše a oba moduly obsahují funkci <code class="highlighter-rouge">form</code>. Kdybychom tak neučinili, dostali bychom následující chybové hlášení.</p>
+
+<p><img src="images/form-no-prefix-error.png" alt="" /></p>
+
+<p>Obecně vzato, exponování všeho z modulu bychom se měli vyhýbat z důvodů, uvedených v odstavci <a href="easier-code-organization.html#qualified-vs-unqualified-import" target="_blank">Kvalifikovaný vs nekvalifikovaný import</a>.  Ovšem, máme-li rodinu modulů často používaných současně, jako <code class="highlighter-rouge">Html</code> a <code class="highlighter-rouge">Html.Attributes</code>, kde je pravděpodobnost střetu názvů minimální a názvy funkcí jsou samodokumentační, potom je exponování všeho (..) bezpečné. Necítíte-li si s exponováním všeho bezpečně, můžete alternativně exoponovat každou funkci ve výčtu takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Html</span><span class="p">,</span> <span class="n">div</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">input</span><span class="p">,</span> <span class="n">button</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">id</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<h4 id="application-entry-point">Vstupní bod aplikace</h4>
+
+<p>Abychom mohli zobrazit "view", potřebujeme definovat vstupní bod pro naši aplikaci. Přidejte následující kód na spodek souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Program</span> <span class="kt">Never</span> <span class="kt">User</span> <span class="n">msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="n">beginnerProgram</span>
+        <span class="p">{</span> <span class="n">model</span> <span class="o">=</span> <span class="n">initialModel</span>
+        <span class="p">,</span> <span class="n">view</span> <span class="o">=</span> <span class="n">view</span>
+        <span class="p">,</span> <span class="n">update</span> <span class="o">=</span> <span class="n">update</span>
+        <span class="p">}</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">initialModel</code> a <code class="highlighter-rouge">view</code> jsme již definovali. Definujme nyní funkci <code class="highlighter-rouge">update</code>. Přidejte následující kód hned nad funkci <code class="highlighter-rouge">main</code> v souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">update</span> <span class="o">:</span> <span class="n">msg</span> <span class="o">-&gt;</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">User</span>
+<span class="n">update</span> <span class="n">msg</span> <span class="n">model</span> <span class="o">=</span>
+    <span class="n">initialModel</span>
+
+
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">update</code> vrací počáteční model. Záhy ji rozšíříme aby reagovala na různá sdělení, generovaná elementy UI. Nyní jsme připraveni zobrazit "view" na obrazovce. Spusťte <code class="highlighter-rouge">elm-reactor</code> z terminálu v adresáři <code class="highlighter-rouge">beginning-elm</code> a přejděte na toto URL ve vašem prohlížeči: <a href="http://localhost:8000/elm-examples/Signup.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Signup.elm</code></a>. Měl by se vám zobrazit přihlašovací formulář.</p>
+
+<p><img src="images/signup-form-unstyled.png" alt="" /></p>
+
+<h3 id="styling-our-view">Stylová úprava našeho zobrazení</h3>
+
+<p>Náš registrační formulář vypadá jako ošklivé káčátko. Přidejme nějaké stylování. Pro stylování stránky existuje v Elmu více způsobů:</p>
+
+<ul>
+  <li>použití lokálních (inline) stylů</li>
+  <li>použití paketu <a href="http://package.elm-lang.org/packages/rtfeldman/elm-css/latest" target="_blank"><code class="highlighter-rouge">elm-css</code></a></li>
+  <li>použití externího souboru CSS</li>
+  <li>použití frameworku CSS</li>
+</ul>
+
+<p>Vyzkoušíme každý přístup z výše uvedeného seznamu, takže je budete moci porovnat a zjistit, který vám víc vyhovuje.</p>
+
+<h4 id="1-using-inline-styles">1. Lokální určení stylu</h4>
+
+<p>Pro připojení lokálního stylu můžeme použít funkci <code class="highlighter-rouge">style</code> z modulu <code class="highlighter-rouge">Html.Attributes</code>. Přidejme k záhlaví nějakou výstelku (padding). Ve funkci <code class="highlighter-rouge">view</code> upravte řádek, který aplikuje funkci <code class="highlighter-rouge">h1</code>takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="p">[</span> <span class="n">style</span> <span class="p">[</span> <span class="p">(</span> <span class="s">"padding-left"</span><span class="p">,</span> <span class="s">"3cm"</span> <span class="p">)</span> <span class="p">]</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="kt">[]</span>
+        <span class="o">.</span>
+        <span class="o">.</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">style</code> přijímá seznam entic, které obsahují názvy CSS vlastností a jim přiřazené hodnoty. Takto vypadá signatura jejího typu:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">style</span> <span class="o">:</span> <span class="kt">List</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Attribute</span> <span class="n">msg</span></code></pre></figure>
+
+<p>Řádek, který ve funkci <code class="highlighter-rouge">view</code> obsahuje <code class="highlighter-rouge">h1</code>, se se všemi jeho závorkami obtížně čte. Extrahujme informaci o stylu do samostatné funkce. Přidejte následující definici hned pod funkci <code class="highlighter-rouge">view</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">=</span>
+    <span class="o">...</span>
+
+
+<span class="n">headerStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">headerStyle</span> <span class="o">=</span>
+    <span class="n">style</span>
+        <span class="p">[</span> <span class="p">(</span> <span class="s">"padding-left"</span><span class="p">,</span> <span class="s">"3cm"</span> <span class="p">)</span> <span class="p">]</span></code></pre></figure>
+
+<p>Nyní funkci <code class="highlighter-rouge">headerStyle</code> použijeme následovně:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="p">[</span> <span class="n">headerStyle</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="kt">[]</span>
+        <span class="o">.</span>
+        <span class="o">.</span></code></pre></figure>
+
+<p>Následně vytvoříme styly pro tagy <code class="highlighter-rouge">form</code>, <code class="highlighter-rouge">input</code> a <code class="highlighter-rouge">button</code> tags. Přidejte následující definice hned pod funkci <code class="highlighter-rouge">headerStyle</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">headerStyle</span> <span class="o">=</span>
+    <span class="o">...</span>
+
+
+<span class="n">formStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">formStyle</span> <span class="o">=</span>
+    <span class="n">style</span>
+        <span class="p">[</span> <span class="p">(</span> <span class="s">"border-radius"</span><span class="p">,</span> <span class="s">"5px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"background-color"</span><span class="p">,</span> <span class="s">"#f2f2f2"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"padding"</span><span class="p">,</span> <span class="s">"20px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"width"</span><span class="p">,</span> <span class="s">"300px"</span> <span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="n">inputTextStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">inputTextStyle</span> <span class="o">=</span>
+    <span class="n">style</span>
+        <span class="p">[</span> <span class="p">(</span> <span class="s">"display"</span><span class="p">,</span> <span class="s">"block"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"width"</span><span class="p">,</span> <span class="s">"260px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"padding"</span><span class="p">,</span> <span class="s">"12px 20px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"margin"</span><span class="p">,</span> <span class="s">"8px 0"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"border"</span><span class="p">,</span> <span class="s">"none"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"border-radius"</span><span class="p">,</span> <span class="s">"4px"</span> <span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="n">buttonStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">buttonStyle</span> <span class="o">=</span>
+    <span class="n">style</span>
+        <span class="p">[</span> <span class="p">(</span> <span class="s">"width"</span><span class="p">,</span> <span class="s">"300px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"background-color"</span><span class="p">,</span> <span class="s">"#397cd5"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"color"</span><span class="p">,</span> <span class="s">"white"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"padding"</span><span class="p">,</span> <span class="s">"14px 20px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"margin-top"</span><span class="p">,</span> <span class="s">"10px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"border"</span><span class="p">,</span> <span class="s">"none"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"border-radius"</span><span class="p">,</span> <span class="s">"4px"</span> <span class="p">)</span>
+        <span class="p">,</span> <span class="p">(</span> <span class="s">"font-size"</span><span class="p">,</span> <span class="s">"16px"</span> <span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Použijte tyto styly u jednotlivých tagů ve funkci <code class="highlighter-rouge">view</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="p">[</span> <span class="n">headerStyle</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="p">[</span> <span class="n">formStyle</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Name"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"name"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"text"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Email"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Password"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">button</span>
+                    <span class="p">[</span> <span class="n">type_</span> <span class="s">"submit"</span>
+                    <span class="p">,</span> <span class="n">buttonStyle</span>
+                    <span class="p">]</span>
+                    <span class="p">[</span> <span class="n">text</span> <span class="s">"Create my account"</span> <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Signup.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Signup.elm</code></a>, mělo by vyplout káčátko méně ošklivé.</p>
+
+<p><img src="images/signup-form-inline-styled.png" alt="" /></p>
+
+<h4 id="2-using-the-elm-css-package">2. Paket <code class="highlighter-rouge">elm-css</code></h4>
+
+<p>Býti schopen lokálně stylovat elementy je výhodné, ale použití seznamu entic pro určení vlastností a hodnot CSS je poněkud nemotorné. Pokud se dopustíme chyby při zadávání těchto vlastností, kompilátor je neodchytí, protože je vnímá jako obyčejné řetězce. Nebylo by výtečné, kdybychom pro detekci chyb v našich CSS mohli použít typový systém Elmu? To je přesně to, co nabízí paket <code class="highlighter-rouge">elm-css</code>.</p>
+
+<p>Upravme implementaci výše aplikovaných stylů s použitím funkcí, definovaných v modulu <code class="highlighter-rouge">Css</code> z paketu <code class="highlighter-rouge">elm-css</code>. Než tak budeme moci učinit, musíme instalovat paket. V adresáři <code class="highlighter-rouge">beginning-elm</code> zadejte v terminálu následující příkaz.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-package install rtfeldman/elm-css</code></pre></figure>
+
+<p>Byvše žádáni, odpovězte <code class="highlighter-rouge">y</code>, abyste přidali <code class="highlighter-rouge">rtfeldman/elm-css</code> jako dependenci k souboru <code class="highlighter-rouge">elm-package.json</code> a schvalte plán instalace. Potom importujte modul <code class="highlighter-rouge">Css</code> v souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Css</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Nyní přepište funkce <code class="highlighter-rouge">headerStyle</code>, <code class="highlighter-rouge">formStyle</code>, <code class="highlighter-rouge">inputTextStyle</code> a <code class="highlighter-rouge">buttonStyle</code> s použitím funkcí, definovaných v modulu <code class="highlighter-rouge">Css</code> module. Zaměňte obsahy oněch funkcí v souboru <code class="highlighter-rouge">Signup.elm</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">=</span>
+    <span class="o">...</span>
+
+
+<span class="n">styles</span> <span class="n">cssPairs</span> <span class="o">=</span>
+    <span class="kt">Css</span><span class="o">.</span><span class="n">asPairs</span> <span class="n">cssPairs</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Attributes</span><span class="o">.</span><span class="n">style</span>
+
+
+<span class="n">headerStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">headerStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="kt">Css</span><span class="o">.</span><span class="n">paddingLeft</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">cm</span> <span class="mi">3</span><span class="p">)</span> <span class="p">]</span>
+
+
+<span class="n">formStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">formStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="kt">Css</span><span class="o">.</span><span class="n">borderRadius</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">hex</span> <span class="s">"#f2f2f2"</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">padding</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">width</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="n">inputTextStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">inputTextStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="kt">Css</span><span class="o">.</span><span class="n">display</span> <span class="kt">Css</span><span class="o">.</span><span class="n">block</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">width</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">260</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">padding2</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">12</span><span class="p">)</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">margin2</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">8</span><span class="p">)</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">border</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">borderRadius</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="n">buttonStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">buttonStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="kt">Css</span><span class="o">.</span><span class="n">width</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">backgroundColor</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">hex</span> <span class="s">"#397cd5"</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">color</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">hex</span> <span class="s">"#fff"</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">padding2</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">14</span><span class="p">)</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">marginTop</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">border</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">borderRadius</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="p">,</span> <span class="kt">Css</span><span class="o">.</span><span class="n">fontSize</span> <span class="p">(</span><span class="kt">Css</span><span class="o">.</span><span class="n">px</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Jak vidíte, používáme nyní pro deklaraci vlastností CSS obyčejné funkce Elmu. Místo funkce <code class="highlighter-rouge">style</code>, definované v modulu <code class="highlighter-rouge">Html.Attributes</code> jsme použili vlastní funkci s názvem <code class="highlighter-rouge">styles</code>, která přijímá vlastnosti CSS a konvertuje je na páry key-value, jenž mohou být zadány funkci <code class="highlighter-rouge">Html.Attributes.style</code>.</p>
+
+<p>Protože jsme tyto funkce při importu modulu <code class="highlighter-rouge">Css</code> neexponovali, museli jsme použít neobratné prefixy. Důvod, proč jsme je neexponovali všechny je ten, že modul <code class="highlighter-rouge">Css</code> definuje několik funkcí, které jsou rovněž přítomny v modulech <code class="highlighter-rouge">Html</code> a <code class="highlighter-rouge">Html.Attributes</code>, například <code class="highlighter-rouge">text</code>, <code class="highlighter-rouge">id</code> a <code class="highlighter-rouge">width</code>. Lepší řešení je extrahovat všechen kód, související s CSS, do samostatného modulu. Učiňme tak. Vytvořte nový soubor nazvaný <code class="highlighter-rouge">SignupStyle.elm</code> v adresáři <code class="highlighter-rouge">beginning-elm/elm-examples</code>.</p>
+
+<p><img src="images/create-signup-style-elm-file.png" alt="" /></p>
+
+<p>Do souboru <code class="highlighter-rouge">SignupStyle.elm</code> přidejte následující kód.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">SignupStyle</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="kt">Attribute</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span>
+<span class="kr">import</span> <span class="nn">Css</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+
+<span class="n">styles</span> <span class="n">cssPairs</span> <span class="o">=</span>
+    <span class="kt">Css</span><span class="o">.</span><span class="n">asPairs</span> <span class="n">cssPairs</span>
+        <span class="o">|&gt;</span> <span class="kt">Html</span><span class="o">.</span><span class="kt">Attributes</span><span class="o">.</span><span class="n">style</span>
+
+
+<span class="n">headerStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">headerStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="n">paddingLeft</span> <span class="p">(</span><span class="n">cm</span> <span class="mi">3</span><span class="p">)</span> <span class="p">]</span>
+
+
+<span class="n">formStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">formStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="n">borderRadius</span> <span class="p">(</span><span class="n">px</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">backgroundColor</span> <span class="p">(</span><span class="n">hex</span> <span class="s">"#f2f2f2"</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">padding</span> <span class="p">(</span><span class="n">px</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">width</span> <span class="p">(</span><span class="n">px</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="n">inputTextStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">inputTextStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="n">display</span> <span class="n">block</span>
+        <span class="p">,</span> <span class="n">width</span> <span class="p">(</span><span class="n">px</span> <span class="mi">260</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">padding2</span> <span class="p">(</span><span class="n">px</span> <span class="mi">12</span><span class="p">)</span> <span class="p">(</span><span class="n">px</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">margin2</span> <span class="p">(</span><span class="n">px</span> <span class="mi">8</span><span class="p">)</span> <span class="p">(</span><span class="n">px</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">border</span> <span class="p">(</span><span class="n">px</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">borderRadius</span> <span class="p">(</span><span class="n">px</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="p">]</span>
+
+
+<span class="n">buttonStyle</span> <span class="o">:</span> <span class="kt">Attribute</span> <span class="n">msg</span>
+<span class="n">buttonStyle</span> <span class="o">=</span>
+    <span class="n">styles</span>
+        <span class="p">[</span> <span class="n">width</span> <span class="p">(</span><span class="n">px</span> <span class="mi">300</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">backgroundColor</span> <span class="p">(</span><span class="n">hex</span> <span class="s">"#397cd5"</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">color</span> <span class="p">(</span><span class="n">hex</span> <span class="s">"#fff"</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">padding2</span> <span class="p">(</span><span class="n">px</span> <span class="mi">14</span><span class="p">)</span> <span class="p">(</span><span class="n">px</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">marginTop</span> <span class="p">(</span><span class="n">px</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">border</span> <span class="p">(</span><span class="n">px</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">borderRadius</span> <span class="p">(</span><span class="n">px</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="p">,</span> <span class="n">fontSize</span> <span class="p">(</span><span class="n">px</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Kód CSS je nyní mnohem čistší. Musíme importovat modul <code class="highlighter-rouge">SignupStyle</code> v souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">SignupStyle</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Nezapomeňte odebrat řádek <code class="highlighter-rouge">import Css</code> ze souboru <code class="highlighter-rouge">Signup.elm</code>. Také z tohoto souboru odeberte funkce <code class="highlighter-rouge">styles</code>, <code class="highlighter-rouge">headerStyle</code>, <code class="highlighter-rouge">formStyle</code>, <code class="highlighter-rouge">inputTextStyle</code> a <code class="highlighter-rouge">buttonStyle</code>. Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Signup.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Signup.elm</code></a>, měl byste vidět tentýž formulář jako předtím.</p>
+
+<p><img src="images/signup-form-inline-styled.png" alt="" /></p>
+
+<h4 id="3-using-an-external-css-file">3. Použití externího souboru CSS</h4>
+
+<p>Třetí možností je vytvoření normálního souboru CSS a jeho použíti v naší aplikaci. Bohužel, <code class="highlighter-rouge">elm-reactor</code> neposkytuje snadný způsob načtení externích souborů CSS. Musíme tedy kompilovat soubor <code class="highlighter-rouge">Signup.elm</code> sami. Vytvořte nový soubor zvaný <code class="highlighter-rouge">signup-style.css</code> v adresáři <code class="highlighter-rouge">beginning-elm</code>.</p>
+
+<p><img src="images/create-signup-style-css-file.png" alt="" /></p>
+
+<p>Přidejte následující kód do souboru <code class="highlighter-rouge">signup-style.css</code>.</p>
+
+<figure class="highlight"><pre><code class="language-css" data-lang="css"><span class="nt">h1</span> <span class="p">{</span>
+    <span class="nl">padding-left</span><span class="p">:</span> <span class="m">3cm</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nt">form</span> <span class="p">{</span>
+    <span class="nl">border-radius</span><span class="p">:</span> <span class="m">5px</span><span class="p">;</span>
+    <span class="nl">background-color</span><span class="p">:</span> <span class="m">#f2f2f2</span><span class="p">;</span>
+    <span class="nl">padding</span><span class="p">:</span> <span class="m">20px</span><span class="p">;</span>
+    <span class="nl">width</span><span class="p">:</span> <span class="m">300px</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nt">input</span> <span class="p">{</span>
+    <span class="nl">display</span><span class="p">:</span> <span class="nb">block</span><span class="p">;</span>
+    <span class="nl">width</span><span class="p">:</span> <span class="m">260px</span><span class="p">;</span>
+    <span class="nl">padding</span><span class="p">:</span> <span class="m">12px</span> <span class="m">20px</span><span class="p">;</span>
+    <span class="nl">margin</span><span class="p">:</span> <span class="m">8px</span> <span class="m">0</span><span class="p">;</span>
+    <span class="nl">border</span><span class="p">:</span> <span class="nb">none</span><span class="p">;</span>
+    <span class="nl">border-radius</span><span class="p">:</span> <span class="m">4px</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="nt">button</span> <span class="p">{</span>
+    <span class="nl">width</span><span class="p">:</span> <span class="m">300px</span><span class="p">;</span>
+    <span class="nl">background-color</span><span class="p">:</span> <span class="m">#397cd5</span><span class="p">;</span>
+    <span class="nl">color</span><span class="p">:</span> <span class="no">white</span><span class="p">;</span>
+    <span class="nl">padding</span><span class="p">:</span> <span class="m">14px</span> <span class="m">20px</span><span class="p">;</span>
+    <span class="nl">margin-top</span><span class="p">:</span> <span class="m">10px</span><span class="p">;</span>
+    <span class="nl">border</span><span class="p">:</span> <span class="nb">none</span><span class="p">;</span>
+    <span class="nl">border-radius</span><span class="p">:</span> <span class="m">4px</span><span class="p">;</span>
+    <span class="nl">font-size</span><span class="p">:</span> <span class="m">16px</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Dále použijeme <code class="highlighter-rouge">elm-make</code> ke kompilaci souboru <code class="highlighter-rouge">Signup.elm</code>. Předtím z něho musíme odstranit všechny stopy po modulu <code class="highlighter-rouge">SignupStyle</code>. Odeberte řádek, který importuje modul <code class="highlighter-rouge">SignupStyle</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Musíme také přestat používat funkce <code class="highlighter-rouge">headerStyle</code>, <code class="highlighter-rouge">formStyle</code>, <code class="highlighter-rouge">inputTextStyle</code> a <code class="highlighter-rouge">buttonStyle</code> ve funkci <code class="highlighter-rouge">view</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="kt">[]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="kt">[]</span>
+            <span class="p">[</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Name"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"name"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"text"</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Email"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"email"</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Password"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"password"</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">button</span>
+                    <span class="p">[</span> <span class="n">type_</span> <span class="s">"submit"</span> <span class="p">]</span>
+                    <span class="p">[</span> <span class="n">text</span> <span class="s">"Create my account"</span> <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Nyní jsme v situaci, kdy náš registrační formulář nemá vůbec žádný styl. Zadejte následující příkaz z terminálu v adresáři <code class="highlighter-rouge">beginning-elm</code>, kompilující soubor <code class="highlighter-rouge">Signup.elm</code> na JavaScript.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-make elm-examples/Signup.elm --output signup.js</code></pre></figure>
+
+<p>Příkaz <code class="highlighter-rouge">elm-make</code> vytvoří nový soubor s názvem <code class="highlighter-rouge">signup.js</code> v adresáři <code class="highlighter-rouge">beginning-elm</code>. Pokud již existuje, bude jeho obsah přepsán. Konečným krokem je vytvoření souboru HTML, který načte soubory <code class="highlighter-rouge">signup-style.css</code>  a <code class="highlighter-rouge">signup.js</code>. Vytvořte soubor <code class="highlighter-rouge">signup.html</code> v adresáři <code class="highlighter-rouge">beginning-elm</code>.</p>
+
+<p><img src="images/create-signup-html-file.png" alt="" /></p>
+
+<p>Přidejte následující kód do souboru <code class="highlighter-rouge">signup.html</code>.</p>
+
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+
+<span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"stylesheet"</span> <span class="na">href=</span><span class="s">"signup-style.css"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/head&gt;</span>
+
+<span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"elm-code-is-loaded-here"</span><span class="nt">&gt;&lt;/div&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"signup.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script&gt;</span>
+        <span class="nx">Elm</span><span class="p">.</span><span class="nx">Signup</span><span class="p">.</span><span class="nx">embed</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"elm-code-is-loaded-here"</span><span class="p">));</span>
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+
+<span class="nt">&lt;/html&gt;</span></code></pre></figure>
+
+<p>Kód pro načtení souboru <code class="highlighter-rouge">signup-style.css</code> je jasný, ale ten, který načítá aplikaci Elmu je poněkud složitější. Nejprve musíme načíst soubor  <code class="highlighter-rouge">signup.js</code>, jenž obsahuje kompilovaný kód JavaScriptu. Vzpomeňte si, že soubor <code class="highlighter-rouge">signup.js</code> obsahuje kromě námi napsaného kódu také celý runtime Elmu a další pakety, které jsme instalovali.</p>
+
+<p><img src="images/compile-signup-elm-to-javascript.png" alt="" /></p>
+
+<p>Vytvořili jsme element <code class="highlighter-rouge">div</code> s atributem <code class="highlighter-rouge">id</code>. Potom jsme použili Elm runtime k načtení naší aplikace do elementu  <code class="highlighter-rouge">div id="elm-code-is-loaded-here"</code>. Zavoláme-li funkci <code class="highlighter-rouge">Elm.Signup.embed</code>, runtime Elmu hledá funkci <code class="highlighter-rouge">main</code> uvnitř modulu <code class="highlighter-rouge">Signup</code> a použije ji jako vstupní bod. Pokud modul <code class="highlighter-rouge">Signup</code> chybí nebo existuje ale nemá funkci <code class="highlighter-rouge">main</code>, obdržíme chybové hlášení. Otevřete-li soubor <code class="highlighter-rouge">beginning-elm/signup.html</code> v prohlížeči, měl byste vidět stejný formulář jako předtím.</p>
+
+<p><img src="images/signup-form-inline-styled.png" alt="" /></p>
+
+<p>Načítání CSS z externího souboru nás přinutilo udělat několik kroků navíc ale také nám umožnilo použít jakýkoliv soubor CSS v naší aplikaci Elmu. Tento přístup se hodí, plánujete-li zavést Elm do své existující aplikace, která již obsahuje četné soubory CSS.</p>
+
+<h4 id="4-using-a-css-framework">4. CSS Framework</h4>
+
+<p>Použití frameworku CSS v elmí aplikaci je rovněž možné. Je to vlastně velmi podobné použití externích souborů CSS. V odstavci <a href="getting-started.html#2.2" target="_blank">Vytvoření webové stránky</a> sekce Začínáme, jsme použili populární framework <a href="http://getbootstrap.com/" target="_blank">Bootstrap</a> ke stylizaci domovské stránky Dunder Mifflin Inc. 
+Použijme jej opět ke stylizaci našeho registračního formuláře. Upravte soubor <code class="highlighter-rouge">signup.html</code> tak, aby obsahoval framework Bootstrap místo souboru <code class="highlighter-rouge">signup-style.css</code>.</p>
+
+<figure class="highlight"><pre><code class="language-html" data-lang="html"><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html&gt;</span>
+
+<span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"stylesheet"</span>
+          <span class="na">href=</span><span class="s">"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/head&gt;</span>
+
+<span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"elm-code-is-loaded-here"</span><span class="nt">&gt;&lt;/div&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"signup.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script&gt;</span>
+        <span class="nx">Elm</span><span class="p">.</span><span class="nx">Signup</span><span class="p">.</span><span class="nx">embed</span><span class="p">(</span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">"elm-code-is-loaded-here"</span><span class="p">));</span>
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+
+<span class="nt">&lt;/html&gt;</span></code></pre></figure>
+
+<p>Dále potřebujeme určit, která třídy CSS chceme použít v našem kódu Elm. Upravte funkci <code class="highlighter-rouge">view</code> v souboru <code class="highlighter-rouge">Signup.elm</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"container"</span> <span class="p">]</span>
+        <span class="p">[</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"row"</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"col-md-6 col-md-offset-3"</span> <span class="p">]</span>
+                <span class="p">[</span> <span class="n">h1</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"text-center"</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+                <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="kt">[]</span>
+                    <span class="p">[</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"form-group"</span> <span class="p">]</span>
+                        <span class="p">[</span> <span class="n">label</span>
+                            <span class="p">[</span> <span class="kr">class</span> <span class="s">"control-label"</span>
+                            <span class="p">,</span> <span class="n">for</span> <span class="s">"name"</span>
+                            <span class="p">]</span>
+                            <span class="p">[</span> <span class="n">text</span> <span class="s">"Name"</span> <span class="p">]</span>
+                        <span class="p">,</span> <span class="n">input</span>
+                            <span class="p">[</span> <span class="kr">class</span> <span class="s">"form-control"</span>
+                            <span class="p">,</span> <span class="n">id</span> <span class="s">"name"</span>
+                            <span class="p">,</span> <span class="n">type_</span> <span class="s">"text"</span>
+                            <span class="p">]</span>
+                            <span class="kt">[]</span>
+                        <span class="p">]</span>
+                    <span class="p">,</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"form-group"</span> <span class="p">]</span>
+                        <span class="p">[</span> <span class="n">label</span>
+                            <span class="p">[</span> <span class="kr">class</span> <span class="s">"control-label"</span>
+                            <span class="p">,</span> <span class="n">for</span> <span class="s">"email"</span>
+                            <span class="p">]</span>
+                            <span class="p">[</span> <span class="n">text</span> <span class="s">"Email"</span> <span class="p">]</span>
+                        <span class="p">,</span> <span class="n">input</span>
+                            <span class="p">[</span> <span class="kr">class</span> <span class="s">"form-control"</span>
+                            <span class="p">,</span> <span class="n">id</span> <span class="s">"email"</span>
+                            <span class="p">,</span> <span class="n">type_</span> <span class="s">"email"</span>
+                            <span class="p">]</span>
+                            <span class="kt">[]</span>
+                        <span class="p">]</span>
+                    <span class="p">,</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"form-group"</span> <span class="p">]</span>
+                        <span class="p">[</span> <span class="n">label</span>
+                            <span class="p">[</span> <span class="kr">class</span> <span class="s">"control-label"</span>
+                            <span class="p">,</span> <span class="n">for</span> <span class="s">"password"</span>
+                            <span class="p">]</span>
+                            <span class="p">[</span> <span class="n">text</span> <span class="s">"Password"</span> <span class="p">]</span>
+                        <span class="p">,</span> <span class="n">input</span>
+                            <span class="p">[</span> <span class="kr">class</span> <span class="s">"form-control"</span>
+                            <span class="p">,</span> <span class="n">id</span> <span class="s">"password"</span>
+                            <span class="p">,</span> <span class="n">type_</span> <span class="s">"password"</span>
+                            <span class="p">]</span>
+                            <span class="kt">[]</span>
+                        <span class="p">]</span>
+                    <span class="p">,</span> <span class="n">div</span> <span class="p">[</span> <span class="kr">class</span> <span class="s">"text-center"</span> <span class="p">]</span>
+                        <span class="p">[</span> <span class="n">button</span>
+                            <span class="p">[</span> <span class="kr">class</span> <span class="s">"btn btn-lg btn-primary"</span>
+                            <span class="p">,</span> <span class="n">type_</span> <span class="s">"submit"</span>
+                            <span class="p">]</span>
+                            <span class="p">[</span> <span class="n">text</span> <span class="s">"Create my account"</span> <span class="p">]</span>
+                        <span class="p">]</span>
+                    <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Bootstrap definuje mnohé třídy CSS jako <code class="highlighter-rouge">container</code>, <code class="highlighter-rouge">row</code>, <code class="highlighter-rouge">col-md-6</code> a <code class="highlighter-rouge">form-group</code>, které mají specielní význam. Nebudeme se v této knize snažit znát, co každá z těchto tříd znamená ale můžete se o nich vše na <a href="http://getbootstrap.com/getting-started/" target="_blank">oficiální stráncke</a> Bootstrapu. Jakmile víte, jak framework Bootstrapu pracuje, je zcela snadné rozumět výše uvedenému kódu.</p>
+
+<p>Dalším krokem je rekompilace souboru <code class="highlighter-rouge">Signup.elm</code> s použitím nástroje <code class="highlighter-rouge">elm-make</code>. Spusťte následující příkaz z terminálu v adresáři <code class="highlighter-rouge">beginning-elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">elm-make elm-examples/Signup.elm --output signup.js</code></pre></figure>
+
+<p>Když nyní v prohlížeči otevřete soubor <code class="highlighter-rouge">signup.html</code>, měl byste vidět tento formulář:</p>
+
+<p><img src="images/signup-form-styled-with-bootstrap.png" alt="" /></p>
+
+<p>Velkou nevýhodou použití externích souborů CSS neb frameworku tímto způsobem je to, že ztrácíme schopnost odhalit chyby v našem kódu CSS při kompilaci. Dobrou zprávou je, že členové elmí komunity pracují pilně na paketech, umožňujících použití externích frameworků, jako je Bootstrap a <a href="https://material.io/guidelines/material-design/introduction.html" target="_blank">Material Design</a> více spolehlivé prostřednictvím typového systému a jiných nástrojů. Pakety <a href="http://elm-bootstrap.info/" target="_blank"><code class="highlighter-rouge">elm-bootstrap</code></a> a <a href="http://package.elm-lang.org/packages/debois/elm-mdl/latest" target="_blank"><code class="highlighter-rouge">elm-mdl</code></a> nám umožňují navrhovat stránky pomocí Bootstrapu a Material Designu bez obětování typové bezpečnosti Elmu. Rozhodně si je vyzkoušejte.</p>
+
+<p>Vraťme složení funkce <code class="highlighter-rouge">view</code> do stavu, kdy používala styly, definované v souboru <code class="highlighter-rouge">SignupStyle.elm</code> abychom mohli i nadále k testování našich změn používat <code class="highlighter-rouge">elm-reactor</code> místo rekompilování našeho kódu nástrojem <code class="highlighter-rouge">elm-make</code> pokaždé, když provedeme i malou změnu.</p>
+
+<p class="info">Existuje knihovna <a href="https://github.com/tomekwi/elm-live" target="_blank"><code class="highlighter-rouge">elm-live</code></a> která automaticky znovu načítá stránky při každé jejich změně. Intrukce pro její ustavení zde uvádět nebudeme ale určitě si tento nástroj vyzkoušejte.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="n">msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="p">[</span> <span class="n">headerStyle</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="p">[</span> <span class="n">formStyle</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Name"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"name"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"text"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Email"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Password"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">button</span>
+                    <span class="p">[</span> <span class="n">type_</span> <span class="s">"submit"</span>
+                    <span class="p">,</span> <span class="n">buttonStyle</span>
+                    <span class="p">]</span>
+                    <span class="p">[</span> <span class="n">text</span> <span class="s">"Create my account"</span> <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Potřebujeme také vrátit import modulu <code class="highlighter-rouge">SignupStyle</code> v souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+
+<span class="kr">import</span> <span class="nn">Html</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Attributes</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">SignupStyle</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<h3 id="update">Update</h3>
+
+<p>Nyní, když jsme uživatelům prezentovali sekci "view", nastává otázka, co s ním mohou dělat? Mohou napsat své jméno, email a heslo do formuláře a kliknout tlačítko <em>Create my account</em> pro vytvoření nového formuláře. Nejprve musíme zvolit způsob, jakým ukládat jméno, email a heslo do modelu <code class="highlighter-rouge">User</code>. Modul <code class="highlighter-rouge">Html.Events</code> definuje funkci zvanou  <code class="highlighter-rouge">onInput</code>, umožňující určit, které sdělení (message) má být spuštěno, když uživatel začne vyplňovat textové pole. Zde je příklad:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">input</span> <span class="p">[</span> <span class="n">id</span> <span class="s">"name"</span>
+      <span class="p">,</span> <span class="n">type_</span> <span class="s">"text"</span>
+      <span class="p">,</span> <span class="n">inputTextStyle</span>
+      <span class="p">,</span> <span class="n">onInput</span> <span class="kt">SaveName</span>
+      <span class="p">]</span></code></pre></figure>
+
+<p>Tento kód zatím nepřepisujte; potřebujeme přidat atribut <code class="highlighter-rouge">onInput</code> ke všem polím našeho kolektoru <code class="highlighter-rouge">input</code>. Učiníme tak poté, co definujeme sdělení <code class="highlighter-rouge">SaveName</code> a všechna další sdělení, potřebná v naši aplikaci. Přidejte následující hned nad fukci <code class="highlighter-rouge">update</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">type</span> <span class="kt">Msg</span>
+    <span class="o">=</span> <span class="kt">SaveName</span> <span class="kt">String</span>
+    <span class="o">|</span> <span class="kt">SaveEmail</span> <span class="kt">String</span>
+    <span class="o">|</span> <span class="kt">SavePassword</span> <span class="kt">String</span>
+    <span class="o">|</span> <span class="kt">Signup</span>
+
+
+<span class="n">update</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Sdělení<code class="highlighter-rouge">SaveName</code>, <code class="highlighter-rouge">SaveEmail</code> a <code class="highlighter-rouge">SavePassword</code> budou spuštěna při vkládání jména, emailu a hesla uživatelem. Sdělení <code class="highlighter-rouge">Signup</code> bude spuštěno při stisku tlačítka <em>Create my account</em>.</p>
+
+<p>Musíme Elmu také říci, co si má s oněmi sděleními počít. Tady přichází ke slovu funkce <code class="highlighter-rouge">update</code>. Kdykoliv Elm přijme sdělení, ověří si, zda pro něho ve funkci <code class="highlighter-rouge">update</code> existuje odpovídající vzor. Pokud vzor existuje, provede se jemu odpovídající kód. Pokud ne, aplikace krachuje. Proto je důležité ošetřit všechna možná příchozí sdělení. Upravte funkci <code class="highlighter-rouge">update</code> takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">User</span>
+<span class="n">update</span> <span class="n">message</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="kr">case</span> <span class="n">message</span> <span class="kr">of</span>
+        <span class="kt">SaveName</span> <span class="n">name</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="p">}</span>
+
+        <span class="kt">SaveEmail</span> <span class="n">email</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">email</span> <span class="o">=</span> <span class="n">email</span> <span class="p">}</span>
+
+        <span class="kt">SavePassword</span> <span class="n">password</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">password</span> <span class="o">=</span> <span class="n">password</span> <span class="p">}</span>
+
+        <span class="kt">Signup</span> <span class="o">-&gt;</span>
+            <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">loggedIn</span> <span class="o">=</span> <span class="kt">True</span> <span class="p">}</span></code></pre></figure>
+
+<p>Funkce <code class="highlighter-rouge">update</code> přijímá sdělení a model (v našem případě <code class="highlighter-rouge">User</code>) a provede s modelem nějaké operace. Potom vrací výsledný model. Takže když uživatel zapíše své jméno do textového pole, přijímá Elm sdělení <code class="highlighter-rouge">SaveName</code>, pro nějž vyhledá odpovídající vzor:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kt">SaveName</span> <span class="n">name</span> <span class="o">-&gt;</span>
+    <span class="p">{</span> <span class="n">user</span> <span class="o">|</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="p">}</span></code></pre></figure>
+
+<p>Vše, co zde děláme je to, že ukládáme jméno, které přišlo jako payload se sdělením <code class="highlighter-rouge">SaveName</code> do modelu <code class="highlighter-rouge">User</code> s použitím postupu<a href="record.html#modifying-a-record" target="_blank">aktualizace skladby záznamu </a>. Kód pro ošetření sdělení, pocházející z textových polí <code class="highlighter-rouge">SaveEmail</code> a <code class="highlighter-rouge">SavePassword</code>, je velmi podobný. Větev pro sdělení <code class="highlighter-rouge">Signup</code> jednoduše nastavuje flag <code class="highlighter-rouge">loggedIn</code> na hodnotu <code class="highlighter-rouge">True</code>. Opravdový kód pro ošetření těchto sdělení vyžaduje abychom věděli jak poslat požadavky HTTP na server v Elmu. To zatím nevíte a proto si musíte počkat na dokončení sekce <a href="http-requests.html" target="_blank">HTTP Requests</a>, pokud si to nezjistíte z jiných zdrojů.</p>
+
+<p>Nevím zda jste si toho všimli, ale anotace typu funkce <code class="highlighter-rouge">update</code> nyní používá typ <code class="highlighter-rouge">Msg</code> místo proměnné typu <code class="highlighter-rouge">msg</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="c1">-- Before the Msg type was defined</span>
+<span class="n">update</span> <span class="o">:</span> <span class="n">msg</span> <span class="o">-&gt;</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">User</span>
+
+
+<span class="c1">-- After the Msg type was defined</span>
+<span class="n">update</span> <span class="o">:</span> <span class="kt">Msg</span> <span class="o">-&gt;</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">User</span></code></pre></figure>
+
+<p>Musíme také nahradit proměnnou typu <code class="highlighter-rouge">msg</code> typem <code class="highlighter-rouge">Msg</code> v anotacích funkcí <code class="highlighter-rouge">view</code> a <code class="highlighter-rouge">main</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">main</span> <span class="o">:</span> <span class="kt">Program</span> <span class="kt">Never</span> <span class="kt">User</span> <span class="kt">Msg</span>
+<span class="n">main</span> <span class="o">=</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>Dále musíme přidat atributy <code class="highlighter-rouge">onInput</code> a <code class="highlighter-rouge">onClick</code> ke všem vstupním polím a k tlačítku <em>Create my account</em> ve funkci <code class="highlighter-rouge">view</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="n">view</span> <span class="o">:</span> <span class="kt">User</span> <span class="o">-&gt;</span> <span class="kt">Html</span> <span class="kt">Msg</span>
+<span class="n">view</span> <span class="n">user</span> <span class="o">=</span>
+    <span class="n">div</span> <span class="kt">[]</span>
+        <span class="p">[</span> <span class="n">h1</span> <span class="p">[</span> <span class="n">headerStyle</span> <span class="p">]</span> <span class="p">[</span> <span class="n">text</span> <span class="s">"Sign up"</span> <span class="p">]</span>
+        <span class="p">,</span> <span class="kt">Html</span><span class="o">.</span><span class="n">form</span> <span class="p">[</span> <span class="n">formStyle</span> <span class="p">]</span>
+            <span class="p">[</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Name"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"name"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"text"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">,</span> <span class="n">onInput</span> <span class="kt">SaveName</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Email"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"email"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">,</span> <span class="n">onInput</span> <span class="kt">SaveEmail</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">text</span> <span class="s">"Password"</span>
+                <span class="p">,</span> <span class="n">input</span>
+                    <span class="p">[</span> <span class="n">id</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">type_</span> <span class="s">"password"</span>
+                    <span class="p">,</span> <span class="n">inputTextStyle</span>
+                    <span class="p">,</span> <span class="n">onInput</span> <span class="kt">SavePassword</span>
+                    <span class="p">]</span>
+                    <span class="kt">[]</span>
+                <span class="p">]</span>
+            <span class="p">,</span> <span class="n">div</span> <span class="kt">[]</span>
+                <span class="p">[</span> <span class="n">button</span>
+                    <span class="p">[</span> <span class="n">type_</span> <span class="s">"submit"</span>
+                    <span class="p">,</span> <span class="n">buttonStyle</span>
+                    <span class="p">,</span> <span class="n">onClick</span> <span class="kt">Signup</span>
+                    <span class="p">]</span>
+                    <span class="p">[</span> <span class="n">text</span> <span class="s">"Create my account"</span> <span class="p">]</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+        <span class="p">]</span></code></pre></figure>
+
+<p>Protože jsou funkce <code class="highlighter-rouge">onInput</code> a <code class="highlighter-rouge">onClick</code> definovány v modulech <code class="highlighter-rouge">Html.Events</code>, potřebujem je importovat v souboru <code class="highlighter-rouge">Signup.elm</code>.</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="kr">module</span> <span class="nn">Signup</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span>
+<span class="kr">import</span> <span class="nn">SignupStyle</span> <span class="n">exposing</span> <span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="kr">import</span> <span class="nn">Html.Events</span> <span class="n">exposing</span> <span class="p">(</span><span class="n">onInput</span><span class="p">,</span> <span class="n">onClick</span><span class="p">)</span>
+<span class="o">.</span>
+<span class="o">.</span></code></pre></figure>
+
+<p>Obnovíte-li stránku na <a href="http://localhost:8000/elm-examples/Signup.elm" target="_blank"><code class="highlighter-rouge">http://localhost:8000/elm-examples/Signup.elm</code></a>, můžete opět vidět náš formulář.</p>
+
+<p><img src="images/signup-form-inline-styled.png" alt="" /></p>
+
+<p>Poté, co uživatel zapsal všechny tři části informace a stisknul tlačítko <em>Create my account</em>, vypadá výsledný model takto:</p>
+
+<figure class="highlight"><pre><code class="language-haskell" data-lang="haskell"><span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s">"Art Vandelay"</span>
+<span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">"art@vandelayindustries.com"</span>
+<span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="s">"opposite"</span>
+<span class="p">,</span> <span class="n">loggedIn</span> <span class="o">=</span> <span class="kt">True</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><img src="images/signup-form-filled.png" alt="" /></p>
+
+<p>Neobdrželi jsme žádnou vizuální odezvu (feedback) při stisku tlačítka <em>Create my account</em> ale to napravíme později v sekci <a href="/http-requests.html" target="_blank">Http Requests</a>.</p>
+
+<h3 id="summary">Shrnutí</h3>
+
+<p>V této sekci jsme upevnili naše chápání práce sestavy <em>Model View Update</em> vytvořením lehce složitější aplikace. Interakce mezi jednotlivými registračního formuláře je velmi podobná interakci mezi jednotlivými komponenty počítadla, které jsme vytvořili v sekci <a href="model-view-update-part-1.html" target="_blank">Elm Architecture - část 1</a>.</p>
+
+<p><img src="images/model-view-update-interaction-2.png" alt="" /></p>
+
+<p>Rovněž jsme si ukázali různé stylování našich zobrazení (views) s použitím lokálního CSS, paketu <code class="highlighter-rouge">elm-css</code>, externího souboru CSS a externího frameworku jako je Bootstrap.</p>
+</article>
+
+ <nav class="pagination">
+<a class="pagination-next" href="virtual-dom.html">
+<em>&larr; Previous</em>
+<strong>Virtuální DOM</strong>
+</a>
+<a class="pagination-next" href="side-effects.html">
+<em>Next &rarr;</em><strong>Vedlejší účinky</strong>
+</a>
+<a class="elevator" href="aa-index.html"><i class="fa fa-angle-up"></i>
+<span>Back to top</span>
+</a>
+</nav>
+
+</div>
+</div>
+
+
+
+<footer id="footer" class="page-footer">
+<footer class="container">
+ <p>Copyright © 2016 Pawan Poudel. All Rights Reserved.</p>
+</footer>
+</footer>
+
+  </body>
+</html>
